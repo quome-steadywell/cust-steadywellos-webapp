@@ -28,13 +28,6 @@ services:
     networks:
       - palliative-care-network
 
-  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
-    networks:
-      - palliative-care-network
-
 networks:
   palliative-care-network:
     driver: bridge

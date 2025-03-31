@@ -13,7 +13,7 @@ class Config:
     PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
     BCRYPT_LOG_ROUNDS = 13
     DEBUG_TB_INTERCEPT_REDIRECTS = False
-    CACHE_TYPE = 'SimpleCache'  # Can be "MemcachedCache", "RedisCache", etc.
+    CACHE_TYPE = 'SimpleCache'  # In-memory cache for single-instance deployments
     CORS_ORIGIN_WHITELIST = [
         'http://0.0.0.0:5000',
         'http://localhost:5000',

@@ -2,23 +2,62 @@
 
 SteadywellOS is a comprehensive platform designed for palliative care coordination and remote patient management. It enables healthcare providers to efficiently manage patient assessments, schedule follow-up calls, and implement specialized care protocols for conditions like cancer, heart failure, and COPD.
 
-## Quick Start
+## 🚀 Quick Start
 
-To initialize and run the system, use the included `init.sh` script:
+SteadywellOS can be set up and run using the Just command runner or directly using the shell scripts in the `scripts` directory.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+- [Just](https://github.com/casey/just#installation) (optional but recommended)
+
+### Installation Steps
+
+#### Step 1: Install dependencies
 
 ```bash
-chmod +x init.sh
-./init.sh
+# Using Just (recommended)
+just install
+
+# Or using the script directly
+./scripts/install.sh
 ```
 
-This script will:
-1. Check if Docker is running
-2. Set up required environment variables
-3. Configure Docker Compose
-4. Build and start the containers
-5. Initialize and seed the database
+This will:
+- Check prerequisites (Docker, Docker Compose)
+- Set up necessary environment files
+- Configure required permissions
 
-After initialization, the platform will be available at http://localhost:8080
+#### Step 2: Start the application
+
+```bash
+# Using Just (recommended)
+just up
+
+# Or using the script directly
+./scripts/up.sh
+```
+
+This will:
+- Build and start all necessary containers
+- Configure the application environment
+- Make the application available at http://localhost:8080
+
+#### Step 3: Initialize and seed the database
+
+The database is automatically initialized during startup, but you can also do it manually:
+
+```bash
+# Using Just
+just db-init   # Initialize database schema
+just db-seed   # Seed with sample data
+
+# Or using scripts directly
+./scripts/db_init.sh
+./scripts/db_seed.sh
+```
+
+After completing these steps, the platform will be available at http://localhost:8080
 
 ## Default Login Credentials
 
@@ -37,6 +76,23 @@ The system is seeded with the following test users:
   - Password: `password123`
 
 **IMPORTANT:** These are default test credentials. In a production environment, you must change these passwords.
+
+## 🧰 Available Commands
+
+The following commands are available through the Just command runner:
+
+| Command | Description |
+|---------|-------------|
+| `just up` | Start the application |
+| `just down` | Stop the application |
+| `just restart` | Restart the application |
+| `just logs` | View application logs |
+| `just db-init` | Initialize the database schema |
+| `just db-seed` | Seed the database with sample data |
+| `just db-reset` | Reset the database (drop, create, seed) |
+| `just status` | Check application status |
+| `just test` | Run tests |
+| `just install` | Install dependencies |
 
 ## Features
 

@@ -66,10 +66,9 @@ def audit_action(action, resource_type):
     return decorator
 
 def rate_limit(limit=100, per=60):
-    """Simple rate limiting decorator"""
+    """Simple rate limiting decorator using in-memory storage"""
     def decorator(f):
-        # Use in-memory storage for rate limiting
-        # In production, use Redis or similar
+        # Basic in-memory rate limiting for single-instance deployments
         _rate_limits = {}
         
         @wraps(f)
