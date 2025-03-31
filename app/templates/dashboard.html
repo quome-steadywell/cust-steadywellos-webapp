@@ -176,6 +176,15 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Date utility function to match server-side week calculation
+    function getWeekStartDate() {
+        const today = new Date();
+        // Get Sunday as the start of the week (0=Sunday)
+        const day = today.getDay();
+        const diff = today.getDate() - day;
+        return new Date(today.setDate(diff));
+    }
+
     // Dashboard data loading
     function loadDashboardData() {
         // Fetch dashboard summary

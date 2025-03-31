@@ -23,4 +23,8 @@ fi
 echo -e "${GREEN}Initializing database tables...${NC}"
 docker-compose exec web python run.py create_db
 
+# Initialize protocols
+echo -e "${GREEN}Initializing protocols in the database...${NC}"
+docker-compose exec web python scripts/protocol_ingest.py
+
 echo -e "${GREEN}Database initialization complete!${NC}"

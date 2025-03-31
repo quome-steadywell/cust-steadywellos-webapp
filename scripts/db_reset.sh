@@ -35,6 +35,9 @@ docker-compose exec web python run.py drop_db
 echo -e "${GREEN}Initializing database tables...${NC}"
 docker-compose exec web python run.py create_db
 
+echo -e "${GREEN}Initializing protocols...${NC}"
+docker-compose exec web python scripts/protocol_ingest.py
+
 echo -e "${GREEN}Seeding database with sample data...${NC}"
 docker-compose exec web python run.py seed_db
 

@@ -10,14 +10,23 @@ from app.models.assessment import Assessment, FollowUpPriority
 from app.models.medication import Medication, MedicationRoute, MedicationFrequency
 from app.models.audit_log import AuditLog
 
-def seed_database():
-    """Seed the database with initial data"""
+def seed_database(test_scenario=None):
+    """
+    Seed the database with initial data
+    
+    Args:
+        test_scenario (str, optional): Specific test scenario to generate data for
+            Valid values: None, 'date_check'
+    """
     # Clear existing data in the correct order to handle foreign key constraints
     db.session.query(Assessment).delete()
     db.session.query(Call).delete()
     db.session.query(Medication).delete()
     db.session.query(Patient).delete()
-    db.session.query(Protocol).delete()
+    
+    # We don't delete protocols anymore - they should be created before this runs
+    # db.session.query(Protocol).delete()
+    
     # Delete audit logs before users to avoid foreign key constraint issues
     db.session.query(AuditLog).delete()
     db.session.query(User).delete()
@@ -74,322 +83,347 @@ def seed_database():
     db.session.add_all([admin, nurse1, nurse2, physician])
     db.session.commit()
     
-    # Create protocols
-    cancer_protocol = Protocol(
-        name="Cancer Palliative Care Protocol",
-        description="Protocol for managing symptoms in patients with advanced cancer",
-        protocol_type=ProtocolType.CANCER,
-        version="1.0",
-        questions=[
-            {
-                "id": "pain_level",
-                "text": "On a scale of 0 to 10, how would you rate your pain?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "pain",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "pain_location",
-                "text": "Where is your pain located?",
-                "type": "text",
-                "required": True,
-                "symptom_type": "pain"
-            },
-            {
-                "id": "nausea",
-                "text": "On a scale of 0 to 10, how would you rate your nausea?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "nausea",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "fatigue",
-                "text": "On a scale of 0 to 10, how would you rate your fatigue?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "fatigue",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "appetite",
-                "text": "On a scale of 0 to 10, how would you rate your appetite?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "appetite",
-                "min_value": 0,
-                "max_value": 10
-            }
-        ],
-        decision_tree=[
-            {
-                "id": "pain_assessment",
-                "symptom_type": "pain",
-                "condition": ">=7",
-                "intervention_ids": ["severe_pain"]
-            },
-            {
-                "id": "pain_moderate",
-                "symptom_type": "pain",
-                "condition": ">=4",
-                "intervention_ids": ["moderate_pain"]
-            },
-            {
-                "id": "pain_mild",
-                "symptom_type": "pain",
-                "condition": "<4",
-                "intervention_ids": ["mild_pain"]
-            },
-            {
-                "id": "nausea_severe",
-                "symptom_type": "nausea",
-                "condition": ">=7",
-                "intervention_ids": ["severe_nausea"]
-            },
-            {
-                "id": "fatigue_severe",
-                "symptom_type": "fatigue",
-                "condition": ">=7",
-                "intervention_ids": ["severe_fatigue"]
-            }
-        ],
-        interventions=[
-            {
-                "id": "severe_pain",
-                "title": "Severe Pain Management",
-                "description": "Urgent review of pain medication. Consider opioid rotation or adjustment.",
-                "symptom_type": "pain",
-                "severity_threshold": 7
-            },
-            {
-                "id": "moderate_pain",
-                "title": "Moderate Pain Management",
-                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
-                "symptom_type": "pain",
-                "severity_threshold": 4
-            },
-            {
-                "id": "mild_pain",
-                "title": "Mild Pain Management",
-                "description": "Continue current pain management. Monitor for changes.",
-                "symptom_type": "pain",
-                "severity_threshold": 0
-            },
-            {
-                "id": "severe_nausea",
-                "title": "Severe Nausea Management",
-                "description": "Review antiemetic regimen. Consider adding a different class of antiemetic.",
-                "symptom_type": "nausea",
-                "severity_threshold": 7
-            },
-            {
-                "id": "severe_fatigue",
-                "title": "Severe Fatigue Management",
-                "description": "Assess for reversible causes. Consider energy conservation strategies.",
-                "symptom_type": "fatigue",
-                "severity_threshold": 7
-            }
-        ],
-        is_active=True
-    )
+    # Get or create protocols
+    cancer_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.CANCER).first()
+    heart_failure_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
+    copd_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.COPD).first()
     
-    heart_failure_protocol = Protocol(
-        name="Heart Failure Palliative Care Protocol",
-        description="Protocol for managing symptoms in patients with advanced heart failure",
-        protocol_type=ProtocolType.HEART_FAILURE,
-        version="1.0",
-        questions=[
-            {
-                "id": "dyspnea",
-                "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "dyspnea",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "edema",
-                "text": "On a scale of 0 to 10, how would you rate the swelling in your legs or ankles?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "edema",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "orthopnea",
-                "text": "How many pillows do you need to sleep comfortably without shortness of breath?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "orthopnea",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "fatigue",
-                "text": "On a scale of 0 to 10, how would you rate your fatigue?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "fatigue",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "chest_pain",
-                "text": "Have you experienced any chest pain?",
-                "type": "boolean",
-                "required": True,
-                "symptom_type": "chest_pain"
-            }
-        ],
-        decision_tree=[
-            {
-                "id": "dyspnea_severe",
-                "symptom_type": "dyspnea",
-                "condition": ">=7",
-                "intervention_ids": ["severe_dyspnea"]
-            },
-            {
-                "id": "edema_severe",
-                "symptom_type": "edema",
-                "condition": ">=7",
-                "intervention_ids": ["severe_edema"]
-            },
-            {
-                "id": "chest_pain_present",
-                "symptom_type": "chest_pain",
-                "condition": "==true",
-                "intervention_ids": ["chest_pain_management"]
-            }
-        ],
-        interventions=[
-            {
-                "id": "severe_dyspnea",
-                "title": "Severe Dyspnea Management",
-                "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen.",
-                "symptom_type": "dyspnea",
-                "severity_threshold": 7
-            },
-            {
-                "id": "severe_edema",
-                "title": "Severe Edema Management",
-                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
-                "symptom_type": "edema",
-                "severity_threshold": 7
-            },
-            {
-                "id": "chest_pain_management",
-                "title": "Chest Pain Management",
-                "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed.",
-                "symptom_type": "chest_pain"
-            }
-        ],
-        is_active=True
-    )
+    protocols_exist = cancer_protocol and heart_failure_protocol and copd_protocol
     
-    copd_protocol = Protocol(
-        name="COPD Palliative Care Protocol",
-        description="Protocol for managing symptoms in patients with advanced COPD",
-        protocol_type=ProtocolType.COPD,
-        version="1.0",
-        questions=[
-            {
-                "id": "dyspnea",
-                "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "dyspnea",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "cough",
-                "text": "On a scale of 0 to 10, how would you rate your cough?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "cough",
-                "min_value": 0,
-                "max_value": 10
-            },
-            {
-                "id": "sputum_color",
-                "text": "What color is your sputum/phlegm?",
-                "type": "choice",
-                "required": True,
-                "symptom_type": "sputum",
-                "choices": ["Clear", "White", "Yellow", "Green"]
-            },
-            {
-                "id": "oxygen_use",
-                "text": "How many hours per day are you using oxygen?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "oxygen_use",
-                "min_value": 0,
-                "max_value": 24
-            },
-            {
-                "id": "anxiety",
-                "text": "On a scale of 0 to 10, how would you rate your anxiety related to breathing?",
-                "type": "numeric",
-                "required": True,
-                "symptom_type": "anxiety",
-                "min_value": 0,
-                "max_value": 10
-            }
-        ],
-        decision_tree=[
-            {
-                "id": "dyspnea_severe",
-                "symptom_type": "dyspnea",
-                "condition": ">=7",
-                "intervention_ids": ["severe_dyspnea_copd"]
-            },
-            {
-                "id": "sputum_green",
-                "symptom_type": "sputum",
-                "condition": "==Green",
-                "intervention_ids": ["infection_evaluation"]
-            },
-            {
-                "id": "anxiety_severe",
-                "symptom_type": "anxiety",
-                "condition": ">=7",
-                "intervention_ids": ["severe_anxiety"]
-            }
-        ],
-        interventions=[
-            {
-                "id": "severe_dyspnea_copd",
-                "title": "Severe Dyspnea Management for COPD",
-                "description": "Review bronchodilator use. Consider rescue pack if available.",
-                "symptom_type": "dyspnea",
-                "severity_threshold": 7
-            },
-            {
-                "id": "infection_evaluation",
-                "title": "Respiratory Infection Evaluation",
-                "description": "Evaluate for respiratory infection. Consider antibiotics per protocol.",
-                "symptom_type": "sputum"
-            },
-            {
-                "id": "severe_anxiety",
-                "title": "Respiratory Anxiety Management",
-                "description": "Review breathing techniques. Consider anxiolytic if severe.",
-                "symptom_type": "anxiety",
-                "severity_threshold": 7
-            }
-        ],
-        is_active=True
-    )
-    
-    db.session.add_all([cancer_protocol, heart_failure_protocol, copd_protocol])
-    db.session.commit()
+    # Only create protocols if none exist yet (as a fallback)
+    if not protocols_exist:
+        print("Missing protocols in database. Creating default protocols...")
+        # Create protocols
+        if not cancer_protocol:
+            cancer_protocol = Protocol(
+                name="Cancer Palliative Care Protocol",
+                description="Protocol for managing symptoms in patients with advanced cancer",
+                protocol_type=ProtocolType.CANCER,
+                version="1.0",
+            questions=[
+                {
+                    "id": "pain_level",
+                    "text": "On a scale of 0 to 10, how would you rate your pain?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "pain",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "pain_location",
+                    "text": "Where is your pain located?",
+                    "type": "text",
+                    "required": True,
+                    "symptom_type": "pain"
+                },
+                {
+                    "id": "nausea",
+                    "text": "On a scale of 0 to 10, how would you rate your nausea?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "nausea",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "fatigue",
+                    "text": "On a scale of 0 to 10, how would you rate your fatigue?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "fatigue",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "appetite",
+                    "text": "On a scale of 0 to 10, how would you rate your appetite?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "appetite",
+                    "min_value": 0,
+                    "max_value": 10
+                }
+            ],
+            decision_tree=[
+                {
+                    "id": "pain_assessment",
+                    "symptom_type": "pain",
+                    "condition": ">=7",
+                    "intervention_ids": ["severe_pain"]
+                },
+                {
+                    "id": "pain_moderate",
+                    "symptom_type": "pain",
+                    "condition": ">=4",
+                    "intervention_ids": ["moderate_pain"]
+                },
+                {
+                    "id": "pain_mild",
+                    "symptom_type": "pain",
+                    "condition": "<4",
+                    "intervention_ids": ["mild_pain"]
+                },
+                {
+                    "id": "nausea_severe",
+                    "symptom_type": "nausea",
+                    "condition": ">=7",
+                    "intervention_ids": ["severe_nausea"]
+                },
+                {
+                    "id": "fatigue_severe",
+                    "symptom_type": "fatigue",
+                    "condition": ">=7",
+                    "intervention_ids": ["severe_fatigue"]
+                }
+            ],
+            interventions=[
+                {
+                    "id": "severe_pain",
+                    "title": "Severe Pain Management",
+                    "description": "Urgent review of pain medication. Consider opioid rotation or adjustment.",
+                    "symptom_type": "pain",
+                    "severity_threshold": 7
+                },
+                {
+                    "id": "moderate_pain",
+                    "title": "Moderate Pain Management",
+                    "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
+                    "symptom_type": "pain",
+                    "severity_threshold": 4
+                },
+                {
+                    "id": "mild_pain",
+                    "title": "Mild Pain Management",
+                    "description": "Continue current pain management. Monitor for changes.",
+                    "symptom_type": "pain",
+                    "severity_threshold": 0
+                },
+                {
+                    "id": "severe_nausea",
+                    "title": "Severe Nausea Management",
+                    "description": "Review antiemetic regimen. Consider adding a different class of antiemetic.",
+                    "symptom_type": "nausea",
+                    "severity_threshold": 7
+                },
+                {
+                    "id": "severe_fatigue",
+                    "title": "Severe Fatigue Management",
+                    "description": "Assess for reversible causes. Consider energy conservation strategies.",
+                    "symptom_type": "fatigue",
+                    "severity_threshold": 7
+                }
+            ],
+            is_active=True
+        )
+        
+        if not heart_failure_protocol:
+            heart_failure_protocol = Protocol(
+                name="Heart Failure Palliative Care Protocol",
+                description="Protocol for managing symptoms in patients with advanced heart failure",
+                protocol_type=ProtocolType.HEART_FAILURE,
+                version="1.0",
+            questions=[
+                {
+                    "id": "dyspnea",
+                    "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "dyspnea",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "edema",
+                    "text": "On a scale of 0 to 10, how would you rate the swelling in your legs or ankles?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "edema",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "orthopnea",
+                    "text": "How many pillows do you need to sleep comfortably without shortness of breath?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "orthopnea",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "fatigue",
+                    "text": "On a scale of 0 to 10, how would you rate your fatigue?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "fatigue",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "chest_pain",
+                    "text": "Have you experienced any chest pain?",
+                    "type": "boolean",
+                    "required": True,
+                    "symptom_type": "chest_pain"
+                }
+            ],
+            decision_tree=[
+                {
+                    "id": "dyspnea_severe",
+                    "symptom_type": "dyspnea",
+                    "condition": ">=7",
+                    "intervention_ids": ["severe_dyspnea"]
+                },
+                {
+                    "id": "edema_severe",
+                    "symptom_type": "edema",
+                    "condition": ">=7",
+                    "intervention_ids": ["severe_edema"]
+                },
+                {
+                    "id": "chest_pain_present",
+                    "symptom_type": "chest_pain",
+                    "condition": "==true",
+                    "intervention_ids": ["chest_pain_management"]
+                }
+            ],
+            interventions=[
+                {
+                    "id": "severe_dyspnea",
+                    "title": "Severe Dyspnea Management",
+                    "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen.",
+                    "symptom_type": "dyspnea",
+                    "severity_threshold": 7
+                },
+                {
+                    "id": "severe_edema",
+                    "title": "Severe Edema Management",
+                    "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
+                    "symptom_type": "edema",
+                    "severity_threshold": 7
+                },
+                {
+                    "id": "chest_pain_management",
+                    "title": "Chest Pain Management",
+                    "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed.",
+                    "symptom_type": "chest_pain"
+                }
+            ],
+            is_active=True
+        )
+        
+        if not copd_protocol:
+            copd_protocol = Protocol(
+                name="COPD Palliative Care Protocol",
+                description="Protocol for managing symptoms in patients with advanced COPD",
+                protocol_type=ProtocolType.COPD,
+                version="1.0",
+            questions=[
+                {
+                    "id": "dyspnea",
+                    "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "dyspnea",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "cough",
+                    "text": "On a scale of 0 to 10, how would you rate your cough?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "cough",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "sputum_color",
+                    "text": "What color is your sputum/phlegm?",
+                    "type": "choice",
+                    "required": True,
+                    "symptom_type": "sputum",
+                    "choices": ["Clear", "White", "Yellow", "Green"]
+                },
+                {
+                    "id": "oxygen_use",
+                    "text": "How many hours per day are you using oxygen?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "oxygen_use",
+                    "min_value": 0,
+                    "max_value": 24
+                },
+                {
+                    "id": "anxiety",
+                    "text": "On a scale of 0 to 10, how would you rate your anxiety related to breathing?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "anxiety",
+                    "min_value": 0,
+                    "max_value": 10
+                }
+            ],
+            decision_tree=[
+                {
+                    "id": "dyspnea_severe",
+                    "symptom_type": "dyspnea",
+                    "condition": ">=7",
+                    "intervention_ids": ["severe_dyspnea_copd"]
+                },
+                {
+                    "id": "sputum_green",
+                    "symptom_type": "sputum",
+                    "condition": "==Green",
+                    "intervention_ids": ["infection_evaluation"]
+                },
+                {
+                    "id": "anxiety_severe",
+                    "symptom_type": "anxiety",
+                    "condition": ">=7",
+                    "intervention_ids": ["severe_anxiety"]
+                }
+            ],
+            interventions=[
+                {
+                    "id": "severe_dyspnea_copd",
+                    "title": "Severe Dyspnea Management for COPD",
+                    "description": "Review bronchodilator use. Consider rescue pack if available.",
+                    "symptom_type": "dyspnea",
+                    "severity_threshold": 7
+                },
+                {
+                    "id": "infection_evaluation",
+                    "title": "Respiratory Infection Evaluation",
+                    "description": "Evaluate for respiratory infection. Consider antibiotics per protocol.",
+                    "symptom_type": "sputum"
+                },
+                {
+                    "id": "severe_anxiety",
+                    "title": "Respiratory Anxiety Management",
+                    "description": "Review breathing techniques. Consider anxiolytic if severe.",
+                    "symptom_type": "anxiety",
+                    "severity_threshold": 7
+                }
+            ],
+            is_active=True
+        )
+        
+        # Only add protocols that were newly created
+        protocols_to_add = []
+        if cancer_protocol and not cancer_protocol.id:
+            protocols_to_add.append(cancer_protocol)
+        if heart_failure_protocol and not heart_failure_protocol.id:
+            protocols_to_add.append(heart_failure_protocol)
+        if copd_protocol and not copd_protocol.id:
+            protocols_to_add.append(copd_protocol)
+            
+        if protocols_to_add:
+            db.session.add_all(protocols_to_add)
+            db.session.commit()
+    else:
+        print("Using existing protocols from database.")
     
     # Create patients
     patient1 = Patient(
@@ -649,4 +683,112 @@ def seed_database():
     db.session.add_all([assessment1, assessment2])
     db.session.commit()
     
+    # Add date-specific test data if requested
+    if test_scenario == 'date_check':
+        seed_date_check_data()
+        
     print("Database seeded successfully!")
+    
+def seed_date_check_data():
+    """Add test data specifically for date handling test cases"""
+    # Get reference to main entities
+    patient = Patient.query.filter_by(first_name="Mary").first()
+    nurse = User.query.filter_by(first_name="Robert").first()
+    # Ensure we get the heart_failure_protocol from the database
+    protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
+    
+    if not protocol:
+        print("Error: Heart Failure protocol not found in database. Date test data will not be added.")
+        return
+    
+    # Get date references
+    today = datetime.now()
+    
+    # Create assessments spanning multiple weeks
+    # These dates are carefully selected to test various week boundaries
+    
+    # 1. Last week (Sunday)
+    last_week_sunday = today - timedelta(days=today.weekday() + 8)  # Go back to previous week's Sunday
+    assessment1 = Assessment(
+        patient_id=patient.id,
+        protocol_id=protocol.id,
+        conducted_by_id=nurse.id,
+        assessment_date=last_week_sunday.replace(hour=9, minute=30),
+        responses={"edema": {"value": 6}},
+        symptoms={"edema": 6},
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM
+    )
+    
+    # 2. Last week (Wednesday)
+    last_week_wednesday = today - timedelta(days=today.weekday() + 4) 
+    assessment2 = Assessment(
+        patient_id=patient.id,
+        protocol_id=protocol.id,
+        conducted_by_id=nurse.id,
+        assessment_date=last_week_wednesday.replace(hour=14, minute=15),
+        responses={"dyspnea": {"value": 5}},
+        symptoms={"dyspnea": 5},
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.LOW
+    )
+    
+    # 3. This week (Sunday)
+    this_week_sunday = today - timedelta(days=today.weekday() + 1)
+    if this_week_sunday.date() > today.date():  # Ensure we're not in the future
+        this_week_sunday = today - timedelta(days=7)
+    assessment3 = Assessment(
+        patient_id=patient.id,
+        protocol_id=protocol.id,
+        conducted_by_id=nurse.id,
+        assessment_date=this_week_sunday.replace(hour=10, minute=0),
+        responses={"edema": {"value": 7}},
+        symptoms={"edema": 7},
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM
+    )
+    
+    # 4. This week (Monday)
+    this_week_monday = today - timedelta(days=today.weekday())
+    if this_week_monday.date() > today.date():  # Ensure we're not in the future
+        this_week_monday = this_week_monday - timedelta(days=7)
+    assessment4 = Assessment(
+        patient_id=patient.id,
+        protocol_id=protocol.id,
+        conducted_by_id=nurse.id,
+        assessment_date=this_week_monday.replace(hour=11, minute=30),
+        responses={"fatigue": {"value": 6}},
+        symptoms={"fatigue": 6},
+        follow_up_needed=False
+    )
+    
+    # 5. This week (Current day)
+    assessment5 = Assessment(
+        patient_id=patient.id,
+        protocol_id=protocol.id,
+        conducted_by_id=nurse.id,
+        assessment_date=today.replace(hour=9, minute=0),
+        responses={"orthopnea": {"value": 4}},
+        symptoms={"orthopnea": 4},
+        follow_up_needed=False
+    )
+    
+    # 6. Next week (Monday)
+    next_week_monday = today + timedelta(days=7 - today.weekday())
+    assessment6 = Assessment(
+        patient_id=patient.id,
+        protocol_id=protocol.id,
+        conducted_by_id=nurse.id,
+        assessment_date=next_week_monday.replace(hour=10, minute=15),
+        responses={"chest_pain": {"value": True}},
+        symptoms={"chest_pain": 1},
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.HIGH,
+        follow_up_date=next_week_monday + timedelta(days=1)
+    )
+    
+    # Add all assessments
+    db.session.add_all([assessment1, assessment2, assessment3, assessment4, assessment5, assessment6])
+    db.session.commit()
+    
+    print("Date check test data added successfully")

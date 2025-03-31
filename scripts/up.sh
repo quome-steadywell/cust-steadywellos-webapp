@@ -55,13 +55,13 @@ if [ "${DEV_STATE}" = "TEST" ]; then
   echo -e "${GREEN}Initializing database tables...${NC}"
   docker-compose exec -T web python run.py create_db
   
+  # Initialize protocols before seeding
+  echo -e "${GREEN}Initializing protocols...${NC}"
+  docker-compose exec -T web python scripts/protocol_ingest.py
+  
   # Seed the database with test data
   echo -e "${GREEN}Seeding database with sample data...${NC}"
   docker-compose exec -T web python run.py seed_db
-  
-  # Initialize protocols directly
-  echo -e "${GREEN}Initializing protocols...${NC}"
-  docker-compose exec -T web python scripts/protocol_ingest.py
   
   echo -e "${GREEN}Database initialization and seeding complete!${NC}"
   echo -e "${GREEN}Default login credentials:${NC}"

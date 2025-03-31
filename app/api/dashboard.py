@@ -8,6 +8,7 @@ from app.models.user import User, UserRole
 from app.models.patient import Patient, ProtocolType
 from app.models.call import Call, CallStatus
 from app.models.assessment import Assessment, FollowUpPriority
+from app.utils import get_date_bounds
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -19,10 +20,8 @@ def get_dashboard_summary():
     current_user = User.query.get(current_user_id)
     
     # Get date ranges
-    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    tomorrow = today + timedelta(days=1)
-    week_start = today - timedelta(days=today.weekday())
-    week_end = week_start + timedelta(days=7)
+    today, tomorrow = get_date_bounds('day')
+    week_start, week_end = get_date_bounds('week')
     
     # Base patient query
     patient_query = Patient.query
@@ -111,8 +110,7 @@ def get_upcoming_calls():
     current_user = User.query.get(current_user_id)
     
     # Get upcoming scheduled calls
-    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    tomorrow = today + timedelta(days=1)
+    today, tomorrow = get_date_bounds('day')
     
     query = Call.query.filter(
         Call.status == CallStatus.SCHEDULED,

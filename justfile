@@ -23,6 +23,11 @@ db-init:
     @echo "Initializing database..."
     @./scripts/db_init.sh
 
+# Initialize protocols only
+protocols-init:
+    @echo "Initializing protocols..."
+    @./scripts/init_protocols.sh
+
 # Seed the database with sample data
 db-seed:
     @echo "Seeding database with sample data..."
@@ -48,10 +53,10 @@ install:
     @echo "Installing dependencies..."
     @./scripts/install.sh
 
-# Run tests
-test:
+# Run tests (optionally with specific markers)
+test *args="":
     @echo "Running tests..."
-    @docker-compose exec web python -m pytest
+    @docker-compose exec web python -m pytest {{args}}
 
 # Simple test to verify the application is running (no dependencies)
 check-app:
@@ -73,7 +78,13 @@ test-all:
     @echo "Running all tests..."
     @python tests/simple_test.py && \
     python tests/http_test.py && \
-    python tests/ui_test.py
+    python tests/ui_test.py && \
+    docker-compose exec web python tests/date_test.py
+
+# Run tests for date handling
+test-dates:
+    @echo "Running date handling tests..."
+    @docker-compose exec web python tests/date_test.py
 
 # Show application status
 status:

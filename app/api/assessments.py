@@ -11,6 +11,7 @@ from app.models.assessment import Assessment, FollowUpPriority
 from app.models.call import Call
 from app.schemas.assessment import AssessmentSchema, AssessmentListSchema, AssessmentUpdateSchema
 from app.utils.decorators import roles_required, audit_action
+from app.utils import get_date_bounds
 from app.models.audit_log import AuditLog
 from app.services.rag_service import process_assessment
 
@@ -290,9 +291,12 @@ def get_followups():
     
     # Apply date filter if provided
     if filter_date:
+        # Create datetime bounds for the specific date
+        start_date = datetime.combine(filter_date, datetime.min.time())
+        end_date = start_date + timedelta(days=1)
         query = query.filter(
-            Assessment.follow_up_date >= datetime.combine(filter_date, datetime.min.time()),
-            Assessment.follow_up_date < datetime.combine(filter_date + timedelta(days=1), datetime.min.time())
+            Assessment.follow_up_date >= start_date,
+            Assessment.follow_up_date < end_date
         )
     
     # Filter by nurse's patients if applicable
