@@ -5,19 +5,10 @@ import json
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from flask import current_app
-import anthropic
 
 from app.models.patient import Patient
 from app.models.protocol import Protocol
-
-# Initialize Anthropic client
-def get_anthropic_client():
-    """Get Anthropic client with API key from config"""
-    api_key = current_app.config.get('ANTHROPIC_API_KEY')
-    if not api_key:
-        raise ValueError("Anthropic API key not configured")
-    
-    return anthropic.Anthropic(api_key=api_key)
+from app.services.anthropic_client import get_anthropic_client
 
 def process_assessment(patient: Patient, protocol: Protocol, symptoms: Dict[str, float], responses: Dict[str, Any]) -> str:
     """Generate AI guidance for a patient assessment using RAG"""
@@ -80,17 +71,15 @@ def process_assessment(patient: Patient, protocol: Protocol, symptoms: Dict[str,
         Please be concise and focus on practical, evidence-based guidance. Your response should be in a clinical note format suitable for documentation.
         """
         
-        # Call Anthropic API
-        client = get_anthropic_client()
-        response = client.messages.create(
-            model="claude-3-opus-20240229",
+        # Call Anthropic API using our custom wrapper
+        client = get_anthropic_client(current_app.config.get('ANTHROPIC_API_KEY'))
+        return client.call_model(
+            model="claude-3-sonnet-20240229",  # More widely available model
             max_tokens=1000,
             messages=[
                 {"role": "user", "content": prompt}
             ]
         )
-        
-        return response.content[0].text
         
     except Exception as e:
         current_app.logger.error(f"Error in RAG service: {str(e)}")
@@ -143,17 +132,15 @@ def generate_call_script(patient: Patient, protocol: Protocol, call_type: str) -
         The script should be empathetic, clear, and follow best practices for palliative care telephone assessment.
         """
         
-        # Call Anthropic API
-        client = get_anthropic_client()
-        response = client.messages.create(
-            model="claude-3-opus-20240229",
+        # Call Anthropic API using our custom wrapper
+        client = get_anthropic_client(current_app.config.get('ANTHROPIC_API_KEY'))
+        return client.call_model(
+            model="claude-3-sonnet-20240229",  # More widely available model
             max_tokens=1500,
             messages=[
                 {"role": "user", "content": prompt}
             ]
         )
-        
-        return response.content[0].text
         
     except Exception as e:
         current_app.logger.error(f"Error generating call script: {str(e)}")
@@ -184,10 +171,10 @@ def analyze_call_transcript(transcript: str, patient: Patient, protocol: Protoco
         Format your response as a structured JSON object with these categories.
         """
         
-        # Call Anthropic API
-        client = get_anthropic_client()
-        response = client.messages.create(
-            model="claude-3-opus-20240229",
+        # Call Anthropic API using our custom wrapper
+        client = get_anthropic_client(current_app.config.get('ANTHROPIC_API_KEY'))
+        content = client.call_model(
+            model="claude-3-sonnet-20240229",  # More widely available model
             max_tokens=1200,
             messages=[
                 {"role": "user", "content": prompt}
@@ -197,7 +184,6 @@ def analyze_call_transcript(transcript: str, patient: Patient, protocol: Protoco
         # Try to parse response as JSON
         try:
             # Extract JSON from response if it's wrapped in markdown code block
-            content = response.content[0].text
             if "```json" in content and "```" in content.split("```json", 1)[1]:
                 json_str = content.split("```json", 1)[1].split("```", 1)[0].strip()
             elif "```" in content and "```" in content.split("```", 1)[1]:
@@ -208,7 +194,7 @@ def analyze_call_transcript(transcript: str, patient: Patient, protocol: Protoco
             result = json.loads(json_str)
         except json.JSONDecodeError:
             # If not valid JSON, return the raw text
-            result = {"analysis": response.content[0].text}
+            result = {"analysis": content}
         
         return result
         

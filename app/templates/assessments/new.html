@@ -1,0 +1,632 @@
+{% extends "base.html" %}
+
+{% block title %}New Assessment - SteadywellOS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2><i class="fas fa-clipboard-list me-2"></i>New Assessment</h2>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="/assessments" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Assessments
+        </a>
+    </div>
+</div>
+
+<div id="patientInfo" class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Patient Information</h5>
+    </div>
+    <div class="card-body text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading patient information...</p>
+    </div>
+</div>
+
+<div id="protocolInfo" class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Protocol Information</h5>
+        <span id="protocolBadge" class="badge bg-primary">Loading...</span>
+    </div>
+    <div class="card-body text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading protocol information...</p>
+    </div>
+</div>
+
+<form id="assessmentForm" class="needs-validation" novalidate>
+    <input type="hidden" id="patientId" name="patientId" value="{{ patient_id }}">
+    <input type="hidden" id="protocolId" name="protocolId">
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Assessment Questions</h5>
+        </div>
+        <div class="card-body">
+            <div id="questionContainer">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading questions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Additional Notes</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="notes" class="form-label">Clinical Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Enter any additional observations or notes..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="followUpNeeded" name="followUpNeeded">
+                    <label class="form-check-label" for="followUpNeeded">
+                        Follow-up Needed
+                    </label>
+                </div>
+            </div>
+            
+            <div id="followUpFields" class="d-none">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="followUpDate" class="form-label">Follow-up Date</label>
+                        <input type="date" class="form-control" id="followUpDate" name="followUpDate">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="followUpPriority" class="form-label">Priority</label>
+                        <select class="form-select" id="followUpPriority" name="followUpPriority">
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM" selected>Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="URGENT">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-end mb-4">
+        <button type="button" id="generateBtn" class="btn btn-primary me-2">
+            <i class="fas fa-magic me-1"></i> Generate AI Recommendations
+        </button>
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-save me-1"></i> Complete Assessment
+        </button>
+    </div>
+</form>
+
+<div id="aiRecommendationsCard" class="card mb-4 d-none">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-robot me-2"></i>AI Recommendations</h5>
+    </div>
+    <div class="card-body">
+        <div id="aiContent" class="mb-3">
+            <div class="placeholder-glow">
+                <span class="placeholder col-12"></span>
+                <span class="placeholder col-6"></span>
+                <span class="placeholder col-8"></span>
+                <span class="placeholder col-10"></span>
+            </div>
+        </div>
+        <div id="interventionsList"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Get patient ID from the form
+    const patientId = document.getElementById('patientId').value;
+    let protocolData = null;
+    let patientData = null;
+    let responses = {};
+    
+    // Load patient information
+    function loadPatientInfo() {
+        fetch(`/api/v1/patients/${patientId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(patient => {
+                patientData = patient;
+                
+                // Update UI with patient data
+                const patientInfoHtml = `
+                    <div class="row">
+                        <div class="col-md-6 text-start">
+                            <h4>${patient.first_name} ${patient.last_name}</h4>
+                            <p class="text-muted">MRN: ${patient.mrn}</p>
+                            <p><strong>DOB:</strong> ${new Date(patient.date_of_birth).toLocaleDateString()} (${patient.age} years)</p>
+                            <p><strong>Primary Diagnosis:</strong> ${patient.primary_diagnosis}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p><strong>Phone:</strong> ${patient.phone_number}</p>
+                            <p><strong>Protocol Type:</strong> ${patient.protocol_type}</p>
+                            <p><strong>Allergies:</strong> ${patient.allergies || 'None'}</p>
+                            <p><strong>${patient.dnr_status ? 'DNR Status: YES' : ''}</strong></p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('patientInfo').querySelector('.card-body').innerHTML = patientInfoHtml;
+                
+                // Load protocol based on patient's protocol type
+                loadProtocol(patient.protocol_type);
+            })
+            .catch(error => {
+                console.error('Error loading patient:', error);
+                document.getElementById('patientInfo').querySelector('.card-body').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error loading patient information. Please try again later.
+                    </div>
+                `;
+            });
+    }
+    
+    // Load protocol information
+    function loadProtocol(protocolType) {
+        fetch(`/api/v1/protocols/type/${protocolType}/latest`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(protocol => {
+                protocolData = protocol;
+                
+                // Update hidden protocol ID
+                document.getElementById('protocolId').value = protocol.id;
+                
+                // Update protocol badge
+                const protocolBadge = document.getElementById('protocolBadge');
+                protocolBadge.textContent = protocol.name;
+                
+                // Update protocol information
+                const protocolInfoHtml = `
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p>${protocol.description}</p>
+                            <p><strong>Version:</strong> ${protocol.version}</p>
+                            <p><strong>Questions:</strong> ${protocol.questions ? protocol.questions.length : 0}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = protocolInfoHtml;
+                
+                // Load questions
+                renderQuestions(protocol.questions);
+            })
+            .catch(error => {
+                console.error('Error loading protocol:', error);
+                document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error loading protocol information. Please try again later.
+                    </div>
+                `;
+                
+                document.getElementById('protocolBadge').textContent = 'Error';
+                document.getElementById('protocolBadge').className = 'badge bg-danger';
+            });
+    }
+    
+    // Render protocol questions
+    function renderQuestions(questions) {
+        if (!questions || questions.length === 0) {
+            document.getElementById('questionContainer').innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No questions found for this protocol.
+                </div>
+            `;
+            return;
+        }
+        
+        // Group questions by category
+        const categories = {};
+        questions.forEach(question => {
+            const category = question.category || 'General';
+            if (!categories[category]) {
+                categories[category] = [];
+            }
+            categories[category].push(question);
+        });
+        
+        let questionsHtml = '';
+        
+        // For each category, create a section
+        Object.entries(categories).forEach(([category, categoryQuestions], index) => {
+            questionsHtml += `
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2">${category}</h5>
+                    <div class="ms-3">
+            `;
+            
+            // Add questions for this category
+            categoryQuestions.forEach(question => {
+                questionsHtml += `
+                    <div class="mb-3" data-question-id="${question.id}">
+                        <label class="form-label fw-bold">${question.text}${question.required ? ' <span class="text-danger">*</span>' : ''}</label>
+                `;
+                
+                // Render appropriate input based on question type
+                if (question.type === 'numeric') {
+                    const min = question.min_value !== undefined ? question.min_value : 0;
+                    const max = question.max_value !== undefined ? question.max_value : 10;
+                    
+                    questionsHtml += `
+                        <div class="range-wrapper">
+                            <input type="range" class="form-range" 
+                                id="${question.id}" 
+                                name="${question.id}" 
+                                min="${min}" 
+                                max="${max}" 
+                                value="${min}" 
+                                ${question.required ? 'required' : ''}
+                                oninput="document.getElementById('${question.id}_value').textContent = this.value">
+                            <div class="d-flex justify-content-between">
+                                <span>${min}</span>
+                                <span class="fw-bold" id="${question.id}_value">${min}</span>
+                                <span>${max}</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (question.type === 'boolean') {
+                    questionsHtml += `
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" 
+                                    name="${question.id}" 
+                                    id="${question.id}_yes" 
+                                    value="true" 
+                                    ${question.required ? 'required' : ''}>
+                                <label class="form-check-label" for="${question.id}_yes">Yes</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" 
+                                    name="${question.id}" 
+                                    id="${question.id}_no" 
+                                    value="false" 
+                                    ${question.required ? 'required' : ''}>
+                                <label class="form-check-label" for="${question.id}_no">No</label>
+                            </div>
+                        </div>
+                    `;
+                } else if (question.type === 'choice' && question.choices) {
+                    questionsHtml += `<select class="form-select" id="${question.id}" name="${question.id}" ${question.required ? 'required' : ''}>`;
+                    questionsHtml += `<option value="">Select an option</option>`;
+                    
+                    question.choices.forEach(choice => {
+                        questionsHtml += `<option value="${choice}">${choice}</option>`;
+                    });
+                    
+                    questionsHtml += `</select>`;
+                } else {
+                    // Default to text input
+                    questionsHtml += `
+                        <input type="text" class="form-control" 
+                            id="${question.id}" 
+                            name="${question.id}" 
+                            placeholder="Enter your response" 
+                            ${question.required ? 'required' : ''}>
+                    `;
+                }
+                
+                questionsHtml += `
+                    </div>
+                `;
+            });
+            
+            questionsHtml += `
+                    </div>
+                </div>
+            `;
+        });
+        
+        document.getElementById('questionContainer').innerHTML = questionsHtml;
+        
+        // Add event listeners to all form inputs
+        document.querySelectorAll('#questionContainer input, #questionContainer select').forEach(input => {
+            input.addEventListener('change', function() {
+                updateResponses();
+            });
+        });
+    }
+    
+    // Update responses object when inputs change
+    function updateResponses() {
+        responses = {};
+        
+        document.querySelectorAll('#questionContainer [data-question-id]').forEach(questionDiv => {
+            const questionId = questionDiv.dataset.questionId;
+            const inputElement = document.getElementById(questionId);
+            
+            if (inputElement) {
+                if (inputElement.type === 'range') {
+                    responses[questionId] = {
+                        value: parseInt(inputElement.value)
+                    };
+                } else if (inputElement.type === 'text' || inputElement.tagName === 'SELECT') {
+                    responses[questionId] = {
+                        value: inputElement.value
+                    };
+                }
+            } else {
+                // Handle radio buttons
+                const radioYes = document.getElementById(`${questionId}_yes`);
+                const radioNo = document.getElementById(`${questionId}_no`);
+                
+                if (radioYes && radioNo) {
+                    if (radioYes.checked) {
+                        responses[questionId] = {
+                            value: true
+                        };
+                    } else if (radioNo.checked) {
+                        responses[questionId] = {
+                            value: false
+                        };
+                    }
+                }
+            }
+        });
+        
+        // Enable/disable generate button based on if all required questions are answered
+        const generateBtn = document.getElementById('generateBtn');
+        const form = document.getElementById('assessmentForm');
+        
+        // Use form validation to check required fields
+        if (form.checkValidity()) {
+            generateBtn.disabled = false;
+        } else {
+            generateBtn.disabled = true;
+        }
+    }
+    
+    // Generate symptoms object from responses
+    function generateSymptoms() {
+        const symptoms = {};
+        
+        if (protocolData && protocolData.questions) {
+            protocolData.questions.forEach(question => {
+                if (question.symptom_type && responses[question.id]) {
+                    symptoms[question.symptom_type] = responses[question.id].value;
+                }
+            });
+        }
+        
+        return symptoms;
+    }
+    
+    // Generate intervention recommendations based on symptoms and decision tree
+    function generateInterventionRecommendations() {
+        const symptoms = generateSymptoms();
+        const interventionIds = new Set();
+        
+        if (protocolData && protocolData.decision_tree) {
+            protocolData.decision_tree.forEach(node => {
+                if (node.symptom_type && symptoms[node.symptom_type]) {
+                    const symptomValue = symptoms[node.symptom_type];
+                    
+                    let conditionMet = false;
+                    switch (node.condition) {
+                        case '>=':
+                            conditionMet = symptomValue >= node.value;
+                            break;
+                        case '>':
+                            conditionMet = symptomValue > node.value;
+                            break;
+                        case '<=':
+                            conditionMet = symptomValue <= node.value;
+                            break;
+                        case '<':
+                            conditionMet = symptomValue < node.value;
+                            break;
+                        case '==':
+                        case '===':
+                            conditionMet = symptomValue == node.value;
+                            break;
+                        default:
+                            console.warn(`Unknown condition: ${node.condition}`);
+                    }
+                    
+                    if (conditionMet && node.intervention_ids) {
+                        node.intervention_ids.forEach(id => interventionIds.add(id));
+                    }
+                }
+            });
+        }
+        
+        return Array.from(interventionIds);
+    }
+    
+    // Generate AI recommendations
+    function generateAIRecommendations() {
+        const symptoms = generateSymptoms();
+        const interventionIds = generateInterventionRecommendations();
+        const interventions = [];
+        
+        // Find intervention details
+        if (protocolData && protocolData.interventions) {
+            interventionIds.forEach(id => {
+                const intervention = protocolData.interventions.find(i => i.id === id);
+                if (intervention) {
+                    interventions.push(intervention);
+                }
+            });
+        }
+        
+        // Display AI recommendations card
+        const aiCard = document.getElementById('aiRecommendationsCard');
+        aiCard.classList.remove('d-none');
+        
+        // Create recommendations text
+        let aiContent = `<h5>Based on assessment responses:</h5>`;
+        
+        // Summarize symptoms
+        aiContent += `<p>Patient reports the following symptoms:</p><ul>`;
+        Object.entries(symptoms).forEach(([symptom, value]) => {
+            let symptomDisplay = symptom.replace(/_/g, ' ');
+            symptomDisplay = symptomDisplay.charAt(0).toUpperCase() + symptomDisplay.slice(1);
+            
+            if (typeof value === 'boolean') {
+                aiContent += `<li>${symptomDisplay}: ${value ? 'Yes' : 'No'}</li>`;
+            } else {
+                aiContent += `<li>${symptomDisplay}: ${value}/10</li>`;
+            }
+        });
+        aiContent += `</ul>`;
+        
+        // Add general recommendations
+        aiContent += `<h5>Recommended Interventions:</h5>`;
+        
+        document.getElementById('aiContent').innerHTML = aiContent;
+        
+        // Add interventions list
+        const interventionsListHtml = interventions.map(intervention => `
+            <div class="card mb-2 border-left-${getInterventionPriorityClass(intervention.priority)}">
+                <div class="card-body py-2">
+                    <h6 class="mb-1">${intervention.title}</h6>
+                    <p class="mb-1">${intervention.description}</p>
+                    ${intervention.instructions ? `<p class="small mb-0 text-muted">${intervention.instructions}</p>` : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('interventionsList').innerHTML = interventions.length > 0 ? 
+            interventionsListHtml : 
+            '<div class="alert alert-info">No specific interventions recommended based on this assessment.</div>';
+    }
+    
+    // Get bootstrap class based on intervention priority
+    function getInterventionPriorityClass(priority) {
+        switch (priority) {
+            case 'urgent': return 'danger';
+            case 'high': return 'warning';
+            case 'medium': return 'info';
+            case 'low': return 'success';
+            default: return 'primary';
+        }
+    }
+    
+    // Handle form submission
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        
+        const form = document.getElementById('assessmentForm');
+        
+        if (!form.checkValidity()) {
+            event.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+        
+        // Collect form data
+        const formData = {
+            patient_id: parseInt(document.getElementById('patientId').value),
+            protocol_id: parseInt(document.getElementById('protocolId').value),
+            responses: responses,
+            symptoms: generateSymptoms(),
+            notes: document.getElementById('notes').value,
+            follow_up_needed: document.getElementById('followUpNeeded').checked,
+            call_id: null  // In a real app, this would be linked to actual call data
+        };
+        
+        // Add follow-up info if needed
+        if (formData.follow_up_needed) {
+            formData.follow_up_date = document.getElementById('followUpDate').value;
+            formData.follow_up_priority = document.getElementById('followUpPriority').value;
+        }
+        
+        // Add AI-recommended interventions
+        const interventionIds = generateInterventionRecommendations();
+        formData.interventions = [];
+        
+        if (protocolData && protocolData.interventions) {
+            interventionIds.forEach(id => {
+                const intervention = protocolData.interventions.find(i => i.id === id);
+                if (intervention) {
+                    formData.interventions.push(intervention);
+                }
+            });
+        }
+        
+        // In a real app, you would send this data to the server
+        console.log('Assessment data to submit:', formData);
+        
+        // For demonstration, show success message
+        alert('Assessment completed! In a real application, this would be saved to the database.');
+        
+        // Redirect to assessments list
+        window.location.href = '/assessments';
+    }
+    
+    // Set up event listeners once the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load patient info
+        loadPatientInfo();
+        
+        // Toggle follow-up fields
+        document.getElementById('followUpNeeded').addEventListener('change', function() {
+            const followUpFields = document.getElementById('followUpFields');
+            if (this.checked) {
+                followUpFields.classList.remove('d-none');
+                
+                // Set default follow-up date to tomorrow
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('followUpDate').valueAsDate = tomorrow;
+            } else {
+                followUpFields.classList.add('d-none');
+            }
+        });
+        
+        // Generate recommendations button
+        document.getElementById('generateBtn').addEventListener('click', generateAIRecommendations);
+        
+        // Form submission
+        document.getElementById('assessmentForm').addEventListener('submit', handleFormSubmit);
+    });
+</script>
+
+<style>
+    /* Custom styles for priority borders */
+    .border-left-danger {
+        border-left: 4px solid #dc3545 !important;
+    }
+    
+    .border-left-warning {
+        border-left: 4px solid #ffc107 !important;
+    }
+    
+    .border-left-info {
+        border-left: 4px solid #17a2b8 !important;
+    }
+    
+    .border-left-success {
+        border-left: 4px solid #28a745 !important;
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #007bff !important;
+    }
+</style>
+{% endblock %}

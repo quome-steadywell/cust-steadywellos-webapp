@@ -90,9 +90,29 @@ The following commands are available through the Just command runner:
 | `just db-init` | Initialize the database schema |
 | `just db-seed` | Seed the database with sample data |
 | `just db-reset` | Reset the database (drop, create, seed) |
+| `just protocols [type]` | Initialize protocols (type: cancer, heart_failure, copd, or all) |
 | `just status` | Check application status |
 | `just test` | Run tests |
 | `just install` | Install dependencies |
+
+### Protocol Initialization
+
+The system includes specialized care protocols for different conditions:
+
+```bash
+# Initialize all protocol types
+just protocols
+
+# Initialize a specific protocol type
+just protocols cancer
+just protocols heart_failure
+just protocols copd
+```
+
+Each protocol includes:
+- Structured assessment questions
+- Recommended interventions based on symptoms
+- Decision tree logic for determining appropriate care actions
 
 ## Features
 

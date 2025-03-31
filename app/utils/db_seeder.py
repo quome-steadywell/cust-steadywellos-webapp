@@ -8,15 +8,18 @@ from app.models.protocol import Protocol
 from app.models.call import Call, CallStatus
 from app.models.assessment import Assessment, FollowUpPriority
 from app.models.medication import Medication, MedicationRoute, MedicationFrequency
+from app.models.audit_log import AuditLog
 
 def seed_database():
     """Seed the database with initial data"""
-    # Clear existing data
+    # Clear existing data in the correct order to handle foreign key constraints
     db.session.query(Assessment).delete()
     db.session.query(Call).delete()
     db.session.query(Medication).delete()
     db.session.query(Patient).delete()
     db.session.query(Protocol).delete()
+    # Delete audit logs before users to avoid foreign key constraint issues
+    db.session.query(AuditLog).delete()
     db.session.query(User).delete()
     db.session.commit()
     

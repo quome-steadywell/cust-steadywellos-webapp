@@ -33,6 +33,11 @@ db-reset:
     @echo "Resetting database..."
     @./scripts/db_reset.sh
 
+# Show protocols in the database
+protocols:
+    @echo "Showing protocols..."
+    @./scripts/show_protocols.sh
+
 # View application logs
 logs:
     @echo "Viewing application logs..."
@@ -48,7 +53,34 @@ test:
     @echo "Running tests..."
     @docker-compose exec web python -m pytest
 
+# Simple test to verify the application is running (no dependencies)
+check-app:
+    @echo "Checking if the application is up and running..."
+    @python tests/simple_test.py
+
+# Run HTTP-based tests (no browser dependencies)
+test-http:
+    @echo "Running HTTP-based tests..."
+    @python tests/http_test.py
+
+# Run UI tests without Selenium (more reliable)
+test-ui:
+    @echo "Running UI tests..."
+    @python tests/ui_test.py
+
+# Run all tests in sequence
+test-all:
+    @echo "Running all tests..."
+    @python tests/simple_test.py && \
+    python tests/http_test.py && \
+    python tests/ui_test.py
+
 # Show application status
 status:
     @echo "Application status:"
     @docker-compose ps
+
+# Upgrade Anthropic library
+upgrade-anthropic:
+    @echo "Upgrading Anthropic library..."
+    @./scripts/upgrade_anthropic.sh

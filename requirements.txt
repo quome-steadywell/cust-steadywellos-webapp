@@ -31,7 +31,7 @@ pypdf==3.17.1
 openai==1.3.7
 tiktoken==0.5.2
 faiss-cpu==1.7.4
-anthropic==0.8.0
+anthropic==0.18.1
 
 # Telephony Integration
 twilio==8.10.2

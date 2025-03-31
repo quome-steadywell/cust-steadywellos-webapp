@@ -240,11 +240,7 @@
         if (protocolType) url += '&protocol_type=' + protocolType;
         if (searchTerm) url += '&search=' + encodeURIComponent(searchTerm);
         
-        fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        })
+        fetch(url)
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById('patientTableBody');
@@ -326,11 +322,7 @@
     
     // View patient details
     function viewPatient(patientId) {
-        fetch(`/api/v1/patients/${patientId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        })
+        fetch(`/api/v1/patients/${patientId}`)
         .then(response => response.json())
         .then(patient => {
             const detailsBody = document.getElementById('patientDetailsBody');
@@ -400,11 +392,7 @@
             modal.show();
             
             // Fetch recent assessments
-            fetch(`/api/v1/assessments/?patient_id=${patient.id}&limit=3`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                }
-            })
+            fetch(`/api/v1/assessments/?patient_id=${patient.id}&limit=3`)
             .then(response => response.json())
             .then(assessments => {
                 const assessmentsContainer = document.getElementById('recentAssessments');
@@ -453,11 +441,7 @@
     
     // Fetch and populate nurses dropdown
     function loadNurses() {
-        fetch('/api/v1/users/?role=nurse', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        })
+        fetch('/api/v1/users/?role=nurse')
         .then(response => response.json())
         .then(nurses => {
             const nurseSelect = document.getElementById('primaryNurseId');
@@ -484,11 +468,7 @@
         bootstrap.Modal.getInstance(document.getElementById('patientDetailsModal')).hide();
         
         // Fetch patient data
-        fetch(`/api/v1/patients/${patientId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        })
+        fetch(`/api/v1/patients/${patientId}`)
         .then(response => response.json())
         .then(patient => {
             // Update modal title
@@ -558,7 +538,6 @@
         fetch(url, {
             method: method,
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(patientData)

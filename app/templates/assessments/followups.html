@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Follow-ups - SteadywellOS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="fas fa-clipboard-list me-2"></i>Patient Follow-ups</h2>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" id="refresh-btn">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Row -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="dateFilter" class="form-label">Filter by Date</label>
+                    <input type="date" class="form-control" id="dateFilter">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="priorityFilter" class="form-label">Priority</label>
+                    <select class="form-select" id="priorityFilter">
+                        <option value="">All Priorities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="protocolFilter" class="form-label">Protocol Type</label>
+                    <select class="form-select" id="protocolFilter">
+                        <option value="">All Protocols</option>
+                        <option value="cancer">Cancer</option>
+                        <option value="heart_failure">Heart Failure</option>
+                        <option value="copd">COPD</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Follow-ups Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Follow-up Date</th>
+                        <th>Patient</th>
+                        <th>Protocol</th>
+                        <th>Priority</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="followups-table-body">
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Empty state message -->
+<div id="empty-state" class="text-center py-5 d-none">
+    <div class="mb-3">
+        <i class="fas fa-clipboard-check fa-4x text-muted"></i>
+    </div>
+    <h4>No Follow-ups Found</h4>
+    <p class="text-muted">Try adjusting your filters or create new assessments with follow-ups.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load follow-ups data
+    function loadFollowUps() {
+        // Hide empty state by default
+        document.getElementById('empty-state').classList.add('d-none');
+        
+        // Show loading state
+        document.getElementById('followups-table-body').innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        // Get filter values
+        const dateFilter = document.getElementById('dateFilter').value;
+        const priorityFilter = document.getElementById('priorityFilter').value;
+        const protocolFilter = document.getElementById('protocolFilter').value;
+        
+        // Build query params
+        let queryParams = [];
+        if (dateFilter) queryParams.push(`date=${dateFilter}`);
+        if (priorityFilter) queryParams.push(`follow_up_priority=${priorityFilter}`);
+        if (protocolFilter) queryParams.push(`protocol_type=${protocolFilter}`);
+        
+        const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+        
+        // Fetch follow-ups
+        fetch(`/api/v1/assessments/followups${queryString}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch follow-ups');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const tableBody = document.getElementById('followups-table-body');
+            
+            // Check if there are no follow-ups
+            if (data.length === 0) {
+                tableBody.innerHTML = '';
+                document.getElementById('empty-state').classList.remove('d-none');
+                return;
+            }
+            
+            // Generate table rows
+            let tableHtml = '';
+            data.forEach(followup => {
+                // Format dates for display
+                const followupDate = new Date(followup.follow_up_date).toLocaleDateString();
+                const createdDate = new Date(followup.assessment_date).toLocaleDateString();
+                
+                // Format protocol type
+                const protocolType = followup.protocol.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                // Determine priority badge color
+                let priorityBadgeClass = 'bg-secondary';
+                if (followup.follow_up_priority === 'high') priorityBadgeClass = 'bg-danger';
+                if (followup.follow_up_priority === 'medium') priorityBadgeClass = 'bg-warning';
+                if (followup.follow_up_priority === 'low') priorityBadgeClass = 'bg-success';
+                
+                tableHtml += `
+                    <tr>
+                        <td>${followupDate}</td>
+                        <td><a href="/patients/${followup.patient.id}">${followup.patient.full_name}</a></td>
+                        <td><span class="badge ${getProtocolBadgeClass(followup.protocol.protocol_type)}">${protocolType}</span></td>
+                        <td><span class="badge ${priorityBadgeClass}">${followup.follow_up_priority.toUpperCase()}</span></td>
+                        <td>${createdDate}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="/assessments/${followup.id}" class="btn btn-outline-primary"><i class="fas fa-eye"></i></a>
+                                <button class="btn btn-success complete-btn" data-id="${followup.id}"><i class="fas fa-check"></i></button>
+                                <a href="/calls/schedule?patient_id=${followup.patient.id}" class="btn btn-outline-secondary"><i class="fas fa-phone"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = tableHtml;
+            
+            // Add event listeners to complete buttons
+            document.querySelectorAll('.complete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    completeFollowUp(this.getAttribute('data-id'));
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error loading follow-ups:', error);
+            document.getElementById('followups-table-body').innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger py-4">
+                        Error loading follow-ups. Please try again.
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    // Complete a follow-up
+    function completeFollowUp(assessmentId) {
+        if (!confirm('Mark this follow-up as completed?')) {
+            return;
+        }
+        
+        fetch(`/api/v1/assessments/${assessmentId}/complete-followup`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to complete follow-up');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Reload follow-ups after success
+            loadFollowUps();
+        })
+        .catch(error => {
+            console.error('Error completing follow-up:', error);
+            alert('Failed to complete follow-up. Please try again.');
+        });
+    }
+    
+    // Helper function for protocol badge colors
+    function getProtocolBadgeClass(type) {
+        switch(type) {
+            case 'cancer': return 'bg-danger';
+            case 'heart_failure': return 'bg-primary';
+            case 'copd': return 'bg-warning';
+            default: return 'bg-info';
+        }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load initial data
+        loadFollowUps();
+        
+        // Set up event listeners for filters
+        document.getElementById('dateFilter').addEventListener('change', loadFollowUps);
+        document.getElementById('priorityFilter').addEventListener('change', loadFollowUps);
+        document.getElementById('protocolFilter').addEventListener('change', loadFollowUps);
+        
+        // Refresh button
+        document.getElementById('refresh-btn').addEventListener('click', loadFollowUps);
+    });
+</script>
+{% endblock %}

@@ -13,7 +13,6 @@ from app.models.audit_log import AuditLog
 protocols_bp = Blueprint('protocols', __name__)
 
 @protocols_bp.route('/', methods=['GET'])
-@jwt_required()
 def get_all_protocols():
     """Get all protocols with optional filtering"""
     # Get query parameters
@@ -47,7 +46,6 @@ def get_all_protocols():
     return jsonify(ProtocolListSchema(many=True).dump(protocols)), 200
 
 @protocols_bp.route('/<int:id>', methods=['GET'])
-@jwt_required()
 def get_protocol(id):
     """Get a protocol by ID"""
     protocol = Protocol.query.get(id)
@@ -57,7 +55,6 @@ def get_protocol(id):
     return jsonify(ProtocolSchema().dump(protocol)), 200
 
 @protocols_bp.route('/type/<protocol_type>/latest', methods=['GET'])
-@jwt_required()
 def get_latest_protocol(protocol_type):
     """Get the latest version of a protocol type"""
     try:

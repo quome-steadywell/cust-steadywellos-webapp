@@ -17,11 +17,11 @@ from app.services.rag_service import process_assessment
 assessments_bp = Blueprint('assessments', __name__)
 
 @assessments_bp.route('/', methods=['GET'])
-@jwt_required()
 def get_all_assessments():
     """Get all assessments with optional filtering"""
-    current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
+    # For demo purposes, we'll hardcode a user ID (first nurse in the database)
+    # In a real app, this would come from authentication
+    current_user = User.query.filter_by(role=UserRole.NURSE).first()
     
     # Get query parameters
     patient_id = request.args.get('patient_id', type=int)
@@ -30,30 +30,34 @@ def get_all_assessments():
     follow_up_priority = request.args.get('follow_up_priority')
     from_date = request.args.get('from_date')
     to_date = request.args.get('to_date')
+    limit = request.args.get('limit', type=int)
     
     # Start with base query
     query = Assessment.query
     
-    # Apply filters
+    # Filter by patient if specified
     if patient_id:
         query = query.filter(Assessment.patient_id == patient_id)
         
-        # Check access to patient for nurses
-        if current_user.role == UserRole.NURSE:
+        # Verify permissions (nurses can only see their assigned patients)
+        if current_user and current_user.role == UserRole.NURSE:
             patient = Patient.query.get(patient_id)
-            if not patient or patient.primary_nurse_id != current_user_id:
+            if not patient or patient.primary_nurse_id != current_user.id:
                 return jsonify({"error": "Unauthorized to view this patient's assessments"}), 403
-    elif current_user.role == UserRole.NURSE:
-        # Nurses can only see assessments for their patients
-        query = query.join(Patient).filter(Patient.primary_nurse_id == current_user_id)
+    # If no patient is specified and user is a nurse, only show their patients
+    elif current_user and current_user.role == UserRole.NURSE:
+        query = query.join(Patient).filter(Patient.primary_nurse_id == current_user.id)
     
+    # Apply protocol type filter if provided
     if protocol_type:
         query = query.join(Protocol).filter(Protocol.protocol_type == protocol_type)
     
+    # Filter by follow-up status
     if follow_up_needed is not None:
-        follow_up = follow_up_needed.lower() == 'true'
-        query = query.filter(Assessment.follow_up_needed == follow_up)
+        follow_up_needed_bool = follow_up_needed.lower() == 'true'
+        query = query.filter(Assessment.follow_up_needed == follow_up_needed_bool)
     
+    # Filter by follow-up priority
     if follow_up_priority:
         try:
             priority_enum = FollowUpPriority(follow_up_priority)
@@ -61,223 +65,159 @@ def get_all_assessments():
         except ValueError:
             return jsonify({"error": f"Invalid follow-up priority: {follow_up_priority}"}), 400
     
+    # Filter by date range
     if from_date:
         try:
-            from_date_obj = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
-            query = query.filter(Assessment.assessment_date >= from_date_obj)
+            from_datetime = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+            query = query.filter(Assessment.assessment_date >= from_datetime)
         except ValueError:
             return jsonify({"error": f"Invalid from_date format: {from_date}"}), 400
     
     if to_date:
         try:
-            to_date_obj = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
-            query = query.filter(Assessment.assessment_date <= to_date_obj)
+            to_datetime = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+            query = query.filter(Assessment.assessment_date <= to_datetime)
         except ValueError:
             return jsonify({"error": f"Invalid to_date format: {to_date}"}), 400
     
     # Order by date, most recent first
-    assessments = query.order_by(Assessment.assessment_date.desc()).all()
+    query = query.order_by(Assessment.assessment_date.desc())
+    
+    # Apply limit if specified
+    if limit:
+        query = query.limit(limit)
+    
+    # Execute query
+    assessments = query.all()
     
     return jsonify(AssessmentListSchema(many=True).dump(assessments)), 200
 
 @assessments_bp.route('/<int:id>', methods=['GET'])
-@jwt_required()
 def get_assessment(id):
     """Get an assessment by ID"""
-    current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
+    # For demo purposes, hardcode a user
+    current_user = User.query.filter_by(role=UserRole.NURSE).first()
     
     assessment = Assessment.query.get(id)
     if not assessment:
         return jsonify({"error": "Assessment not found"}), 404
     
-    # Regular nurses can only view assessments for their patients
-    if current_user.role == UserRole.NURSE:
-        patient = Patient.query.get(assessment.patient_id)
-        if not patient or patient.primary_nurse_id != current_user_id:
+    # Check permission - nurses can only view their patients' assessments
+    patient = Patient.query.get(assessment.patient_id)
+    if current_user and current_user.role == UserRole.NURSE:
+        if not patient or patient.primary_nurse_id != current_user.id:
             return jsonify({"error": "Unauthorized to view this assessment"}), 403
     
-    # Log the access
-    AuditLog.log(
-        user_id=current_user_id,
-        action='view',
-        resource_type='assessment',
-        resource_id=id,
-        ip_address=request.remote_addr,
-        user_agent=request.user_agent.string
-    )
+    # For demo purposes, don't log access
     
     return jsonify(AssessmentSchema().dump(assessment)), 200
 
 @assessments_bp.route('/', methods=['POST'])
-@jwt_required()
-@roles_required(UserRole.NURSE, UserRole.PHYSICIAN)
-@audit_action('create', 'assessment')
 def create_assessment():
     """Create a new assessment"""
     data = request.get_json()
-    current_user_id = get_jwt_identity()
+    
+    # For demo purposes, hardcode a user
+    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    
+    # Set the current user as the conductor if not specified
+    if 'conducted_by_id' not in data and current_user:
+        data['conducted_by_id'] = current_user.id
     
     try:
-        # Add conducted_by_id if not provided
-        if 'conducted_by_id' not in data:
-            data['conducted_by_id'] = current_user_id
-            
         # Validate input
         assessment_data = AssessmentSchema().load(data)
     except ValidationError as err:
         return jsonify({"error": "Validation error", "messages": err.messages}), 400
     
-    # Get patient and check access for nurses
+    # Check if the patient exists and user has permission
     patient = Patient.query.get(assessment_data['patient_id'])
     if not patient:
         return jsonify({"error": "Patient not found"}), 404
     
-    current_user = User.query.get(current_user_id)
-    if current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user_id:
+    # Nurses can only create assessments for their assigned patients
+    if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
         return jsonify({"error": "Unauthorized to create assessment for this patient"}), 403
-    
-    # Process assessment responses to extract symptoms and interventions
-    protocol = Protocol.query.get(assessment_data['protocol_id'])
-    if not protocol:
-        return jsonify({"error": "Protocol not found"}), 404
-    
-    # Extract symptoms from responses based on protocol questions
-    symptoms = {}
-    for question in protocol.questions:
-        question_id = question.get('id')
-        symptom_type = question.get('symptom_type')
-        
-        if question_id and symptom_type and question_id in assessment_data['responses']:
-            response = assessment_data['responses'][question_id]
-            
-            # Handle different question types
-            if question.get('type') == 'numeric':
-                try:
-                    value = float(response.get('value', 0))
-                    symptoms[symptom_type] = value
-                except (ValueError, TypeError):
-                    pass
-            elif question.get('type') == 'boolean':
-                value = response.get('value')
-                if isinstance(value, bool):
-                    symptoms[symptom_type] = 1 if value else 0
-                elif isinstance(value, str):
-                    symptoms[symptom_type] = 1 if value.lower() == 'true' else 0
-    
-    # Determine interventions based on decision tree
-    interventions = []
-    for node in protocol.decision_tree:
-        symptom_type = node.get('symptom_type')
-        condition = node.get('condition')
-        
-        if symptom_type in symptoms and condition:
-            symptom_value = symptoms[symptom_type]
-            
-            # Evaluate condition
-            if condition.startswith('>=') and symptom_value >= float(condition[2:]):
-                # Add interventions for this node
-                for intervention_id in node.get('intervention_ids', []):
-                    # Find intervention details from protocol
-                    for intervention in protocol.interventions:
-                        if intervention.get('id') == intervention_id:
-                            interventions.append(intervention)
-                            break
-            elif condition.startswith('>') and symptom_value > float(condition[1:]):
-                pass  # Similar logic for other operators
-            elif condition.startswith('<=') and symptom_value <= float(condition[2:]):
-                pass
-            elif condition.startswith('<') and symptom_value < float(condition[1:]):
-                pass
-            elif condition.startswith('=='):
-                # Handle boolean or string comparison
-                compare_to = condition[2:]
-                if compare_to.lower() in ('true', 'false'):
-                    bool_value = compare_to.lower() == 'true'
-                    if bool(symptom_value) == bool_value:
-                        # Add interventions
-                        pass
-                else:
-                    # String comparison
-                    if str(symptom_value) == compare_to:
-                        # Add interventions
-                        pass
-    
-    # Get AI guidance if RAG service is available
-    try:
-        ai_guidance = process_assessment(
-            patient=patient,
-            protocol=protocol,
-            symptoms=symptoms,
-            responses=assessment_data['responses']
-        )
-    except Exception as e:
-        current_app.logger.error(f"Error getting AI guidance: {str(e)}")
-        ai_guidance = None
     
     # Create new assessment
     assessment = Assessment(
         patient_id=assessment_data['patient_id'],
-        protocol_id=assessment_data['protocol_id'],
+        protocol_id=assessment_data.get('protocol_id'),
         conducted_by_id=assessment_data['conducted_by_id'],
         call_id=assessment_data.get('call_id'),
-        assessment_date=assessment_data['assessment_date'],
-        responses=assessment_data['responses'],
-        symptoms=symptoms,
-        interventions=interventions,
+        assessment_date=assessment_data.get('assessment_date', datetime.utcnow()),
+        responses=assessment_data.get('responses', {}),
+        symptoms=assessment_data.get('symptoms', {}),
+        interventions=assessment_data.get('interventions', []),
         notes=assessment_data.get('notes'),
         follow_up_needed=assessment_data.get('follow_up_needed', False),
         follow_up_date=assessment_data.get('follow_up_date'),
-        follow_up_priority=FollowUpPriority(assessment_data['follow_up_priority']) if 'follow_up_priority' in assessment_data else None,
-        ai_guidance=ai_guidance
+        follow_up_priority=assessment_data.get('follow_up_priority'),
+        ai_guidance=assessment_data.get('ai_guidance')
     )
     
+    # If AI guidance isn't provided, generate it
+    if not assessment.ai_guidance and assessment.responses and assessment.protocol_id:
+        try:
+            ai_guidance = process_assessment(assessment)
+            assessment.ai_guidance = ai_guidance
+        except Exception as e:
+            current_app.logger.error(f"Error generating AI guidance: {e}")
+    
     db.session.add(assessment)
-    
-    # If linked to a call, update the call status if needed
-    if assessment.call_id:
-        call = Call.query.get(assessment.call_id)
-        if call and call.status != 'completed':
-            call.status = 'completed'
-            call.end_time = datetime.utcnow()
-            if call.start_time:
-                call.duration = (call.end_time - call.start_time).total_seconds()
-    
     db.session.commit()
     
-    # Include the AI guidance in the response
-    result = AssessmentSchema().dump(assessment)
-    result['ai_guidance'] = ai_guidance
-    
-    return jsonify(result), 201
+    return jsonify(AssessmentSchema().dump(assessment)), 201
 
 @assessments_bp.route('/<int:id>', methods=['PUT'])
-@jwt_required()
-@roles_required(UserRole.NURSE, UserRole.PHYSICIAN)
-@audit_action('update', 'assessment')
 def update_assessment(id):
     """Update an assessment"""
     data = request.get_json()
-    current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
+    
+    # For demo purposes, hardcode a user
+    current_user = User.query.filter_by(role=UserRole.NURSE).first()
     
     assessment = Assessment.query.get(id)
     if not assessment:
         return jsonify({"error": "Assessment not found"}), 404
     
-    # Regular nurses can only update assessments for their patients
-    if current_user.role == UserRole.NURSE:
-        patient = Patient.query.get(assessment.patient_id)
-        if not patient or patient.primary_nurse_id != current_user_id:
-            return jsonify({"error": "Unauthorized to update this assessment"}), 403
+    # Verify permissions - only the creator or admins can update
+    if current_user and current_user.role != UserRole.ADMIN and assessment.conducted_by_id != current_user.id:
+        return jsonify({"error": "Unauthorized to update this assessment"}), 403
+    
+    # Check if changing patient and verify permissions
+    if 'patient_id' in data and data['patient_id'] != assessment.patient_id:
+        patient = Patient.query.get(data['patient_id'])
+        if not patient:
+            return jsonify({"error": "Patient not found"}), 404
+        
+        # Nurses can only assign to their patients
+        if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
+            return jsonify({"error": "Unauthorized to assign assessment to this patient"}), 403
     
     try:
         # Validate input
-        assessment_data = AssessmentUpdateSchema().load(data)
+        assessment_data = AssessmentUpdateSchema(context={'is_update': True}).load(data)
     except ValidationError as err:
         return jsonify({"error": "Validation error", "messages": err.messages}), 400
     
     # Update assessment fields
+    if 'patient_id' in assessment_data:
+        assessment.patient_id = assessment_data['patient_id']
+    if 'protocol_id' in assessment_data:
+        assessment.protocol_id = assessment_data['protocol_id']
+    if 'conducted_by_id' in assessment_data:
+        assessment.conducted_by_id = assessment_data['conducted_by_id']
+    if 'call_id' in assessment_data:
+        assessment.call_id = assessment_data['call_id']
+    if 'assessment_date' in assessment_data:
+        assessment.assessment_date = assessment_data['assessment_date']
+    if 'responses' in assessment_data:
+        assessment.responses = assessment_data['responses']
+    if 'symptoms' in assessment_data:
+        assessment.symptoms = assessment_data['symptoms']
+    if 'interventions' in assessment_data:
+        assessment.interventions = assessment_data['interventions']
     if 'notes' in assessment_data:
         assessment.notes = assessment_data['notes']
     if 'follow_up_needed' in assessment_data:
@@ -285,90 +225,89 @@ def update_assessment(id):
     if 'follow_up_date' in assessment_data:
         assessment.follow_up_date = assessment_data['follow_up_date']
     if 'follow_up_priority' in assessment_data:
-        assessment.follow_up_priority = FollowUpPriority(assessment_data['follow_up_priority'])
+        assessment.follow_up_priority = assessment_data['follow_up_priority']
+    if 'ai_guidance' in assessment_data:
+        assessment.ai_guidance = assessment_data['ai_guidance']
+    
+    # Update the AI guidance if responses or protocol changed
+    if (('responses' in assessment_data or 'protocol_id' in assessment_data) and
+        assessment.protocol_id and not assessment.ai_guidance):
+        try:
+            ai_guidance = process_assessment(assessment)
+            assessment.ai_guidance = ai_guidance
+        except Exception as e:
+            current_app.logger.error(f"Error generating AI guidance: {e}")
     
     db.session.commit()
     
     return jsonify(AssessmentSchema().dump(assessment)), 200
 
-@assessments_bp.route('/patient/<int:patient_id>/recent', methods=['GET'])
-@jwt_required()
-def get_recent_assessments(patient_id):
-    """Get recent assessments for a patient"""
-    current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
+@assessments_bp.route('/<int:id>/complete-followup', methods=['PUT'])
+def complete_followup(id):
+    """Mark a follow-up as completed"""
+    # For demo purposes, hardcode a user
+    current_user = User.query.filter_by(role=UserRole.NURSE).first()
     
-    # Check if patient exists
-    patient = Patient.query.get(patient_id)
-    if not patient:
-        return jsonify({"error": "Patient not found"}), 404
+    assessment = Assessment.query.get(id)
+    if not assessment:
+        return jsonify({"error": "Assessment not found"}), 404
     
-    # Regular nurses can only view their assigned patients
-    if current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user_id:
-        return jsonify({"error": "Unauthorized to view this patient's assessments"}), 403
+    # Verify the assessment has follow-up needed
+    if not assessment.follow_up_needed:
+        return jsonify({"error": "This assessment doesn't have a follow-up scheduled"}), 400
     
-    # Get query parameters
-    limit = request.args.get('limit', default=5, type=int)
+    # Verify permissions
+    patient = Patient.query.get(assessment.patient_id)
+    if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
+        return jsonify({"error": "Unauthorized to update this assessment"}), 403
     
-    # Get recent assessments
-    assessments = Assessment.query.filter(
-        Assessment.patient_id == patient_id
-    ).order_by(Assessment.assessment_date.desc()).limit(limit).all()
+    # Mark follow-up as completed
+    assessment.follow_up_needed = False
+    db.session.commit()
     
-    return jsonify(AssessmentListSchema(many=True).dump(assessments)), 200
+    return jsonify({"message": "Follow-up marked as completed"}), 200
 
 @assessments_bp.route('/followups', methods=['GET'])
-@jwt_required()
 def get_followups():
-    """Get assessments needing follow-up"""
-    current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
+    """Get all assessments with pending follow-ups"""
+    # For demo purposes, hardcode a user
+    current_user = User.query.filter_by(role=UserRole.NURSE).first()
     
-    # Get query parameters
-    from_date = request.args.get('from_date')
-    to_date = request.args.get('to_date')
-    priority = request.args.get('priority')
-    
-    # Default date range is today to next 7 days if not specified
-    if not from_date:
-        from_date_obj = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    else:
+    # Optional date filter
+    date_filter = request.args.get('date')
+    if date_filter:
         try:
-            from_date_obj = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+            filter_date = datetime.fromisoformat(date_filter.replace('Z', '+00:00')).date()
         except ValueError:
-            return jsonify({"error": f"Invalid from_date format: {from_date}"}), 400
-    
-    if not to_date:
-        to_date_obj = from_date_obj + timedelta(days=7)
+            return jsonify({"error": f"Invalid date format: {date_filter}"}), 400
     else:
-        try:
-            to_date_obj = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
-        except ValueError:
-            return jsonify({"error": f"Invalid to_date format: {to_date}"}), 400
+        filter_date = None
     
-    # Build query for follow-ups
+    # Start with base query for pending follow-ups
     query = Assessment.query.filter(
-        Assessment.follow_up_needed == True,
-        Assessment.follow_up_date >= from_date_obj,
-        Assessment.follow_up_date <= to_date_obj
+        Assessment.follow_up_needed == True
     )
     
-    # Apply priority filter
-    if priority:
-        try:
-            priority_enum = FollowUpPriority(priority)
-            query = query.filter(Assessment.follow_up_priority == priority_enum)
-        except ValueError:
-            return jsonify({"error": f"Invalid priority: {priority}"}), 400
+    # Apply date filter if provided
+    if filter_date:
+        query = query.filter(
+            Assessment.follow_up_date >= datetime.combine(filter_date, datetime.min.time()),
+            Assessment.follow_up_date < datetime.combine(filter_date + timedelta(days=1), datetime.min.time())
+        )
     
-    # Regular nurses can only see followups for their patients
-    if current_user.role == UserRole.NURSE:
-        query = query.join(Patient).filter(Patient.primary_nurse_id == current_user_id)
+    # Filter by nurse's patients if applicable
+    if current_user and current_user.role == UserRole.NURSE:
+        query = query.join(Patient).filter(Patient.primary_nurse_id == current_user.id)
     
-    # Order by priority (highest first) and then by follow-up date
-    followups = query.order_by(
-        Assessment.follow_up_priority.desc(),  # HIGH, MEDIUM, LOW
-        Assessment.follow_up_date
-    ).all()
+    # Order by priority (high to low) and date (soonest first)
+    query = query.order_by(
+        Assessment.follow_up_priority.desc(),
+        Assessment.follow_up_date.asc()
+    )
+    
+    # Execute query
+    followups = query.all()
+    
+    # For demo purposes, don't log access
     
     return jsonify(AssessmentListSchema(many=True).dump(followups)), 200

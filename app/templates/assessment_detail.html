@@ -204,6 +204,14 @@
             // Store data globally
             assessmentData = data;
             
+            // Log assessment data for debugging
+            console.log("Assessment data loaded:", data);
+            console.log("Protocol info in assessment:", data.protocol);
+            console.log("Protocol ID location check:", {
+                "data.protocol_id": data.protocol_id,
+                "data.protocol?.id": data.protocol?.id
+            });
+            
             // Format assessment date
             const assessmentDate = new Date(data.assessment_date).toLocaleString();
             
@@ -271,21 +279,61 @@
                 document.getElementById('patientInfoCard').innerHTML = 'Error loading patient information.';
             });
             
-            // Load protocol data
-            fetch(`/api/v1/protocols/${data.protocol_id}`, {
+            // Load protocol data - use the protocol ID from nested protocol object or fall back to protocol_id property
+            const protocolId = data.protocol?.id || data.protocol_id;
+            console.log("Using protocol ID:", protocolId);
+            
+            if (!protocolId) {
+                console.error("No protocol ID found in assessment data:", data);
+                document.getElementById('symptomsCard').innerHTML = '<div class="alert alert-warning">No protocol ID found in assessment data.</div>';
+                document.getElementById('interventionsCard').innerHTML = '<div class="alert alert-warning">No protocol ID found in assessment data.</div>';
+                document.getElementById('responsesCard').innerHTML = '<div class="alert alert-warning">No protocol ID found in assessment data.</div>';
+                return;
+            }
+            
+            fetch(`/api/v1/protocols/${protocolId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Protocol API returned status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(protocol => {
                 protocolData = protocol;
+                console.log("Protocol data loaded successfully:", protocol);
                 
                 // Process and display symptoms
                 const symptomsContent = document.getElementById('symptomsCard');
-                if (Object.keys(data.symptoms).length > 0) {
+                // Create a more standardized symptoms object with fallbacks and validations
+                let processedSymptoms = {};
+                
+                // Check if symptoms data exists and is in expected format
+                if (data.symptoms && typeof data.symptoms === 'object') {
+                    // Create a standardized copy of the symptoms with validation
+                    Object.entries(data.symptoms).forEach(([symptom, severity]) => {
+                        // Convert any non-numeric severity to 0 or the provided value
+                        const numericSeverity = typeof severity === 'number' 
+                            ? severity 
+                            : (typeof severity === 'object' && severity?.value && !isNaN(severity.value)) 
+                                ? Number(severity.value) 
+                                : 0;
+                                
+                        // Only include valid symptom data
+                        if (symptom && numericSeverity !== undefined) {
+                            processedSymptoms[symptom] = numericSeverity;
+                        }
+                    });
+                }
+                
+                console.log("Processed symptoms:", processedSymptoms);
+                
+                if (Object.keys(processedSymptoms).length > 0) {
                     // Sort symptoms by severity (descending)
-                    const sortedSymptoms = Object.entries(data.symptoms)
+                    const sortedSymptoms = Object.entries(processedSymptoms)
                         .filter(([_, severity]) => typeof severity === 'number')
                         .sort((a, b) => b[1] - a[1]);
                     
@@ -332,23 +380,69 @@
                 
                 // Process and display interventions
                 const interventionsContent = document.getElementById('interventionsCard');
-                if (data.interventions && data.interventions.length > 0) {
+                
+                // Validate and standardize interventions data
+                let validInterventions = [];
+                if (data.interventions) {
+                    // Ensure interventions is an array
+                    const interventionsArray = Array.isArray(data.interventions) 
+                        ? data.interventions 
+                        : typeof data.interventions === 'object' 
+                            ? [data.interventions] 
+                            : [];
+                    
+                    // Process each intervention
+                    interventionsArray.forEach(intervention => {
+                        // Skip invalid interventions
+                        if (!intervention || typeof intervention !== 'object') {
+                            return;
+                        }
+                        
+                        // Add to valid interventions
+                        validInterventions.push(intervention);
+                    });
+                }
+                
+                console.log("Valid interventions:", validInterventions);
+                
+                if (validInterventions.length > 0) {
                     let interventionsHtml = '<ul class="list-group">';
                     
-                    data.interventions.forEach(intervention => {
-                        // Determine priority class
+                    validInterventions.forEach(intervention => {
+                        // Handle various intervention formats
+                        const title = intervention.title || intervention.name || intervention.id || "Intervention";
+                        const description = intervention.description || "";
+                        
+                        // Determine priority class (if available)
                         let priorityClass = 'bg-info';
-                        if (intervention.priority === 'high') priorityClass = 'bg-danger';
-                        if (intervention.priority === 'medium') priorityClass = 'bg-warning';
-                        if (intervention.priority === 'low') priorityClass = 'bg-success';
+                        let priorityText = '';
+                        
+                        if (intervention.priority) {
+                            if (intervention.priority === 'high') priorityClass = 'bg-danger';
+                            if (intervention.priority === 'medium') priorityClass = 'bg-warning';
+                            if (intervention.priority === 'low') priorityClass = 'bg-success';
+                            priorityText = `<span class="badge ${priorityClass}">${intervention.priority.toUpperCase()}</span>`;
+                        } else if (intervention.severity_threshold) {
+                            // Use severity threshold as alternative
+                            if (intervention.severity_threshold >= 7) {
+                                priorityClass = 'bg-danger';
+                                priorityText = '<span class="badge bg-danger">HIGH</span>';
+                            } else if (intervention.severity_threshold >= 4) {
+                                priorityClass = 'bg-warning';
+                                priorityText = '<span class="badge bg-warning">MEDIUM</span>';
+                            } else {
+                                priorityClass = 'bg-success';
+                                priorityText = '<span class="badge bg-success">LOW</span>';
+                            }
+                        }
                         
                         interventionsHtml += `
                             <li class="list-group-item">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h6>${intervention.name}</h6>
-                                    <span class="badge ${priorityClass}">${intervention.priority.toUpperCase()}</span>
+                                    <h6>${title}</h6>
+                                    ${priorityText}
                                 </div>
-                                <p>${intervention.description}</p>
+                                <p>${description}</p>
                                 ${intervention.instructions ? `<small class="text-muted">${intervention.instructions}</small>` : ''}
                             </li>
                         `;
@@ -362,51 +456,123 @@
                 
                 // Process and display responses
                 const responsesContent = document.getElementById('responsesCard');
-                if (Object.keys(data.responses).length > 0) {
+                
+                // Standardize responses data
+                const standardizedResponses = {};
+                
+                // Process responses if they exist
+                if (data.responses && typeof data.responses === 'object') {
+                    // Process each response
+                    Object.entries(data.responses).forEach(([questionId, response]) => {
+                        // Handle different response formats
+                        if (questionId) {
+                            if (typeof response === 'object' && response !== null) {
+                                standardizedResponses[questionId] = response;
+                            } else {
+                                // Create a standard format for non-object responses
+                                standardizedResponses[questionId] = {
+                                    value: response,
+                                    notes: ''
+                                };
+                            }
+                        }
+                    });
+                }
+                
+                console.log("Standardized responses:", standardizedResponses);
+                
+                if (Object.keys(standardizedResponses).length > 0) {
+                    // Ensure protocol has questions defined
+                    if (!protocol.questions || !Array.isArray(protocol.questions)) {
+                        responsesContent.innerHTML = '<div class="alert alert-warning">Unable to display detailed responses: Protocol questions format is invalid.</div>';
+                        
+                        // Show raw responses as fallback
+                        let rawResponsesHtml = '<div class="mt-3"><h6>Raw Responses:</h6><ul>';
+                        Object.entries(standardizedResponses).forEach(([questionId, response]) => {
+                            rawResponsesHtml += `<li><strong>${questionId}:</strong> ${JSON.stringify(response)}</li>`;
+                        });
+                        rawResponsesHtml += '</ul></div>';
+                        responsesContent.innerHTML += rawResponsesHtml;
+                        return;
+                    }
+                    
                     let responsesHtml = '<div class="accordion" id="responseAccordion">';
                     
                     // Group responses by category
                     const responseCategories = {};
+                    const defaultCategory = 'General';
                     
-                    Object.entries(data.responses).forEach(([questionId, response]) => {
+                    Object.entries(standardizedResponses).forEach(([questionId, response]) => {
                         // Find question in protocol
                         const question = protocol.questions.find(q => q.id === questionId);
+                        
                         if (question) {
                             // Create category if it doesn't exist
-                            const category = question.category || 'Other';
+                            const category = question.category || question.symptom_type || defaultCategory;
                             if (!responseCategories[category]) {
                                 responseCategories[category] = [];
                             }
                             
                             // Format response based on question type
                             let responseDisplay = '';
-                            if (question.type === 'numeric') {
-                                responseDisplay = `${response.value}/10`;
+                            let responseValue = response.value;
+                            
+                            // Handle null or undefined values
+                            if (responseValue === null || responseValue === undefined) {
+                                responseDisplay = 'No response';
+                            } else if (question.type === 'numeric') {
+                                responseDisplay = `${responseValue}/10`;
                             } else if (question.type === 'boolean') {
-                                responseDisplay = response.value ? 'Yes' : 'No';
-                            } else if (question.type === 'multiple_choice') {
-                                responseDisplay = response.value;
+                                responseDisplay = responseValue ? 'Yes' : 'No';
+                            } else if (question.type === 'choice' || question.type === 'multiple_choice') {
+                                responseDisplay = responseValue;
                             } else if (question.type === 'text') {
-                                responseDisplay = response.value;
+                                responseDisplay = responseValue;
+                            } else {
+                                // Default case
+                                responseDisplay = String(responseValue);
                             }
                             
                             // Add to category
                             responseCategories[category].push({
                                 question: question.text,
                                 response: responseDisplay,
-                                notes: response.notes
+                                notes: response.notes || ''
+                            });
+                        } else {
+                            // Question not found in protocol, add to default category
+                            if (!responseCategories[defaultCategory]) {
+                                responseCategories[defaultCategory] = [];
+                            }
+                            
+                            // Format the response for display
+                            let responseDisplay;
+                            if (typeof response.value === 'object') {
+                                responseDisplay = JSON.stringify(response.value);
+                            } else if (response.value === null || response.value === undefined) {
+                                responseDisplay = 'No response';
+                            } else {
+                                responseDisplay = String(response.value);
+                            }
+                            
+                            responseCategories[defaultCategory].push({
+                                question: questionId,
+                                response: responseDisplay,
+                                notes: response.notes || ''
                             });
                         }
                     });
                     
                     // Create accordion for each category
                     Object.entries(responseCategories).forEach(([category, responses], index) => {
+                        const categoryDisplay = category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        
                         responsesHtml += `
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="heading${index}">
                                     <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" 
                                             data-bs-target="#collapse${index}" aria-expanded="${index === 0}" aria-controls="collapse${index}">
-                                        ${category} (${responses.length} questions)
+                                        ${categoryDisplay} (${responses.length} questions)
                                     </button>
                                 </h2>
                                 <div id="collapse${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
@@ -452,9 +618,67 @@
             })
             .catch(error => {
                 console.error('Error fetching protocol data:', error);
-                document.getElementById('symptomsCard').innerHTML = 'Error loading symptoms information.';
-                document.getElementById('interventionsCard').innerHTML = 'Error loading interventions information.';
-                document.getElementById('responsesCard').innerHTML = 'Error loading responses information.';
+                
+                // More descriptive error messages with troubleshooting tips
+                document.getElementById('symptomsCard').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Error loading symptoms information</h6>
+                        <p class="mb-0">Could not load protocol data to process symptoms. Try refreshing the page.</p>
+                        <small>Error details: ${error.message}</small>
+                    </div>
+                    
+                    <!-- Fallback to display raw symptoms data -->
+                    ${data.symptoms && Object.keys(data.symptoms).length > 0 ? `
+                        <div class="mt-3">
+                            <h6>Available Symptoms Data:</h6>
+                            <ul>
+                                ${Object.entries(data.symptoms).map(([symptom, value]) => 
+                                    `<li><strong>${symptom}:</strong> ${value}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    ` : '<p>No symptoms data available.</p>'}
+                `;
+                
+                document.getElementById('interventionsCard').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Error loading interventions information</h6>
+                        <p class="mb-0">Could not load protocol data to process interventions. Try refreshing the page.</p>
+                        <small>Error details: ${error.message}</small>
+                    </div>
+                    
+                    <!-- Fallback to display raw interventions data -->
+                    ${data.interventions && data.interventions.length > 0 ? `
+                        <div class="mt-3">
+                            <h6>Available Interventions Data:</h6>
+                            <ul>
+                                ${data.interventions.map(intervention => 
+                                    `<li><strong>${intervention.title || intervention.name || intervention.id || 'Intervention'}:</strong> ${intervention.description || 'No description'}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    ` : '<p>No interventions data available.</p>'}
+                `;
+                
+                document.getElementById('responsesCard').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Error loading responses information</h6>
+                        <p class="mb-0">Could not load protocol data to process responses. Try refreshing the page.</p>
+                        <small>Error details: ${error.message}</small>
+                    </div>
+                    
+                    <!-- Fallback to display raw responses data -->
+                    ${data.responses && Object.keys(data.responses).length > 0 ? `
+                        <div class="mt-3">
+                            <h6>Available Responses Data:</h6>
+                            <ul>
+                                ${Object.entries(data.responses).map(([questionId, response]) => 
+                                    `<li><strong>${questionId}:</strong> ${typeof response === 'object' ? JSON.stringify(response) : response}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    ` : '<p>No responses data available.</p>'}
+                `;
             });
             
             // Display AI guidance

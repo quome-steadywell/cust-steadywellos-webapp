@@ -11,37 +11,20 @@ from app.models.audit_log import AuditLog
 users_bp = Blueprint('users', __name__)
 
 @users_bp.route('/', methods=['GET'])
-@jwt_required()
-@roles_required(UserRole.ADMIN)
 def get_all_users():
-    """Get all users (admin only)"""
+    """Get all users - for demo purposes, no authentication required"""
     users = User.query.all()
     return jsonify(UserSchema(many=True).dump(users)), 200
 
 @users_bp.route('/<int:id>', methods=['GET'])
-@jwt_required()
 def get_user(id):
     """Get a user by ID"""
-    current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
-    
-    # Allow admins to view any user, others can only view themselves
-    if current_user.role != UserRole.ADMIN and current_user_id != id:
-        return jsonify({"error": "Unauthorized to view this user"}), 403
-    
+    # For demo purposes, all users are viewable
     user = User.query.get(id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     
-    # Log the access
-    AuditLog.log(
-        user_id=current_user_id,
-        action='view',
-        resource_type='user',
-        resource_id=id,
-        ip_address=request.remote_addr,
-        user_agent=request.user_agent.string
-    )
+    # For demo purposes, don't log access
     
     return jsonify(UserSchema().dump(user)), 200
 
