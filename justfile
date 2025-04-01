@@ -38,6 +38,11 @@ db-reset:
     @echo "Resetting database..."
     @./scripts/db_reset.sh
 
+# Reset the database (wipe and reinitialize) without confirmation
+db-reset-force:
+    @echo "Force resetting database without confirmation..."
+    @./scripts/db_reset.sh --force
+
 # Show protocols in the database
 protocols:
     @echo "Showing protocols..."

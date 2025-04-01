@@ -88,14 +88,11 @@ def seed_database(test_scenario=None):
     heart_failure_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
     copd_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.COPD).first()
     
-    protocols_exist = cancer_protocol and heart_failure_protocol and copd_protocol
-    
-    # Only create protocols if none exist yet (as a fallback)
-    if not protocols_exist:
-        print("Missing protocols in database. Creating default protocols...")
-        # Create protocols
-        if not cancer_protocol:
-            cancer_protocol = Protocol(
+    # Forces creation of default protocols since we're skipping the protocol_ingest step
+    print("Creating default protocols in the database...")
+    # Create protocols
+    if not cancer_protocol:
+        cancer_protocol = Protocol(
                 name="Cancer Palliative Care Protocol",
                 description="Protocol for managing symptoms in patients with advanced cancer",
                 protocol_type=ProtocolType.CANCER,
@@ -410,20 +407,19 @@ def seed_database(test_scenario=None):
             is_active=True
         )
         
-        # Only add protocols that were newly created
-        protocols_to_add = []
-        if cancer_protocol and not cancer_protocol.id:
-            protocols_to_add.append(cancer_protocol)
-        if heart_failure_protocol and not heart_failure_protocol.id:
-            protocols_to_add.append(heart_failure_protocol)
-        if copd_protocol and not copd_protocol.id:
-            protocols_to_add.append(copd_protocol)
-            
-        if protocols_to_add:
-            db.session.add_all(protocols_to_add)
-            db.session.commit()
-    else:
-        print("Using existing protocols from database.")
+    # Add any newly created protocols
+    protocols_to_add = []
+    if cancer_protocol and not cancer_protocol.id:
+        protocols_to_add.append(cancer_protocol)
+    if heart_failure_protocol and not heart_failure_protocol.id:
+        protocols_to_add.append(heart_failure_protocol)
+    if copd_protocol and not copd_protocol.id:
+        protocols_to_add.append(copd_protocol)
+        
+    if protocols_to_add:
+        db.session.add_all(protocols_to_add)
+        db.session.commit()
+        print(f"Added {len(protocols_to_add)} new protocols to the database.")
     
     # Create patients
     patient1 = Patient(
@@ -686,6 +682,9 @@ def seed_database(test_scenario=None):
     # Add date-specific test data if requested
     if test_scenario == 'date_check':
         seed_date_check_data()
+    
+    # Add recent assessment history for patient details view
+    seed_patient_history(patient1, patient2, patient3, cancer_protocol, heart_failure_protocol, copd_protocol, nurse1, nurse2)
         
     print("Database seeded successfully!")
     
@@ -792,3 +791,556 @@ def seed_date_check_data():
     db.session.commit()
     
     print("Date check test data added successfully")
+
+def seed_patient_history(patient1, patient2, patient3, cancer_protocol, heart_failure_protocol, copd_protocol, nurse1, nurse2):
+    """Add assessment history for patients to populate patient details pages"""
+    
+    print("Adding patient assessment history...")
+    today = datetime.now()
+    
+    # Create assessment history for patient1 (cancer patient)
+    # Last 4 weeks of assessments, twice per week
+    patient1_assessments = []
+    
+    # 4 weeks ago
+    date_4w_ago = today - timedelta(days=28)
+    assessment1 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_4w_ago.replace(hour=9, minute=30),
+        responses={
+            "pain_level": {"value": 4},
+            "pain_location": {"value": "Lower back"},
+            "nausea": {"value": 2},
+            "fatigue": {"value": 5},
+            "appetite": {"value": 6}
+        },
+        symptoms={
+            "pain": 4,
+            "nausea": 2,
+            "fatigue": 5,
+            "appetite": 6
+        },
+        interventions=[
+            {
+                "id": "moderate_pain",
+                "title": "Moderate Pain Management",
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+            }
+        ],
+        notes="Patient reports stable pain with current medication regimen",
+        follow_up_needed=False
+    )
+    patient1_assessments.append(assessment1)
+    
+    # 3.5 weeks ago
+    date_3w5d_ago = today - timedelta(days=25)
+    assessment2 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_3w5d_ago.replace(hour=14, minute=0),
+        responses={
+            "pain_level": {"value": 5},
+            "pain_location": {"value": "Lower back and right hip"},
+            "nausea": {"value": 3},
+            "fatigue": {"value": 6},
+            "appetite": {"value": 5}
+        },
+        symptoms={
+            "pain": 5,
+            "nausea": 3,
+            "fatigue": 6,
+            "appetite": 5
+        },
+        interventions=[
+            {
+                "id": "moderate_pain",
+                "title": "Moderate Pain Management",
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+            }
+        ],
+        notes="Patient reports slight increase in pain, spreading to hip",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.LOW,
+    )
+    patient1_assessments.append(assessment2)
+    
+    # 3 weeks ago
+    date_3w_ago = today - timedelta(days=21)
+    assessment3 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_3w_ago.replace(hour=10, minute=15),
+        responses={
+            "pain_level": {"value": 6},
+            "pain_location": {"value": "Lower back and right hip"},
+            "nausea": {"value": 4},
+            "fatigue": {"value": 6},
+            "appetite": {"value": 4}
+        },
+        symptoms={
+            "pain": 6,
+            "nausea": 4,
+            "fatigue": 6,
+            "appetite": 4
+        },
+        interventions=[
+            {
+                "id": "moderate_pain",
+                "title": "Moderate Pain Management",
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+            }
+        ],
+        notes="Continued increase in pain. Referred to physician for medication adjustment",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM,
+    )
+    patient1_assessments.append(assessment3)
+    
+    # 2.5 weeks ago
+    date_2w5d_ago = today - timedelta(days=18)
+    assessment4 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_2w5d_ago.replace(hour=11, minute=0),
+        responses={
+            "pain_level": {"value": 4},
+            "pain_location": {"value": "Lower back and right hip"},
+            "nausea": {"value": 5},
+            "fatigue": {"value": 5},
+            "appetite": {"value": 3}
+        },
+        symptoms={
+            "pain": 4,
+            "nausea": 5,
+            "fatigue": 5,
+            "appetite": 3
+        },
+        interventions=[
+            {
+                "id": "moderate_pain",
+                "title": "Moderate Pain Management",
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+            }
+        ],
+        notes="Pain improved after medication adjustment but nausea increased - likely side effect",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM,
+    )
+    patient1_assessments.append(assessment4)
+    
+    # 2 weeks ago
+    date_2w_ago = today - timedelta(days=14)
+    assessment5 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_2w_ago.replace(hour=9, minute=30),
+        responses={
+            "pain_level": {"value": 3},
+            "pain_location": {"value": "Lower back and right hip"},
+            "nausea": {"value": 3},
+            "fatigue": {"value": 4},
+            "appetite": {"value": 4}
+        },
+        symptoms={
+            "pain": 3,
+            "nausea": 3,
+            "fatigue": 4,
+            "appetite": 4
+        },
+        interventions=[
+            {
+                "id": "mild_pain",
+                "title": "Mild Pain Management",
+                "description": "Continue current pain management. Monitor for changes."
+            }
+        ],
+        notes="Pain and nausea both improved. Anti-nausea medication effective",
+        follow_up_needed=False
+    )
+    patient1_assessments.append(assessment5)
+    
+    # 1.5 weeks ago
+    date_1w5d_ago = today - timedelta(days=11)
+    assessment6 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_1w5d_ago.replace(hour=14, minute=0),
+        responses={
+            "pain_level": {"value": 5},
+            "pain_location": {"value": "Lower back, right hip, and now radiating to leg"},
+            "nausea": {"value": 2},
+            "fatigue": {"value": 6},
+            "appetite": {"value": 4}
+        },
+        symptoms={
+            "pain": 5,
+            "nausea": 2,
+            "fatigue": 6,
+            "appetite": 4
+        },
+        interventions=[
+            {
+                "id": "moderate_pain",
+                "title": "Moderate Pain Management",
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+            }
+        ],
+        notes="New pain location reported - now radiating to leg. Discussed with physician",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM,
+    )
+    patient1_assessments.append(assessment6)
+    
+    # 1 week ago
+    date_1w_ago = today - timedelta(days=7)
+    assessment7 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_1w_ago.replace(hour=10, minute=15),
+        responses={
+            "pain_level": {"value": 6},
+            "pain_location": {"value": "Lower back, right hip, and radiating to leg"},
+            "nausea": {"value": 2},
+            "fatigue": {"value": 7},
+            "appetite": {"value": 3}
+        },
+        symptoms={
+            "pain": 6,
+            "nausea": 2,
+            "fatigue": 7,
+            "appetite": 3
+        },
+        interventions=[
+            {
+                "id": "moderate_pain",
+                "title": "Moderate Pain Management",
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+            },
+            {
+                "id": "severe_fatigue",
+                "title": "Severe Fatigue Management",
+                "description": "Assess for reversible causes. Consider energy conservation strategies."
+            }
+        ],
+        notes="Increasing pain and fatigue. Scheduled for follow-up with oncologist",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.HIGH,
+    )
+    patient1_assessments.append(assessment7)
+    
+    # 3 days ago
+    date_3d_ago = today - timedelta(days=3)
+    assessment8 = Assessment(
+        patient_id=patient1.id,
+        protocol_id=cancer_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_3d_ago.replace(hour=11, minute=0),
+        responses={
+            "pain_level": {"value": 7},
+            "pain_location": {"value": "Lower back, right hip, and radiating to leg"},
+            "nausea": {"value": 3},
+            "fatigue": {"value": 7},
+            "appetite": {"value": 2}
+        },
+        symptoms={
+            "pain": 7,
+            "nausea": 3,
+            "fatigue": 7,
+            "appetite": 2
+        },
+        interventions=[
+            {
+                "id": "severe_pain",
+                "title": "Severe Pain Management",
+                "description": "Urgent review of pain medication. Consider opioid rotation or adjustment."
+            },
+            {
+                "id": "severe_fatigue",
+                "title": "Severe Fatigue Management",
+                "description": "Assess for reversible causes. Consider energy conservation strategies."
+            }
+        ],
+        notes="Pain continues to increase despite medication adjustments. Oncologist appointment scheduled for tomorrow",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.HIGH,
+    )
+    patient1_assessments.append(assessment8)
+    
+    # Create assessment history for patient2 (heart failure patient)
+    patient2_assessments = []
+    
+    # 4 weeks ago
+    assessment1 = Assessment(
+        patient_id=patient2.id,
+        protocol_id=heart_failure_protocol.id,
+        conducted_by_id=nurse2.id,
+        assessment_date=date_4w_ago.replace(hour=10, minute=0),
+        responses={
+            "dyspnea": {"value": 3},
+            "edema": {"value": 4},
+            "orthopnea": {"value": 2},
+            "fatigue": {"value": 4},
+            "chest_pain": {"value": False}
+        },
+        symptoms={
+            "dyspnea": 3,
+            "edema": 4,
+            "orthopnea": 2,
+            "fatigue": 4,
+            "chest_pain": 0
+        },
+        notes="Patient stable on current medication regimen",
+        follow_up_needed=False
+    )
+    patient2_assessments.append(assessment1)
+    
+    # 3 weeks ago
+    assessment2 = Assessment(
+        patient_id=patient2.id,
+        protocol_id=heart_failure_protocol.id,
+        conducted_by_id=nurse2.id,
+        assessment_date=date_3w_ago.replace(hour=14, minute=30),
+        responses={
+            "dyspnea": {"value": 4},
+            "edema": {"value": 5},
+            "orthopnea": {"value": 2},
+            "fatigue": {"value": 5},
+            "chest_pain": {"value": False}
+        },
+        symptoms={
+            "dyspnea": 4,
+            "edema": 5,
+            "orthopnea": 2,
+            "fatigue": 5,
+            "chest_pain": 0
+        },
+        notes="Slight increase in edema and fatigue. Recommended fluid restriction",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.LOW
+    )
+    patient2_assessments.append(assessment2)
+    
+    # 2 weeks ago
+    assessment3 = Assessment(
+        patient_id=patient2.id,
+        protocol_id=heart_failure_protocol.id,
+        conducted_by_id=nurse2.id,
+        assessment_date=date_2w_ago.replace(hour=11, minute=15),
+        responses={
+            "dyspnea": {"value": 4},
+            "edema": {"value": 6},
+            "orthopnea": {"value": 3},
+            "fatigue": {"value": 5},
+            "chest_pain": {"value": False}
+        },
+        symptoms={
+            "dyspnea": 4,
+            "edema": 6,
+            "orthopnea": 3,
+            "fatigue": 5,
+            "chest_pain": 0
+        },
+        notes="Edema increasing despite fluid restriction. Recommended diuretic adjustment",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM
+    )
+    patient2_assessments.append(assessment3)
+    
+    # 1 week ago
+    assessment4 = Assessment(
+        patient_id=patient2.id,
+        protocol_id=heart_failure_protocol.id,
+        conducted_by_id=nurse2.id,
+        assessment_date=date_1w_ago.replace(hour=9, minute=45),
+        responses={
+            "dyspnea": {"value": 5},
+            "edema": {"value": 7},
+            "orthopnea": {"value": 4},
+            "fatigue": {"value": 6},
+            "chest_pain": {"value": False}
+        },
+        symptoms={
+            "dyspnea": 5,
+            "edema": 7,
+            "orthopnea": 4,
+            "fatigue": 6,
+            "chest_pain": 0
+        },
+        interventions=[
+            {
+                "id": "severe_edema",
+                "title": "Severe Edema Management",
+                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose."
+            }
+        ],
+        notes="Significant increase in edema and now requiring more pillows to sleep. Diuretic dose increased",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.HIGH
+    )
+    patient2_assessments.append(assessment4)
+    
+    # 4 days ago
+    date_4d_ago = today - timedelta(days=4)
+    assessment5 = Assessment(
+        patient_id=patient2.id,
+        protocol_id=heart_failure_protocol.id,
+        conducted_by_id=nurse2.id,
+        assessment_date=date_4d_ago.replace(hour=10, minute=30),
+        responses={
+            "dyspnea": {"value": 4},
+            "edema": {"value": 5},
+            "orthopnea": {"value": 3},
+            "fatigue": {"value": 5},
+            "chest_pain": {"value": False}
+        },
+        symptoms={
+            "dyspnea": 4,
+            "edema": 5,
+            "orthopnea": 3,
+            "fatigue": 5,
+            "chest_pain": 0
+        },
+        notes="Improvement in symptoms with increased diuretic dose",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM
+    )
+    patient2_assessments.append(assessment5)
+    
+    # Create assessment history for patient3 (COPD patient)
+    patient3_assessments = []
+    
+    # 3 weeks ago
+    assessment1 = Assessment(
+        patient_id=patient3.id,
+        protocol_id=copd_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_3w_ago.replace(hour=11, minute=30),
+        responses={
+            "dyspnea": {"value": 5},
+            "cough": {"value": 4},
+            "sputum_color": {"value": "White"},
+            "oxygen_use": {"value": 16},
+            "anxiety": {"value": 4}
+        },
+        symptoms={
+            "dyspnea": 5,
+            "cough": 4,
+            "sputum": 2,
+            "oxygen_use": 16,
+            "anxiety": 4
+        },
+        notes="Stable respiratory status. Using oxygen as prescribed",
+        follow_up_needed=False
+    )
+    patient3_assessments.append(assessment1)
+    
+    # 2 weeks ago
+    assessment2 = Assessment(
+        patient_id=patient3.id,
+        protocol_id=copd_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_2w_ago.replace(hour=14, minute=15),
+        responses={
+            "dyspnea": {"value": 6},
+            "cough": {"value": 5},
+            "sputum_color": {"value": "Yellow"},
+            "oxygen_use": {"value": 18},
+            "anxiety": {"value": 5}
+        },
+        symptoms={
+            "dyspnea": 6,
+            "cough": 5,
+            "sputum": 3,
+            "oxygen_use": 18,
+            "anxiety": 5
+        },
+        notes="Increasing shortness of breath and cough. Sputum now yellow",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM
+    )
+    patient3_assessments.append(assessment2)
+    
+    # 1 week ago
+    assessment3 = Assessment(
+        patient_id=patient3.id,
+        protocol_id=copd_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_1w_ago.replace(hour=10, minute=0),
+        responses={
+            "dyspnea": {"value": 7},
+            "cough": {"value": 6},
+            "sputum_color": {"value": "Green"},
+            "oxygen_use": {"value": 21},
+            "anxiety": {"value": 7}
+        },
+        symptoms={
+            "dyspnea": 7,
+            "cough": 6,
+            "sputum": 4,
+            "oxygen_use": 21,
+            "anxiety": 7
+        },
+        interventions=[
+            {
+                "id": "severe_dyspnea_copd",
+                "title": "Severe Dyspnea Management for COPD",
+                "description": "Review bronchodilator use. Consider rescue pack if available."
+            },
+            {
+                "id": "infection_evaluation",
+                "title": "Respiratory Infection Evaluation",
+                "description": "Evaluate for respiratory infection. Consider antibiotics per protocol."
+            },
+            {
+                "id": "severe_anxiety",
+                "title": "Respiratory Anxiety Management",
+                "description": "Review breathing techniques. Consider anxiolytic if severe."
+            }
+        ],
+        notes="Likely respiratory infection. Started on antibiotics and increased bronchodilator use",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.HIGH
+    )
+    patient3_assessments.append(assessment3)
+    
+    # 3 days ago
+    assessment4 = Assessment(
+        patient_id=patient3.id,
+        protocol_id=copd_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_3d_ago.replace(hour=11, minute=45),
+        responses={
+            "dyspnea": {"value": 5},
+            "cough": {"value": 5},
+            "sputum_color": {"value": "Yellow"},
+            "oxygen_use": {"value": 18},
+            "anxiety": {"value": 5}
+        },
+        symptoms={
+            "dyspnea": 5,
+            "cough": 5,
+            "sputum": 3,
+            "oxygen_use": 18,
+            "anxiety": 5
+        },
+        notes="Improving with antibiotics. Breathing easier and sputum changing from green to yellow",
+        follow_up_needed=True,
+        follow_up_priority=FollowUpPriority.MEDIUM
+    )
+    patient3_assessments.append(assessment4)
+    
+    # Add all assessments to the database
+    db.session.add_all(patient1_assessments)
+    db.session.add_all(patient2_assessments)
+    db.session.add_all(patient3_assessments)
+    db.session.commit()
+    
+    print("Patient assessment history added successfully")

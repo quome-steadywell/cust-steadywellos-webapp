@@ -20,12 +20,16 @@ if ! docker-compose ps | grep -q "web\|db"; then
 fi
 
 # Confirm with user
-echo -e "${RED}WARNING: This will reset the database and all data will be lost!${NC}"
-read -p "Are you sure you want to continue? (y/n) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  echo -e "${YELLOW}Database reset cancelled.${NC}"
-  exit 0
+if [ "$1" != "--force" ]; then
+  echo -e "${RED}WARNING: This will reset the database and all data will be lost!${NC}"
+  read -p "Are you sure you want to continue? (y/n) " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${YELLOW}Database reset cancelled.${NC}"
+    exit 0
+  fi
+else
+  echo -e "${YELLOW}Forcing database reset without confirmation...${NC}"
 fi
 
 # Reset the database
@@ -35,8 +39,10 @@ docker-compose exec web python run.py drop_db
 echo -e "${GREEN}Initializing database tables...${NC}"
 docker-compose exec web python run.py create_db
 
-echo -e "${GREEN}Initializing protocols...${NC}"
-docker-compose exec web python scripts/protocol_ingest.py
+# Skip protocol ingest that relies on Anthropic API
+# We'll use protocols from the seed_database function instead
+echo -e "${GREEN}Skipping external protocol creation due to API limitations...${NC}"
+echo -e "${GREEN}Using default protocols from the seeder...${NC}"
 
 echo -e "${GREEN}Seeding database with sample data...${NC}"
 docker-compose exec web python run.py seed_db
