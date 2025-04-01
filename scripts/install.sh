@@ -54,26 +54,9 @@ fi
 
 # Create or update environment variables file
 echo -e "${GREEN}Setting up environment variables...${NC}"
-cat > .env << EOF
-# Database Configuration
-POSTGRES_USER=pallcare
-POSTGRES_PASSWORD=pallcarepass
-POSTGRES_DB=pallcare_db
-DATABASE_URL=postgresql://pallcare:pallcarepass@db:5432/pallcare_db
-
-# Security Keys
-SECRET_KEY=dev-secret-key-replace-in-production
-JWT_SECRET_KEY=dev-jwt-secret-key-replace-in-production
-
-# Flask Configuration
-FLASK_APP=run.py
-FLASK_ENV=development
-
-# API Keys (replace with real keys in production)
-TWILIO_ACCOUNT_SID=your_twilio_sid
-TWILIO_AUTH_TOKEN=your_twilio_token
-ANTHROPIC_API_KEY=your_anthropic_api_key
-EOF
+echo -e "${GREEN} TODO ${NC}"
+#cat > .env << EOF
+#EOF
 echo -e "${GREEN}Environment variables configured.${NC}"
 
 echo

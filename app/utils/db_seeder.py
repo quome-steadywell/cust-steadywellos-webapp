@@ -798,6 +798,98 @@ def seed_patient_history(patient1, patient2, patient3, cancer_protocol, heart_fa
     print("Adding patient assessment history...")
     today = datetime.now()
     
+    # Add urgent follow-up assessment for Mary Johnson (patient2) on 3/25/2025
+    urgent_assessment = Assessment(
+        patient_id=patient2.id,
+        protocol_id=heart_failure_protocol.id,
+        conducted_by_id=nurse2.id,
+        assessment_date=datetime(2025, 3, 25, 9, 30),  # March 25, 2025 9:30 AM
+        responses={
+            "dyspnea": {"value": 8},
+            "edema": {"value": 9},
+            "orthopnea": {"value": 5},
+            "fatigue": {"value": 7},
+            "chest_pain": {"value": True}
+        },
+        symptoms={
+            "dyspnea": 8,
+            "edema": 9,
+            "orthopnea": 5, 
+            "fatigue": 7,
+            "chest_pain": 1
+        },
+        interventions=[
+            {
+                "id": "severe_dyspnea",
+                "title": "Severe Dyspnea Management",
+                "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen."
+            },
+            {
+                "id": "severe_edema",
+                "title": "Severe Edema Management",
+                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose."
+            },
+            {
+                "id": "chest_pain_management",
+                "title": "Chest Pain Management",
+                "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed."
+            }
+        ],
+        notes="Patient reports severe increase in edema, dyspnea, and new onset chest pain. Needs immediate medical attention.",
+        follow_up_needed=True,
+        follow_up_date=datetime(2025, 4, 2, 10, 0),  # April 2, 2025 10:00 AM
+        follow_up_priority=FollowUpPriority.HIGH,
+        ai_guidance="Urgent review by physician recommended. Consider hospital evaluation for decompensated heart failure with possible acute coronary syndrome. Increase diuretic dose and monitor fluid status closely."
+    )
+    db.session.add(urgent_assessment)
+    
+    # For the urgent follow-up to appear properly in the dashboard, we'll add a second assessment
+    # specifically for 3/25/2025 date shown in the dashboard
+    second_urgent_assessment = Assessment(
+        patient_id=patient2.id,
+        protocol_id=heart_failure_protocol.id,
+        conducted_by_id=nurse2.id,
+        assessment_date=datetime(2025, 3, 25, 14, 30),  # March 25, 2025 2:30 PM
+        responses={
+            "dyspnea": {"value": 9},
+            "edema": {"value": 10},
+            "orthopnea": {"value": 6},
+            "fatigue": {"value": 8},
+            "chest_pain": {"value": True}
+        },
+        symptoms={
+            "dyspnea": 9,
+            "edema": 10,
+            "orthopnea": 6, 
+            "fatigue": 8,
+            "chest_pain": 1
+        },
+        interventions=[
+            {
+                "id": "severe_dyspnea",
+                "title": "Severe Dyspnea Management",
+                "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen."
+            },
+            {
+                "id": "severe_edema",
+                "title": "Severe Edema Management",
+                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose."
+            },
+            {
+                "id": "chest_pain_management",
+                "title": "Chest Pain Management",
+                "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed."
+            }
+        ],
+        notes="Follow-up check shows worsening symptoms. Patient sent to emergency department for evaluation.",
+        follow_up_needed=True,
+        follow_up_date=datetime(2025, 3, 28, 10, 0),  # March 28, 2025 10:00 AM
+        follow_up_priority=FollowUpPriority.HIGH,
+        ai_guidance="Urgent hospital evaluation recommended. Possible acute decompensated heart failure with cardiac ischemia."
+    )
+    db.session.add(second_urgent_assessment)
+    db.session.commit()
+    
     # Create assessment history for patient1 (cancer patient)
     # Last 4 weeks of assessments, twice per week
     patient1_assessments = []

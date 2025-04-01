@@ -136,15 +136,34 @@
             data.forEach(assessment => {
                 const row = document.createElement('tr');
                 
-                // Format date
-                const followupDate = new Date(assessment.follow_up_date).toLocaleDateString();
+                // Format date - with proper timezone handling
+                let followupDate = 'Not set';
+                if (assessment.follow_up_date) {
+                    // Remove timezone info if present to avoid timezone issues
+                    const dateStr = assessment.follow_up_date.split('T')[0];
+                    if (dateStr) {
+                        const dateParts = dateStr.split('-');
+                        if (dateParts.length === 3) {
+                            const year = parseInt(dateParts[0]);
+                            const month = parseInt(dateParts[1]) - 1; // JavaScript months are 0-indexed
+                            const day = parseInt(dateParts[2]);
+                            const date = new Date(year, month, day);
+                            followupDate = date.toLocaleDateString();
+                        }
+                    }
+                }
                 
                 // Priority badge color
                 let priorityBadgeClass = 'bg-info';
-                if (assessment.follow_up_priority === 'high') priorityBadgeClass = 'bg-danger';
-                if (assessment.follow_up_priority === 'medium') priorityBadgeClass = 'bg-warning';
-                if (assessment.follow_up_priority === 'low') priorityBadgeClass = 'bg-success';
-                if (assessment.follow_up_priority === 'urgent') priorityBadgeClass = 'bg-danger';
+                const priority = assessment.follow_up_priority ? assessment.follow_up_priority.toLowerCase() : '';
+                if (priority === 'high') priorityBadgeClass = 'bg-danger';
+                if (priority === 'medium') priorityBadgeClass = 'bg-warning';
+                if (priority === 'low') priorityBadgeClass = 'bg-success';
+                if (priority === 'urgent') priorityBadgeClass = 'bg-danger';
+                
+                // Format priority for display (handle uppercase enum values)
+                const displayPriority = assessment.follow_up_priority ? 
+                    assessment.follow_up_priority.replace('FOLLOWUPPRIORITY.', '') : 'NONE';
                 
                 // Format protocol type for display
                 const protocolType = assessment.protocol.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -153,7 +172,7 @@
                     <td>${assessment.patient.full_name}</td>
                     <td>${assessment.protocol.name} (${protocolType})</td>
                     <td>${followupDate}</td>
-                    <td><span class="badge ${priorityBadgeClass}">${assessment.follow_up_priority.toUpperCase()}</span></td>
+                    <td><span class="badge ${priorityBadgeClass}">${displayPriority}</span></td>
                     <td>
                         <div class="btn-group">
                             <a href="/assessments/${assessment.id}" class="btn btn-sm btn-primary">
@@ -264,8 +283,22 @@
             data.forEach(assessment => {
                 const row = document.createElement('tr');
                 
-                // Format assessment date
-                const assessmentDate = new Date(assessment.assessment_date).toLocaleDateString();
+                // Format assessment date with proper timezone handling
+                let assessmentDate = 'Unknown';
+                if (assessment.assessment_date) {
+                    // Remove timezone info if present to avoid timezone issues
+                    const dateStr = assessment.assessment_date.split('T')[0];
+                    if (dateStr) {
+                        const dateParts = dateStr.split('-');
+                        if (dateParts.length === 3) {
+                            const year = parseInt(dateParts[0]);
+                            const month = parseInt(dateParts[1]) - 1; // JavaScript months are 0-indexed
+                            const day = parseInt(dateParts[2]);
+                            const date = new Date(year, month, day);
+                            assessmentDate = date.toLocaleDateString();
+                        }
+                    }
+                }
                 
                 // Format protocol type for display
                 const protocolType = assessment.protocol.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -274,12 +307,17 @@
                 let followupInfo = 'No';
                 if (assessment.follow_up_needed) {
                     let priorityBadgeClass = 'bg-info';
-                    if (assessment.follow_up_priority === 'high') priorityBadgeClass = 'bg-danger';
-                    if (assessment.follow_up_priority === 'medium') priorityBadgeClass = 'bg-warning';
-                    if (assessment.follow_up_priority === 'low') priorityBadgeClass = 'bg-success';
-                    if (assessment.follow_up_priority === 'urgent') priorityBadgeClass = 'bg-danger';
+                    const priority = assessment.follow_up_priority ? assessment.follow_up_priority.toLowerCase() : '';
+                    if (priority === 'high') priorityBadgeClass = 'bg-danger';
+                    if (priority === 'medium') priorityBadgeClass = 'bg-warning';
+                    if (priority === 'low') priorityBadgeClass = 'bg-success';
+                    if (priority === 'urgent') priorityBadgeClass = 'bg-danger';
                     
-                    followupInfo = `<span class="badge ${priorityBadgeClass}">${assessment.follow_up_priority.toUpperCase()}</span>`;
+                    // Format priority for display (handle uppercase enum values)
+                    const displayPriority = assessment.follow_up_priority ? 
+                        assessment.follow_up_priority.replace('FOLLOWUPPRIORITY.', '') : 'NONE';
+                    
+                    followupInfo = `<span class="badge ${priorityBadgeClass}">${displayPriority}</span>`;
                 }
                 
                 row.innerHTML = `

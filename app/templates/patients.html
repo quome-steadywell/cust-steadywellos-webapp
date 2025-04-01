@@ -240,7 +240,11 @@
         if (protocolType) url += '&protocol_type=' + protocolType;
         if (searchTerm) url += '&search=' + encodeURIComponent(searchTerm);
         
-        fetch(url)
+        fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById('patientTableBody');
@@ -322,7 +326,11 @@
     
     // View patient details
     function viewPatient(patientId) {
-        fetch(`/api/v1/patients/${patientId}`)
+        fetch(`/api/v1/patients/${patientId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
         .then(response => response.json())
         .then(patient => {
             const detailsBody = document.getElementById('patientDetailsBody');

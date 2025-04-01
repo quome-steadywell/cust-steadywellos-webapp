@@ -147,25 +147,61 @@
             // Generate table rows
             let tableHtml = '';
             data.forEach(followup => {
-                // Format dates for display
-                const followupDate = new Date(followup.follow_up_date).toLocaleDateString();
-                const createdDate = new Date(followup.assessment_date).toLocaleDateString();
+                // Format dates for display with proper timezone handling
+                let followupDate = 'Not set';
+                if (followup.follow_up_date) {
+                    // Remove timezone info if present to avoid timezone issues
+                    const dateStr = followup.follow_up_date.split('T')[0];
+                    if (dateStr) {
+                        const dateParts = dateStr.split('-');
+                        if (dateParts.length === 3) {
+                            const year = parseInt(dateParts[0]);
+                            const month = parseInt(dateParts[1]) - 1; // JavaScript months are 0-indexed
+                            const day = parseInt(dateParts[2]);
+                            const date = new Date(year, month, day);
+                            followupDate = date.toLocaleDateString();
+                        }
+                    }
+                }
+                
+                // Format assessment date
+                let createdDate = 'Unknown';
+                if (followup.assessment_date) {
+                    // Remove timezone info if present to avoid timezone issues
+                    const dateStr = followup.assessment_date.split('T')[0];
+                    if (dateStr) {
+                        const dateParts = dateStr.split('-');
+                        if (dateParts.length === 3) {
+                            const year = parseInt(dateParts[0]);
+                            const month = parseInt(dateParts[1]) - 1; // JavaScript months are 0-indexed
+                            const day = parseInt(dateParts[2]);
+                            const date = new Date(year, month, day);
+                            createdDate = date.toLocaleDateString();
+                        }
+                    }
+                }
                 
                 // Format protocol type
                 const protocolType = followup.protocol.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
                 
                 // Determine priority badge color
                 let priorityBadgeClass = 'bg-secondary';
-                if (followup.follow_up_priority === 'high') priorityBadgeClass = 'bg-danger';
-                if (followup.follow_up_priority === 'medium') priorityBadgeClass = 'bg-warning';
-                if (followup.follow_up_priority === 'low') priorityBadgeClass = 'bg-success';
+                const priority = followup.follow_up_priority ? followup.follow_up_priority.toLowerCase() : '';
+                if (priority === 'high') priorityBadgeClass = 'bg-danger';
+                if (priority === 'medium') priorityBadgeClass = 'bg-warning';
+                if (priority === 'low') priorityBadgeClass = 'bg-success';
+                if (priority === 'urgent') priorityBadgeClass = 'bg-danger';
+                
+                // Format priority for display (handle uppercase enum values)
+                const displayPriority = followup.follow_up_priority ? 
+                    followup.follow_up_priority.replace('FOLLOWUPPRIORITY.', '') : 'NONE';
                 
                 tableHtml += `
                     <tr>
                         <td>${followupDate}</td>
                         <td><a href="/patients/${followup.patient.id}">${followup.patient.full_name}</a></td>
                         <td><span class="badge ${getProtocolBadgeClass(followup.protocol.protocol_type)}">${protocolType}</span></td>
-                        <td><span class="badge ${priorityBadgeClass}">${followup.follow_up_priority.toUpperCase()}</span></td>
+                        <td><span class="badge ${priorityBadgeClass}">${displayPriority}</span></td>
                         <td>${createdDate}</td>
                         <td>
                             <div class="btn-group btn-group-sm">

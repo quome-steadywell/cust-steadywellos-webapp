@@ -13,10 +13,12 @@ from app.models.audit_log import AuditLog
 patients_bp = Blueprint('patients', __name__)
 
 @patients_bp.route('/', methods=['GET'])
+@jwt_required()
 def get_all_patients():
     """Get all patients with optional filtering"""
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     
     # Get query parameters
     protocol_type = request.args.get('protocol_type')
@@ -26,7 +28,10 @@ def get_all_patients():
     # Start with base query
     query = Patient.query.filter(Patient.is_active == is_active)
     
-    # Regular nurses can only see their assigned patients
+    # Apply role-based access control:
+    # - Admins see all patients
+    # - Nurses see only their assigned patients
+    # - Physicians see all patients for now (could be refined later)
     if current_user and current_user.role == UserRole.NURSE:
         query = query.filter(Patient.primary_nurse_id == current_user.id)
     

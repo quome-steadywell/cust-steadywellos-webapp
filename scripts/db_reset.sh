@@ -47,6 +47,10 @@ echo -e "${GREEN}Using default protocols from the seeder...${NC}"
 echo -e "${GREEN}Seeding database with sample data...${NC}"
 docker-compose exec web python run.py seed_db
 
+# Clean up any duplicate protocols
+echo -e "${GREEN}Cleaning up database protocols...${NC}"
+docker-compose exec web python scripts/clean_db.py
+
 echo -e "${GREEN}Database reset complete!${NC}"
 echo -e "${GREEN}Default login credentials:${NC}"
 echo -e "  Admin: ${YELLOW}admin / password123${NC}"
