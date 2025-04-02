@@ -16,7 +16,7 @@ protocols_bp = Blueprint('protocols', __name__)
 def get_all_protocols():
     """Get all protocols with optional filtering"""
     # Get query parameters
-    protocol_type = request.args.get('type')
+    protocol_type = request.args.get('type') or request.args.get('protocol_type')
     is_active = request.args.get('is_active', 'true').lower() == 'true'
     latest_only = request.args.get('latest_only', 'false').lower() == 'true'
     
@@ -42,6 +42,11 @@ def get_all_protocols():
         protocols = latest_protocols
     else:
         protocols = query.order_by(Protocol.protocol_type, Protocol.version.desc()).all()
+    
+    # Debug output - Log the type of protocols returned
+    print(f"Found {len(protocols)} protocols matching type={protocol_type}, active={is_active}")
+    for protocol in protocols:
+        print(f"Protocol: id={protocol.id}, name={protocol.name}, type={protocol.protocol_type}")
     
     return jsonify(ProtocolListSchema(many=True).dump(protocols)), 200
 

@@ -109,6 +109,16 @@ def get_assessment(id):
         if not patient or patient.primary_nurse_id != current_user.id:
             return jsonify({"error": "Unauthorized to view this assessment"}), 403
     
+    # Ensure protocol relationship is properly loaded
+    if assessment.protocol_id:
+        protocol = Protocol.query.get(assessment.protocol_id)
+        if not protocol:
+            print(f"Warning: Protocol with ID {assessment.protocol_id} not found, referenced by assessment {id}")
+        else:
+            print(f"Protocol found: {protocol.name} ({protocol.protocol_type})")
+    else:
+        print(f"Warning: Assessment {id} has no protocol_id")
+    
     # For demo purposes, don't log access
     
     return jsonify(AssessmentSchema().dump(assessment)), 200

@@ -17,6 +17,8 @@ sys.path.append(str(parent_dir))
 from app import create_app, db
 from app.models.assessment import Assessment
 from app.schemas.assessment import AssessmentSchema
+from app.models.patient import Patient
+from app.models.protocol import Protocol
 
 def check_assessment_api(assessment_id):
     """Check assessment API for a specific ID"""
@@ -118,10 +120,70 @@ def check_assessment_api(assessment_id):
             import traceback
             traceback.print_exc()
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python check_assessments.py <assessment_id>")
-        sys.exit(1)
+def check_multiple_assessments():
+    """Check specific assessment IDs with problems"""
+    print("\n\n====== CHECKING MULTIPLE ASSESSMENT RECORDS ======")
+    app = create_app()
+    with app.app_context():
+        # Check working vs non-working assessments
+        assessment_ids = [106, 107, 108]  # Check the assessments failing in the app
         
-    assessment_id = int(sys.argv[1])
-    check_assessment_api(assessment_id)
+        for aid in assessment_ids:
+            # Get assessment directly from database
+            assessment = Assessment.query.get(aid)
+            if not assessment:
+                print(f"\n\nAssessment ID {aid} not found in database!")
+                continue
+            
+            print(f"\n\n==== ASSESSMENT {aid} ====")
+            print(f"Patient ID: {assessment.patient_id}")
+            print(f"Protocol ID: {assessment.protocol_id}")
+            print(f"Conducted By ID: {assessment.conducted_by_id}")
+            print(f"Call ID: {assessment.call_id}")
+            
+            # Check protocol relationship
+            from app.models.protocol import Protocol
+            from app.models.patient import Patient
+            
+            protocol = None
+            if assessment.protocol_id:
+                protocol = Protocol.query.get(assessment.protocol_id)
+            
+            print(f"\nProtocol Link Status: {'VALID' if protocol else 'MISSING'}")
+            if protocol:
+                print(f"Protocol Name: {protocol.name}")
+                print(f"Protocol Type: {protocol.protocol_type}")
+            else:
+                print("WARNING: Protocol object is None or missing")
+                # Check if protocol ID exists in Protocol table
+                if assessment.protocol_id:
+                    found = Protocol.query.filter(Protocol.id == assessment.protocol_id).first()
+                    print(f"Protocol ID {assessment.protocol_id} exists in Protocol table: {'Yes' if found else 'No'}")
+            
+            # Check patient
+            patient = Patient.query.get(assessment.patient_id)
+            if patient:
+                print(f"\nPatient: {patient.full_name} (MRN: {patient.mrn})")
+            else:
+                print("\nWARNING: Patient record missing")
+            
+            # Try serialization with schema
+            try:
+                schema = AssessmentSchema()
+                result = schema.dump(assessment)
+                print("\nSerialization result:")
+                print(f"Protocol included in serialized data: {'Yes' if result.get('protocol') else 'No'}")
+                if result.get('protocol'):
+                    print(f"Protocol data: {result['protocol']}")
+                else:
+                    print("Protocol data is missing in serialized output!")
+            except Exception as e:
+                print(f"Serialization error: {str(e)}")
+
+if __name__ == "__main__":
+    if len(sys.argv) >= 2:
+        assessment_id = int(sys.argv[1])
+        check_assessment_api(assessment_id)
+    else:
+        # Run our comparative analysis
+        check_multiple_assessments()

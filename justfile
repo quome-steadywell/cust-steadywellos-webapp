@@ -42,6 +42,21 @@ db-reset:
 db-reset-force:
     @echo "Force resetting database without confirmation..."
     @./scripts/db_reset.sh --force
+    
+# Reset the database (wipe and restore from backup)
+db-reset-from-backup:
+    @echo "Resetting database from backup..."
+    @./scripts/db_reset_from_backup.sh
+    
+# Reset the database (wipe and restore from backup) without confirmation
+db-reset-from-backup-force:
+    @echo "Force resetting database from backup without confirmation..."
+    @./scripts/db_reset_from_backup.sh --force
+
+# Backup the database
+db-backup:
+    @echo "Backing up database..."
+    @./scripts/db_backup.sh
 
 # Show protocols in the database
 protocols:
