@@ -62,20 +62,41 @@ def get_protocol(id):
 @protocols_bp.route('/type/<protocol_type>/latest', methods=['GET'])
 def get_latest_protocol(protocol_type):
     """Get the latest version of a protocol type"""
+    # Try to normalize the protocol type 
+    normalized_type = protocol_type
+    
+    # Handle 'ProtocolType.COPD' format
+    if normalized_type.startswith('ProtocolType.'):
+        normalized_type = normalized_type.replace('ProtocolType.', '')
+    
+    # Convert to lowercase to match enum values
+    normalized_type = normalized_type.lower()
+    
+    print(f"API: Getting protocol for type {protocol_type}, normalized to {normalized_type}")
+    
     try:
-        protocol_enum = ProtocolType(protocol_type)
-    except ValueError:
-        return jsonify({"error": f"Invalid protocol type: {protocol_type}"}), 400
-    
-    protocol = Protocol.query.filter(
-        Protocol.protocol_type == protocol_enum,
-        Protocol.is_active == True
-    ).order_by(Protocol.version.desc()).first()
-    
-    if not protocol:
-        return jsonify({"error": f"No active protocol found for type: {protocol_type}"}), 404
-    
-    return jsonify(ProtocolSchema().dump(protocol)), 200
+        # Find the matching enum value from the normalized type
+        matching_enum = None
+        for pt in ProtocolType:
+            if pt.value == normalized_type:
+                matching_enum = pt
+                break
+        
+        if not matching_enum:
+            return jsonify({"error": f"Invalid protocol type: {protocol_type}"}), 400
+        
+        protocol = Protocol.query.filter(
+            Protocol.protocol_type == matching_enum,
+            Protocol.is_active == True
+        ).order_by(Protocol.version.desc()).first()
+        
+        if not protocol:
+            return jsonify({"error": f"No active protocol found for type: {protocol_type}"}), 404
+        
+        return jsonify(ProtocolSchema().dump(protocol)), 200
+    except Exception as e:
+        print(f"Error getting protocol: {str(e)}")
+        return jsonify({"error": f"Error getting protocol: {str(e)}"}), 500
 
 @protocols_bp.route('/', methods=['POST'])
 @jwt_required()

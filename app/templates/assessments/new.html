@@ -559,8 +559,33 @@
                 
                 document.getElementById('patientInfo').querySelector('.card-body').innerHTML = patientInfoHtml;
                 
-                // Load protocol based on patient's protocol type
-                loadProtocol(patient.protocol_type);
+                // Store the original protocol type for debugging
+                console.log(`Patient protocol type: ${patient.protocol_type}`);
+                
+                // Normalize the protocol type before loading protocol
+                let normalizedProtocolType = patient.protocol_type;
+                
+                // Extract the enum value if it's in the format ProtocolType.COPD
+                if (normalizedProtocolType && normalizedProtocolType.startsWith('ProtocolType.')) {
+                    normalizedProtocolType = normalizedProtocolType.replace('ProtocolType.', '');
+                }
+                
+                // Handle case issues by trying both uppercase and lowercase
+                if (normalizedProtocolType) {
+                    // Try various formats to ensure we can find the protocol
+                    console.log(`Trying to load protocol for normalized type: ${normalizedProtocolType}`);
+                    loadProtocol(normalizedProtocolType);
+                } else {
+                    console.error('No protocol type found for patient');
+                    document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            No protocol type found for this patient.
+                        </div>
+                    `;
+                    document.getElementById('protocolBadge').textContent = 'Error';
+                    document.getElementById('protocolBadge').className = 'badge bg-danger';
+                }
             })
             .catch(error => {
                 console.error('Error loading patient:', error);
@@ -577,12 +602,29 @@
     function loadProtocol(protocolType) {
         console.log(`Loading protocol for type: ${protocolType}`);
         
+        if (!protocolType) {
+            console.error('No protocol type provided');
+            document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    No protocol type specified for this patient.
+                </div>
+            `;
+            document.getElementById('protocolBadge').textContent = 'Error';
+            document.getElementById('protocolBadge').className = 'badge bg-danger';
+            return;
+        }
+        
         // Clean up protocol type if it comes in as ProtocolType.XXX format
         let cleanProtocolType = protocolType;
         if (protocolType && protocolType.startsWith('ProtocolType.')) {
             cleanProtocolType = protocolType.replace('ProtocolType.', '');
             console.log(`Cleaned protocol type: ${cleanProtocolType}`);
         }
+        
+        // Convert to lowercase to match the ProtocolType enum values
+        cleanProtocolType = cleanProtocolType.toLowerCase();
+        console.log(`Using lowercase protocol type: ${cleanProtocolType}`);
         
         const url = `/api/v1/protocols/type/${cleanProtocolType}/latest`;
         const authToken = localStorage.getItem('auth_token');
@@ -601,6 +643,7 @@
                 return response.json();
             })
             .then(protocol => {
+                console.log('Protocol data received:', protocol);
                 protocolData = protocol;
                 
                 // Update hidden protocol ID
@@ -629,75 +672,85 @@
             .catch(error => {
                 console.error('Error loading protocol:', error);
                 
-                // Try alternative method - sometimes protocols are referenced as CANCER instead of ProtocolType.CANCER
-                if (cleanProtocolType.startsWith('ProtocolType.')) {
-                    const alternativeType = cleanProtocolType.replace('ProtocolType.', '');
-                    console.log(`Trying alternative protocol type: ${alternativeType}`);
-                    
-                    // Try the fetch again with the alternative type
-                    fetch(`/api/v1/protocols/type/${alternativeType}/latest`, {
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(protocol => {
-                        console.log('Successfully loaded protocol with alternative type:', protocol);
-                        protocolData = protocol;
-                        
-                        // Update hidden protocol ID
-                        document.getElementById('protocolId').value = protocol.id;
-                        
-                        // Update protocol badge
-                        const protocolBadge = document.getElementById('protocolBadge');
-                        protocolBadge.textContent = protocol.name;
-                        
-                        // Update protocol information
-                        const protocolInfoHtml = `
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <p>${protocol.description}</p>
-                                    <p><strong>Version:</strong> ${protocol.version}</p>
-                                    <p><strong>Questions:</strong> ${protocol.questions ? protocol.questions.length : 0}</p>
-                                </div>
-                            </div>
-                        `;
-                        
-                        document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = protocolInfoHtml;
-                        
-                        // Load questions
-                        renderQuestions(protocol.questions);
-                    })
-                    .catch(secondError => {
-                        console.error('Error loading protocol with alternative type:', secondError);
-                        document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = `
-                            <div class="alert alert-danger">
-                                <i class="fas fa-exclamation-circle me-2"></i>
-                                Error loading protocol information. Please try again later.
-                            </div>
-                        `;
-                        
-                        document.getElementById('protocolBadge').textContent = 'Error';
-                        document.getElementById('protocolBadge').className = 'badge bg-danger';
-                    });
-                    return;
-                }
+                // Try alternative methods in sequence
+                const typesToTry = [
+                    cleanProtocolType.toUpperCase(),                // Try COPD
+                    cleanProtocolType,                              // Try copd
+                    protocolType,                                   // Try original (ProtocolType.COPD)
+                    protocolType.replace('ProtocolType.', '')       // Try COPD again
+                ];
                 
-                document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Error loading protocol information. Please try again later.
-                    </div>
-                `;
+                console.log(`Will try these protocol types: ${typesToTry.join(', ')}`);
                 
-                document.getElementById('protocolBadge').textContent = 'Error';
-                document.getElementById('protocolBadge').className = 'badge bg-danger';
+                // Try each type in sequence
+                tryNextProtocolType(typesToTry, 0, authToken);
             });
+    }
+    
+    // Helper function to try different protocol types in sequence
+    function tryNextProtocolType(types, index, authToken) {
+        // If we've tried all types, show error
+        if (index >= types.length) {
+            console.error('All protocol type attempts failed');
+            document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Error loading protocol information. Please try again later.
+                </div>
+            `;
+            document.getElementById('protocolBadge').textContent = 'Error';
+            document.getElementById('protocolBadge').className = 'badge bg-danger';
+            return;
+        }
+        
+        const currentType = types[index];
+        console.log(`Trying protocol type attempt ${index+1}/${types.length}: ${currentType}`);
+        
+        fetch(`/api/v1/protocols/type/${currentType}/latest`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(response => {
+            console.log(`Protocol response status for ${currentType}: ${response.status}`);
+            if (!response.ok) {
+                // Try next protocol type
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(protocol => {
+            console.log(`Successfully loaded protocol with type: ${currentType}`, protocol);
+            protocolData = protocol;
+            
+            // Update hidden protocol ID
+            document.getElementById('protocolId').value = protocol.id;
+            
+            // Update protocol badge
+            const protocolBadge = document.getElementById('protocolBadge');
+            protocolBadge.textContent = protocol.name;
+            
+            // Update protocol information
+            const protocolInfoHtml = `
+                <div class="row">
+                    <div class="col-md-12">
+                        <p>${protocol.description}</p>
+                        <p><strong>Version:</strong> ${protocol.version}</p>
+                        <p><strong>Questions:</strong> ${protocol.questions ? protocol.questions.length : 0}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('protocolInfo').querySelector('.card-body').innerHTML = protocolInfoHtml;
+            
+            // Load questions
+            renderQuestions(protocol.questions);
+        })
+        .catch(error => {
+            console.error(`Error loading protocol with type ${currentType}:`, error);
+            // Try next protocol type
+            tryNextProtocolType(types, index + 1, authToken);
+        });
     }
     
     // Render protocol questions
