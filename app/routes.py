@@ -70,7 +70,9 @@ def assessments():
 @web_bp.route('/assessments/new')
 def new_assessment():
     """Render new assessment form"""
-    patient_id = request.args.get('patient_id')
+    patient_id = request.args.get('patient_id', '')
+    # Log for debugging purposes
+    print(f"Creating new assessment with patient_id: '{patient_id}'")
     return render_template('assessments/new.html', patient_id=patient_id)
 
 @web_bp.route('/assessments/<int:assessment_id>')

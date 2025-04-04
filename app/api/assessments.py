@@ -139,12 +139,14 @@ def get_assessment(id):
     return jsonify(AssessmentSchema().dump(assessment)), 200
 
 @assessments_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_assessment():
     """Create a new assessment"""
     data = request.get_json()
     
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     
     # Set the current user as the conductor if not specified
     if 'conducted_by_id' not in data and current_user:
@@ -196,12 +198,14 @@ def create_assessment():
     return jsonify(AssessmentSchema().dump(assessment)), 201
 
 @assessments_bp.route('/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_assessment(id):
     """Update an assessment"""
     data = request.get_json()
     
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     
     assessment = Assessment.query.get(id)
     if not assessment:

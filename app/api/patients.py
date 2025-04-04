@@ -223,12 +223,13 @@ def deactivate_patient(id):
 @jwt_required()
 def search_patients():
     """Search patients by name, MRN, or diagnosis"""
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     
     search_term = request.args.get('q', '')
-    if not search_term or len(search_term) < 3:
-        return jsonify({"error": "Search term must be at least 3 characters"}), 400
+    if not search_term or len(search_term) < 2:  # Reduced to 2 characters for better usability
+        return jsonify({"error": "Search term must be at least 2 characters"}), 400
     
     search_pattern = f"%{search_term}%"
     query = Patient.query.filter(
