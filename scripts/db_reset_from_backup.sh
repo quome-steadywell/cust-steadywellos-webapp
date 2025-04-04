@@ -37,14 +37,14 @@ source .env
 
 # Reset the database
 echo -e "${GREEN}Dropping existing database...${NC}"
-docker-compose exec db psql -U $POSTGRES_USER -c "DROP DATABASE IF EXISTS $POSTGRES_DB;"
-docker-compose exec db psql -U $POSTGRES_USER -c "CREATE DATABASE $POSTGRES_DB;"
+docker-compose exec db psql -U $POSTGRES_USER -c "DROP DATABASE IF EXISTS $POSTGRES_DB;" postgres
+docker-compose exec db psql -U $POSTGRES_USER -c "CREATE DATABASE $POSTGRES_DB;" postgres
 
 echo -e "${GREEN}Restoring from backup...${NC}"
 BACKUP_FILE="./data/backup/pallcare_db.sql"
 if [ -f "$BACKUP_FILE" ]; then
   # Copy the backup file to the container
-  docker-compose exec -T db sh -c "cat > /tmp/backup.sql" < $BACKUP_FILE
+  docker-compose exec -T db bash -c "cat > /tmp/backup.sql" < $BACKUP_FILE
   
   # Restore from the backup file
   docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB -f /tmp/backup.sql

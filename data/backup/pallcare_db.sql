@@ -544,6 +544,16 @@ COPY public.assessments (id, patient_id, protocol_id, conducted_by_id, call_id, 
 COPY public.audit_logs (id, user_id, action, resource_type, resource_id, details, ip_address, user_agent, "timestamp") FROM stdin;
 34	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0	2025-04-02 18:48:07.240498
 35	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-02 19:08:18.971772
+36	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0	2025-04-03 18:49:19.601666
+37	25	view	call	28	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0	2025-04-03 18:50:38.486628
+38	25	view	call	28	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0	2025-04-03 18:50:41.578101
+39	25	view	call	28	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0	2025-04-03 18:50:41.587029
+40	25	view	call	28	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0	2025-04-03 18:50:45.249443
+41	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-03 22:10:34.72539
+42	25	view	call	28	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-03 22:12:11.064721
+43	25	view	call	28	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-03 22:12:11.082547
+44	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-03 22:53:46.111445
+45	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 02:44:56.677959
 \.
 
 
@@ -601,10 +611,10 @@ COPY public.protocols (id, name, description, protocol_type, version, questions,
 --
 
 COPY public.users (id, username, email, password, first_name, last_name, role, phone_number, license_number, is_active, login_attempts, last_login_at, created_at, updated_at) FROM stdin;
-26	nurse1	nurse1@example.com	$2b$04$cQgvcUWOGaCsqyM1hmOyNOb7Lrd4o.EXQU6yBQqNP3Ecs3LgOTXla	Jane	Smith	NURSE	555-234-5678	RN12345	t	0	\N	2025-04-02 18:38:56.0849	2025-04-02 18:38:56.0849
 27	nurse2	nurse2@example.com	$2b$04$Gbde4mHJJMKvfNkjaKZ2xedturot4y705G2FciFd2RLPTEMFbUgBy	Robert	Johnson	NURSE	555-345-6789	RN67890	t	0	\N	2025-04-02 18:38:56.0849	2025-04-02 18:38:56.084901
 28	physician	physician@example.com	$2b$04$2WsgpUdPPxjbMPEWrz6loe6k.4XSW0dilY9BWk.2NzinNh4necvb2	Sarah	Williams	PHYSICIAN	555-456-7890	MD12345	t	0	\N	2025-04-02 18:38:56.084901	2025-04-02 18:38:56.084901
-25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-02 19:08:18.962353	2025-04-02 18:38:56.084898	2025-04-02 19:08:18.964955
+26	nurse1	nurse1@example.com	$2b$04$cQgvcUWOGaCsqyM1hmOyNOb7Lrd4o.EXQU6yBQqNP3Ecs3LgOTXla	Jane	Smith	NURSE	555-234-5678	RN12345	t	0	2025-04-03 22:53:46.105434	2025-04-02 18:38:56.0849	2025-04-03 22:53:46.106126
+25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-04 02:44:56.673604	2025-04-02 18:38:56.084898	2025-04-04 02:44:56.674289
 \.
 
 
@@ -619,7 +629,7 @@ SELECT pg_catalog.setval('public.assessments_id_seq', 147, true);
 -- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: pallcare
 --
 
-SELECT pg_catalog.setval('public.audit_logs_id_seq', 35, true);
+SELECT pg_catalog.setval('public.audit_logs_id_seq', 45, true);
 
 
 --

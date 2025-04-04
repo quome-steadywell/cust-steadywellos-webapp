@@ -50,18 +50,39 @@ fi
 
 # Initialize and seed database if in TEST mode
 if [ "${DEV_STATE}" = "TEST" ]; then
-  echo -e "${YELLOW}DEV_STATE is set to TEST. Initializing and seeding database...${NC}"
-  # Initialize the database
-  echo -e "${GREEN}Initializing database tables...${NC}"
-  docker-compose exec -T web python run.py create_db
+  echo -e "${YELLOW}DEV_STATE is set to TEST. Restoring database from backup...${NC}"
   
-  # Initialize protocols before seeding
-  echo -e "${GREEN}Initializing protocols...${NC}"
-  docker-compose exec -T web python scripts/protocol_ingest.py
-  
-  # Seed the database with test data
-  echo -e "${GREEN}Seeding database with sample data...${NC}"
-  docker-compose exec -T web python run.py seed_db
+  # Check if backup file exists
+  BACKUP_FILE="./data/backup/pallcare_db.sql"
+  if [ -f "$BACKUP_FILE" ]; then
+    echo -e "${GREEN}Found backup file. Setting up database from backup...${NC}"
+    
+    # Create a fresh database
+    echo -e "${GREEN}Dropping existing database...${NC}"
+    docker-compose exec -T db psql -U $POSTGRES_USER -c "DROP DATABASE IF EXISTS $POSTGRES_DB;" postgres
+    docker-compose exec -T db psql -U $POSTGRES_USER -c "CREATE DATABASE $POSTGRES_DB;" postgres
+    
+    # Restore from backup
+    echo -e "${GREEN}Restoring from backup file...${NC}"
+    docker-compose exec -T db bash -c "cat > /tmp/backup.sql" < $BACKUP_FILE
+    docker-compose exec -T db psql -U $POSTGRES_USER -d $POSTGRES_DB -f /tmp/backup.sql
+    docker-compose exec -T db rm /tmp/backup.sql
+    
+    echo -e "${GREEN}Database restored from backup successfully!${NC}"
+  else
+    echo -e "${YELLOW}Backup file not found. Using default initialization and seeding...${NC}"
+    # Initialize the database
+    echo -e "${GREEN}Initializing database tables...${NC}"
+    docker-compose exec -T web python run.py create_db
+    
+    # Initialize protocols before seeding
+    echo -e "${GREEN}Initializing protocols...${NC}"
+    docker-compose exec -T web python scripts/protocol_ingest.py
+    
+    # Seed the database with test data
+    echo -e "${GREEN}Seeding database with sample data...${NC}"
+    docker-compose exec -T web python run.py seed_db
+  fi
   
   echo -e "${GREEN}Database initialization and seeding complete!${NC}"
   echo -e "${GREEN}Default login credentials:${NC}"
