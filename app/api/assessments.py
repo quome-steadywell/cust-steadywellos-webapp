@@ -18,11 +18,12 @@ from app.services.rag_service import process_assessment
 assessments_bp = Blueprint('assessments', __name__)
 
 @assessments_bp.route('/', methods=['GET'])
+@jwt_required()
 def get_all_assessments():
     """Get all assessments with optional filtering"""
-    # For demo purposes, we'll hardcode a user ID (first nurse in the database)
-    # In a real app, this would come from authentication
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token if available
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id) if current_user_id else None
     
     # Get query parameters
     patient_id = request.args.get('patient_id', type=int)
@@ -33,8 +34,14 @@ def get_all_assessments():
     to_date = request.args.get('to_date')
     limit = request.args.get('limit', type=int)
     
-    # Start with base query
-    query = Assessment.query
+    
+    # Start with base query with eager loading of relationships to avoid N+1 queries
+    query = Assessment.query.options(
+        db.joinedload(Assessment.patient),
+        db.joinedload(Assessment.protocol),
+        db.joinedload(Assessment.conducted_by)
+    )
+    
     
     # Filter by patient if specified
     if patient_id:
@@ -91,13 +98,21 @@ def get_all_assessments():
     # Execute query
     assessments = query.all()
     
-    return jsonify(AssessmentListSchema(many=True).dump(assessments)), 200
+    # Serialize with error catching
+    try:
+        serialized = AssessmentListSchema(many=True).dump(assessments)
+        return jsonify(serialized), 200
+    except Exception as e:
+        current_app.logger.error(f"Serialization error: {str(e)}")
+        return jsonify({"error": f"Serialization error: {str(e)}"}), 500
 
 @assessments_bp.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_assessment(id):
     """Get an assessment by ID"""
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token if available
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id) if current_user_id else None
     
     assessment = Assessment.query.get(id)
     if not assessment:
@@ -254,10 +269,12 @@ def update_assessment(id):
     return jsonify(AssessmentSchema().dump(assessment)), 200
 
 @assessments_bp.route('/<int:id>/complete-followup', methods=['PUT'])
+@jwt_required()
 def complete_followup(id):
     """Mark a follow-up as completed"""
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token if available
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id) if current_user_id else None
     
     assessment = Assessment.query.get(id)
     if not assessment:
@@ -279,10 +296,12 @@ def complete_followup(id):
     return jsonify({"message": "Follow-up marked as completed"}), 200
 
 @assessments_bp.route('/followups', methods=['GET'])
+@jwt_required()
 def get_followups():
     """Get all assessments with pending follow-ups"""
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token if available
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id) if current_user_id else None
     
     # Optional date filter
     date_filter = request.args.get('date')

@@ -63,10 +63,12 @@ def get_all_patients():
     return jsonify(PatientListSchema(many=True).dump(patients)), 200
 
 @patients_bp.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_patient(id):
     """Get a patient by ID"""
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     
     patient = Patient.query.get(id)
     if not patient:
@@ -81,6 +83,7 @@ def get_patient(id):
     return jsonify(PatientSchema().dump(patient)), 200
 
 @patients_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_patient():
     """Create a new patient"""
     data = request.get_json()
@@ -121,12 +124,14 @@ def create_patient():
     return jsonify(PatientSchema().dump(patient)), 201
 
 @patients_bp.route('/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_patient(id):
     """Update a patient"""
     data = request.get_json()
     
-    # For demo purposes, hardcode a user
-    current_user = User.query.filter_by(role=UserRole.NURSE).first()
+    # Get the current user from JWT token
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     
     patient = Patient.query.get(id)
     if not patient:

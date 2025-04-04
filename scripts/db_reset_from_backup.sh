@@ -68,6 +68,10 @@ else
   docker-compose exec web python scripts/clean_db.py
 fi
 
+# Ensure assessments data is properly populated
+echo -e "${GREEN}Checking and fixing assessment data...${NC}"
+docker-compose exec web python scripts/fix_assessments.py
+
 echo -e "${GREEN}Database reset complete!${NC}"
 echo -e "${GREEN}Default login credentials:${NC}"
 echo -e "  Admin: ${YELLOW}admin / password123${NC}"

@@ -197,19 +197,11 @@
         console.log("Loading assessment ID:", assessmentId);
         console.log("Authorization token:", localStorage.getItem('auth_token'));
         
-        // If no token, create a demo token
+        // If no token, redirect to login
         if (!localStorage.getItem('auth_token')) {
-            console.log("No auth token found - creating a demo token");
-            // Create a fake token for demo purposes
-            localStorage.setItem('auth_token', 'demo-token-for-testing');
-            
-            // Create a fake user for the demo
-            localStorage.setItem('current_user', JSON.stringify({
-                id: 1,
-                username: 'demo_user',
-                full_name: 'Demo User',
-                role: 'NURSE'
-            }));
+            console.log("No auth token found - redirecting to login");
+            window.location.href = '/login';
+            return;
         }
         
         fetch(`/api/v1/assessments/${assessmentId}`, {

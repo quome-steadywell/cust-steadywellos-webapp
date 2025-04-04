@@ -114,6 +114,12 @@
         const fromDate = formatDate(today);
         const toDate = formatDate(nextWeek);
         
+        // Create a demo token if none exists
+        if (!localStorage.getItem('auth_token')) {
+            console.log("No token found, using demo token");
+            localStorage.setItem('auth_token', 'demo-token-for-testing');
+        }
+        
         fetch(`/api/v1/assessments/followups?from_date=${fromDate}&to_date=${toDate}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
