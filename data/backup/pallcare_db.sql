@@ -569,6 +569,24 @@ COPY public.audit_logs (id, user_id, action, resource_type, resource_id, details
 58	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:23:37.589059
 59	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:25:47.949887
 60	25	view	call	28	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:26:47.256479
+61	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:41:34.496
+62	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:41:41.353442
+63	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:44:29.872383
+64	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:44:36.485314
+65	25	login	user	25	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:49:09.732433
+66	25	login	user	25	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:49:35.345981
+67	26	login	user	26	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:49:41.929054
+68	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:49:54.771714
+69	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:50:01.777387
+70	25	login	user	25	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:56:16.938909
+71	25	login	user	25	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:56:24.198099
+72	25	login	user	25	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:56:35.80461
+73	25	login	user	25	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:57:16.399283
+74	25	login	user	25	null	172.18.0.3	python-requests/2.32.3	2025-04-04 05:57:24.127483
+75	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:58:11.479953
+76	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 05:58:19.549375
+77	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 06:10:01.317973
+78	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 06:10:08.699094
 \.
 
 
@@ -628,8 +646,8 @@ COPY public.protocols (id, name, description, protocol_type, version, questions,
 COPY public.users (id, username, email, password, first_name, last_name, role, phone_number, license_number, is_active, login_attempts, last_login_at, created_at, updated_at) FROM stdin;
 27	nurse2	nurse2@example.com	$2b$04$Gbde4mHJJMKvfNkjaKZ2xedturot4y705G2FciFd2RLPTEMFbUgBy	Robert	Johnson	NURSE	555-345-6789	RN67890	t	0	\N	2025-04-02 18:38:56.0849	2025-04-02 18:38:56.084901
 28	physician	physician@example.com	$2b$04$2WsgpUdPPxjbMPEWrz6loe6k.4XSW0dilY9BWk.2NzinNh4necvb2	Sarah	Williams	PHYSICIAN	555-456-7890	MD12345	t	0	\N	2025-04-02 18:38:56.084901	2025-04-02 18:38:56.084901
-26	nurse1	nurse1@example.com	$2b$04$cQgvcUWOGaCsqyM1hmOyNOb7Lrd4o.EXQU6yBQqNP3Ecs3LgOTXla	Jane	Smith	NURSE	555-234-5678	RN12345	t	0	2025-04-03 22:53:46.105434	2025-04-02 18:38:56.0849	2025-04-03 22:53:46.106126
-25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-04 05:25:47.945899	2025-04-02 18:38:56.084898	2025-04-04 05:25:47.946581
+26	nurse1	nurse1@example.com	$2b$04$cQgvcUWOGaCsqyM1hmOyNOb7Lrd4o.EXQU6yBQqNP3Ecs3LgOTXla	Jane	Smith	NURSE	555-234-5678	RN12345	t	0	2025-04-04 05:49:41.925504	2025-04-02 18:38:56.0849	2025-04-04 05:49:41.926121
+25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-04 06:10:08.6934	2025-04-02 18:38:56.084898	2025-04-04 06:10:08.694939
 \.
 
 
@@ -644,7 +662,7 @@ SELECT pg_catalog.setval('public.assessments_id_seq', 147, true);
 -- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: pallcare
 --
 
-SELECT pg_catalog.setval('public.audit_logs_id_seq', 60, true);
+SELECT pg_catalog.setval('public.audit_logs_id_seq', 78, true);
 
 
 --

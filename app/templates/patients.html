@@ -578,6 +578,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadPatients();
         loadNurses();
+        
+        // Check if we should show a specific patient's details
+        const storedPatientId = localStorage.getItem('view_patient_id');
+        if (storedPatientId) {
+            // Clear the stored ID to prevent showing it again on next page load
+            localStorage.removeItem('view_patient_id');
+            
+            // Show patient details after a short delay to ensure data is loaded
+            setTimeout(() => {
+                viewPatient(storedPatientId);
+            }, 500);
+        }
     });
 </script>
 {% endblock %}

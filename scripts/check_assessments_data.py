@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Fix assessment data after database restore
-This script restores assessment records that may be missing or have invalid dates
+Ensure assessment data consistency after database restore
+This script verifies and ensures critical assessment records exist 
 after a database restore from SQL backup.
 """
 
@@ -23,9 +23,9 @@ from app.utils.db_seeder import seed_patient_history
 
 app = create_app()
 
-def fix_assessments():
+def check_assessments_data():
     """
-    Fix assessment records by ensuring Mary Johnson's urgent assessment entry exists
+    Check and ensure critical assessment records exist, particularly Mary Johnson's urgent assessment
     """
     with app.app_context():
         # Get required objects
@@ -186,9 +186,9 @@ def fix_assessments():
         return True
 
 if __name__ == "__main__":
-    print("Fixing assessment data...")
-    if fix_assessments():
-        print("Assessment data fixed successfully!")
+    print("Checking and ensuring assessment data...")
+    if check_assessments_data():
+        print("Assessment data verification completed successfully!")
     else:
-        print("Error fixing assessment data")
+        print("Error during assessment data verification")
         sys.exit(1)

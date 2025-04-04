@@ -194,6 +194,7 @@ def update_patient(id):
     return jsonify(PatientSchema().dump(patient)), 200
 
 @patients_bp.route('/<int:id>/activate', methods=['PUT'])
+@jwt_required()
 def activate_patient(id):
     """Activate a patient"""
     patient = Patient.query.get(id)
@@ -206,6 +207,7 @@ def activate_patient(id):
     return jsonify({"message": f"Patient {patient.full_name} activated"}), 200
 
 @patients_bp.route('/<int:id>/deactivate', methods=['PUT'])
+@jwt_required()
 def deactivate_patient(id):
     """Deactivate a patient"""
     patient = Patient.query.get(id)
@@ -218,6 +220,7 @@ def deactivate_patient(id):
     return jsonify({"message": f"Patient {patient.full_name} deactivated"}), 200
 
 @patients_bp.route('/search', methods=['GET'])
+@jwt_required()
 def search_patients():
     """Search patients by name, MRN, or diagnosis"""
     # For demo purposes, hardcode a user

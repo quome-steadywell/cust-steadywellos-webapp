@@ -70,9 +70,9 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     
     echo -e "${GREEN}Database restored from backup successfully!${NC}"
     
-    # Fix assessment data which might have been lost during restore
-    echo -e "${GREEN}Checking and fixing assessment data...${NC}"
-    docker-compose exec -T web python scripts/fix_assessments.py
+    # Check and ensure assessment data is correctly set up after restore
+    echo -e "${GREEN}Checking and ensuring assessment data...${NC}"
+    docker-compose exec -T web python scripts/check_assessments_data.py
   else
     echo -e "${YELLOW}Backup file not found. Using default initialization and seeding...${NC}"
     # Initialize the database

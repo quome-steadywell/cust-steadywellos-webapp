@@ -182,6 +182,29 @@
         </div>
     </div>
 </div>
+
+<!-- Patient Details Modal -->
+<div class="modal fade" id="patientDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Patient Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="patientDetailsBody">
+                <!-- Will be populated by JavaScript -->
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -281,7 +304,7 @@
                 
                 // Populate patient info card
                 document.getElementById('patientInfoCard').innerHTML = `
-                    <p><strong>Name:</strong> <a href="/patients/${patient.id}">${patient.full_name}</a></p>
+                    <p><strong>Name:</strong> <a href="#" onclick="showPatientDetails(${patient.id}); return false;">${patient.full_name}</a></p>
                     <p><strong>MRN:</strong> ${patient.mrn}</p>
                     <p><strong>Age:</strong> ${patient.age} years</p>
                     <p><strong>Primary Diagnosis:</strong> ${patient.primary_diagnosis}</p>
@@ -1123,6 +1146,102 @@
         }
     }
 
+    // Function to show patient details in the modal
+    function showPatientDetails(patientId) {
+        // Show loading spinner
+        document.getElementById('patientDetailsBody').innerHTML = `
+            <div class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('patientDetailsModal'));
+        modal.show();
+        
+        // Fetch patient data
+        fetch(`/api/v1/patients/${patientId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(patient => {
+            // Format protocol type for display
+            const protocolDisplay = patient.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            const detailsBody = document.getElementById('patientDetailsBody');
+            detailsBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">${patient.full_name}</h5>
+                        <p><strong>MRN:</strong> ${patient.mrn}</p>
+                        <p><strong>DOB:</strong> ${new Date(patient.date_of_birth).toLocaleDateString()} (${patient.age} years)</p>
+                        <p><strong>Gender:</strong> ${patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)}</p>
+                        <p><strong>Contact:</strong> ${patient.phone_number}</p>
+                        <p><strong>Email:</strong> ${patient.email || 'Not provided'}</p>
+                        <p><strong>Address:</strong> ${patient.address || 'Not provided'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Clinical Information</h5>
+                        <p><strong>Primary Diagnosis:</strong> ${patient.primary_diagnosis}</p>
+                        <p><strong>Secondary Diagnoses:</strong> ${patient.secondary_diagnoses || 'None'}</p>
+                        <p><strong>Protocol:</strong> <span class="badge bg-info">${protocolDisplay}</span></p>
+                        <p><strong>Primary Nurse:</strong> ${patient.primary_nurse ? patient.primary_nurse.full_name : 'Unassigned'}</p>
+                        <p><strong>Allergies:</strong> ${patient.allergies || 'None'}</p>
+                        <p><strong>Advance Directive:</strong> ${patient.advance_directive ? 'Yes' : 'No'}</p>
+                        <p><strong>DNR Status:</strong> ${patient.dnr_status ? 'Yes' : 'No'}</p>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h5>Emergency Contact</h5>
+                        ${patient.emergency_contact_name ? `
+                            <p><strong>Name:</strong> ${patient.emergency_contact_name}</p>
+                            <p><strong>Phone:</strong> ${patient.emergency_contact_phone || 'Not provided'}</p>
+                            <p><strong>Relationship:</strong> ${patient.emergency_contact_relationship || 'Not specified'}</p>
+                        ` : '<p>No emergency contact information provided</p>'}
+                    </div>
+                </div>
+                
+                ${patient.notes ? `
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h5>Notes</h5>
+                        <p>${patient.notes}</p>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            // Add a button to go to the full patient page if needed
+            const footer = document.querySelector('#patientDetailsModal .modal-footer');
+            footer.innerHTML = `
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/patients" onclick="localStorage.setItem('view_patient_id', ${patient.id}); return true;" class="btn btn-primary">
+                    <i class="fas fa-user-circle me-1"></i> Full Patient Page
+                </a>
+            `;
+        })
+        .catch(error => {
+            console.error('Error loading patient details:', error);
+            document.getElementById('patientDetailsBody').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading patient details: ${error.message}
+                </div>
+            `;
+        });
+    }
+    
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
         loadAssessment();
