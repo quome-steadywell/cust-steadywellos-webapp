@@ -2,6 +2,139 @@
 
 SteadywellOS is a comprehensive platform designed for palliative care coordination and remote patient management. It enables healthcare providers to efficiently manage patient assessments, schedule follow-up calls, and implement specialized care protocols for conditions like cancer, heart failure, and COPD.
 
+## 🏛️ System Architecture
+
+```mermaid
+classDiagram
+    %% Core Application Components
+    class Flask {
+        +create_app()
+    }
+
+    class Config {
+        +SECRET_KEY
+        +JWT_SECRET_KEY
+        +DATABASE_URL
+        +TWILIO_ACCOUNT_SID
+        +TWILIO_AUTH_TOKEN
+        +ANTHROPIC_API_KEY
+    }
+
+    %% Database Models
+    class User {
+        +id: Integer
+        +username: String
+        +email: String
+        +password: String
+        +first_name: String
+        +last_name: String
+        +role: UserRole
+        +phone_number: String
+        +is_active: Boolean
+        +login_attempts: Integer
+        +check_password(password)
+        +increment_login_attempts()
+        +reset_login_attempts()
+        +is_account_locked()
+    }
+
+    class Patient {
+        +id: Integer
+        +mrn: String
+        +first_name: String
+        +last_name: String
+        +date_of_birth: Date
+        +gender: Gender
+        +primary_diagnosis: String
+        +protocol_type: ProtocolType
+        +primary_nurse_id: Integer
+        +is_active: Boolean
+        +full_name()
+        +age()
+        +last_assessment()
+    }
+
+    class Protocol {
+        +id: Integer
+        +name: String
+        +description: Text
+        +protocol_type: ProtocolType
+        +version: String
+        +questions: JSON
+        +decision_tree: JSON
+        +interventions: JSON
+        +is_active: Boolean
+        +get_latest_active_protocol(protocol_type)
+    }
+
+    class Assessment {
+        +id: Integer
+        +patient_id: Integer
+        +protocol_id: Integer
+        +conducted_by_id: Integer
+        +call_id: Integer
+        +assessment_date: DateTime
+        +responses: JSON
+        +symptoms: JSON
+        +interventions: JSON
+        +notes: Text
+        +follow_up_needed: Boolean
+        +follow_up_priority: FollowUpPriority
+        +ai_guidance: Text
+        +urgent_symptoms(threshold)
+    }
+
+    class Call {
+        +id: Integer
+        +patient_id: Integer
+        +conducted_by_id: Integer
+        +scheduled_time: DateTime
+        +start_time: DateTime
+        +end_time: DateTime
+        +duration: Float
+        +status: CallStatus
+        +call_type: String
+        +twilio_call_sid: String
+        +recording_url: String
+        +transcript: Text
+        +is_overdue()
+        +update_status(status)
+    }
+
+    %% Services
+    class AnthropicClient {
+        +call_model(model, prompt, system, messages, max_tokens)
+        +get_anthropic_client(api_key)
+    }
+
+    class TwilioService {
+        +get_twilio_client()
+        +initiate_call(to_number, from_number, call_id, call_type)
+        +generate_call_twiml(call)
+        +process_call_recording(recording_sid, recording_url, call)
+    }
+
+    class RAGService {
+        +process_assessment(patient, protocol, symptoms, responses)
+        +generate_call_script(patient, protocol, call_type)
+        +analyze_call_transcript(transcript, patient, protocol)
+    }
+
+    %% Relationships
+    User "1" -- "*" Patient : primary_nurse
+    User "1" -- "*" Assessment : conducted_by
+    User "1" -- "*" Call : conducted_by
+
+    Patient "1" -- "*" Assessment : has
+    Patient "1" -- "*" Call : has
+
+    Protocol "1" -- "*" Assessment : used_in
+
+    Assessment "0..1" -- "0..1" Call : associated_with
+
+    RAGService --> AnthropicClient : uses
+```
+
 ## 🚀 Quick Start
 
 SteadywellOS can be set up and run using the Just command runner or directly using the shell scripts in the `scripts` directory.
@@ -59,7 +192,7 @@ just db-seed   # Seed with sample data
 
 After completing these steps, the platform will be available at http://localhost:8080
 
-## Default Login Credentials
+## 🔑 Default Login Credentials
 
 The system is seeded with the following test users:
 
@@ -77,7 +210,24 @@ The system is seeded with the following test users:
 
 **IMPORTANT:** These are default test credentials. In a production environment, you must change these passwords.
 
-## 🧰 Available Commands
+## 🧰 Key Scripts
+
+| Script | Purpose | When to Use |
+|--------|---------|-------------|
+| `scripts/install.sh` | Initial setup and dependency checks | First-time setup |
+| `scripts/up.sh` | Start application containers | Starting the application |
+| `scripts/down.sh` | Stop application containers | Shutting down the application |
+| `scripts/db_init.sh` | Initialize database structure | First-time setup or after reset |
+| `scripts/db_seed.sh` | Populate database with sample data | After database initialization |
+| `scripts/db_backup.sh` | Create database backups | Before changes or regularly |
+| `scripts/db_reset.sh` | Reset database to clean state | When database is corrupted |
+| `scripts/db_reset_from_backup.sh` | Restore database from backup | After failure or to revert changes |
+| `scripts/protocol_ingest.py` | Initialize clinical protocols | During setup or updating protocols |
+| `scripts/upgrade_anthropic.sh` | Update Anthropic library | When API compatibility issues arise |
+| `run.py` | Main application entry point | Various database operations |
+| `start.sh` | Root-level startup script | Alternative entry point |
+
+## 🛠️ Available Commands
 
 The following commands are available through the Just command runner:
 
@@ -114,7 +264,7 @@ Each protocol includes:
 - Recommended interventions based on symptoms
 - Decision tree logic for determining appropriate care actions
 
-## Features
+## ✨ Features
 
 - **Secure Authentication**: Role-based access control with secure login for healthcare providers
 - **Protocol-Based Care**: Specialized protocols for cancer, heart failure, and COPD patients
@@ -123,7 +273,7 @@ Each protocol includes:
 - **HIPAA-Compliant**: Secure handling of sensitive patient data with audit logging
 - **Comprehensive Dashboard**: Real-time overview of patient status and upcoming tasks
 
-## Technology Stack
+## 🔧 Technology Stack
 
 - **Backend**: Python 3.10 with Flask framework
 - **Database**: PostgreSQL with SQLAlchemy ORM
@@ -133,7 +283,7 @@ Each protocol includes:
 - **Telephony**: Twilio API for voice calls and transcription
 - **Deployment**: Docker containerization
 
-## Environment Variables
+## 🔐 Environment Variables
 
 Key environment variables to configure:
 
@@ -146,7 +296,7 @@ Key environment variables to configure:
 - `TWILIO_AUTH_TOKEN`: Twilio authentication token
 - `TWILIO_PHONE_NUMBER`: Twilio phone number for outgoing calls
 
-## API Documentation
+## 📡 API Documentation
 
 The application provides a RESTful API with the following main endpoints:
 
@@ -158,9 +308,9 @@ The application provides a RESTful API with the following main endpoints:
 
 Refer to the full API documentation in the `/docs` directory.
 
-## Protocols
+## 📋 Protocols
 
-SteadywellOS comes with three specialized protocols:
+SteadwellOS comes with three specialized protocols:
 
 1. **Cancer Palliative Care Protocol**: Pain management, nausea control, and fatigue assessments
 2. **Heart Failure Protocol**: Dyspnea, edema, and activity tolerance evaluations
@@ -172,7 +322,7 @@ Each protocol includes:
 - Decision tree algorithms for intervention recommendations
 - Educational materials for patients and caregivers
 
-## Development
+## 👨‍💻 Development
 
 To modify the platform:
 
@@ -180,11 +330,11 @@ To modify the platform:
 2. Make your changes
 3. Rebuild and restart: `docker-compose up -d --build`
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - Palliative care specialists who provided domain expertise
 - Telephone triage protocol references
