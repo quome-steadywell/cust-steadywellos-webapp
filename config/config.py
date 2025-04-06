@@ -25,6 +25,10 @@ class Config:
     PASSWORD_SALT = os.getenv('PASSWORD_SALT', 'default-salt-for-dev-only')
     SESSION_TIMEOUT_MINUTES = int(os.getenv('SESSION_TIMEOUT_MINUTES', 30))
     
+    # Auto-logout settings
+    AUTO_LOGOUT_TIME = int(os.getenv('AUTO_LOGOUT_TIME', 30))  # Minutes until auto-logout
+    WARNING_TIME = int(os.getenv('WARNING_TIME', 5))  # Minutes before auto-logout to show warning
+    
     # Database
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/palliative_care_db')

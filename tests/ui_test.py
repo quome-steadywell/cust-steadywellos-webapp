@@ -457,11 +457,17 @@ def run_all_tests(base_url="http://0.0.0.0:8080"):
         if test_func == test_assessment_creation:
             # Special case for assessment creation which needs a patient ID
             try:
-                with urllib.request.urlopen(f"{base_url}/api/v1/patients/") as response:
+                # Create authenticated request
+                req = urllib.request.Request(f"{base_url}/api/v1/patients/")
+                if client.access_token:
+                    req.add_header('Authorization', f'Bearer {client.access_token}')
+                
+                with urllib.request.urlopen(req) as response:
                     data = json.loads(response.read().decode('utf-8'))
                     if data:
                         patient_id = data[0]['id']
                         path = f"/assessments/new?patient_id={patient_id}"
+                        print(f"✅ Found patient ID: {patient_id} for assessment")
             except Exception as e:
                 print(f"❌ Error getting patient ID: {e}")
         
@@ -483,63 +489,73 @@ def run_all_tests(base_url="http://0.0.0.0:8080"):
         
     # Additional test for protocol details (needs a protocol ID)
     try:
-        # Use the client's token to make this request
-        req = urllib.request.Request(f"{base_url}/api/v1/protocols/")
-        if client.access_token:
-            req.add_header('Authorization', f'Bearer {client.access_token}')
-            
-        with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            if data:
-                protocol_id = data[0]['id']
-                print(f"\n🔍 Testing protocol details page for ID {protocol_id}")
-                result, _, _ = client.fetch_page(f"/protocols/{protocol_id}", "Protocol Details")
-                results.append(result)
-            else:
-                print("❌ No protocols found")
-                results.append(False)
+        # Ensure fresh login token for protocol details test
+        if not client.login(username="nurse1", password="password123"):
+            print("❌ Re-authentication failed for protocol details test")
+            results.append(False)
+        else:
+            # Use the client's token to make this request
+            req = urllib.request.Request(f"{base_url}/api/v1/protocols/")
+            if client.access_token:
+                req.add_header('Authorization', f'Bearer {client.access_token}')
+                
+            with urllib.request.urlopen(req) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                if data:
+                    protocol_id = data[0]['id']
+                    print(f"\n🔍 Testing protocol details page for ID {protocol_id}")
+                    result, _, _ = client.fetch_page(f"/protocols/{protocol_id}", "Protocol Details")
+                    results.append(result)
+                else:
+                    print("❌ No protocols found")
+                    results.append(False)
     except Exception as e:
         print(f"❌ Error getting protocol ID: {e}")
         results.append(False)
         
     # Additional test for assessment details (needs an assessment ID)
     try:
-        # Use the client's token to make this request
-        req = urllib.request.Request(f"{base_url}/api/v1/assessments/")
-        if client.access_token:
-            req.add_header('Authorization', f'Bearer {client.access_token}')
-            
-        with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            if data and len(data) > 0:
-                assessment_id = data[0]['id']
-                print(f"\n🔍 Testing assessment details page for ID {assessment_id}")
-                result, html, _ = client.fetch_page(f"/assessments/{assessment_id}", "Assessment Detail")
+        # Ensure fresh login token
+        if not client.login(username="nurse1", password="password123"):
+            print("❌ Re-authentication failed for assessment details test")
+            results.append(False)
+        else:
+            # Use the client's token to make this request
+            req = urllib.request.Request(f"{base_url}/api/v1/assessments/")
+            if client.access_token:
+                req.add_header('Authorization', f'Bearer {client.access_token}')
                 
-                # Just check for successful page load, since we've improved error handling 
-                # to show fallback displays even when there are errors loading protocol data
-                if "Assessment Information" in html and "Patient Information" in html:
-                    print("✅ Assessment details page loads successfully with basic information")
-                    # We'll log warnings about errors but not fail the test, since the page is still usable
-                    if "Error loading symptoms information" in html:
-                        print("⚠️ Warning: Page contains symptom loading error but has fallback display")
-                    if "Error loading interventions information" in html:
-                        print("⚠️ Warning: Page contains interventions loading error but has fallback display")
-                    if "Error loading responses information" in html:
-                        print("⚠️ Warning: Page contains responses loading error but has fallback display")
+            with urllib.request.urlopen(req) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                if data and len(data) > 0:
+                    assessment_id = data[0]['id']
+                    print(f"\n🔍 Testing assessment details page for ID {assessment_id}")
+                    result, html, _ = client.fetch_page(f"/assessments/{assessment_id}", "Assessment Detail")
                     
-                    # Check if we have fallbacks loaded
-                    has_fallbacks = "Available Symptoms Data:" in html or "Available Interventions Data:" in html or "Available Responses Data:" in html
-                    if has_fallbacks:
-                        print("✅ Fallback data displays are working correctly")
-                    
-                    results.append(True)
+                    # Just check for successful page load, since we've improved error handling 
+                    # to show fallback displays even when there are errors loading protocol data
+                    if "Assessment Information" in html and "Patient Information" in html:
+                        print("✅ Assessment details page loads successfully with basic information")
+                        # We'll log warnings about errors but not fail the test, since the page is still usable
+                        if "Error loading symptoms information" in html:
+                            print("⚠️ Warning: Page contains symptom loading error but has fallback display")
+                        if "Error loading interventions information" in html:
+                            print("⚠️ Warning: Page contains interventions loading error but has fallback display")
+                        if "Error loading responses information" in html:
+                            print("⚠️ Warning: Page contains responses loading error but has fallback display")
+                        
+                        # Check if we have fallbacks loaded
+                        has_fallbacks = "Available Symptoms Data:" in html or "Available Interventions Data:" in html or "Available Responses Data:" in html
+                        if has_fallbacks:
+                            print("✅ Fallback data displays are working correctly")
+                        
+                        results.append(True)
+                    else:
+                        print("❌ Assessment details page is missing core information sections")
+                        results.append(False)
                 else:
-                    print("❌ Assessment details page is missing core information sections")
+                    print("❌ No assessments found")
                     results.append(False)
-            else:
-                print("❌ No assessments found")
-                results.append(False)
     except Exception as e:
         print(f"❌ Error getting assessment ID: {e}")
         results.append(False)

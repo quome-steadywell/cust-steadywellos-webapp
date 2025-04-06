@@ -707,7 +707,10 @@ def seed_date_check_data():
     # These dates are carefully selected to test various week boundaries
     
     # 1. Last week (Sunday)
-    last_week_sunday = today - timedelta(days=today.weekday() + 8)  # Go back to previous week's Sunday
+    current_weekday = today.weekday()  # Monday=0, Sunday=6
+    days_since_sunday = (current_weekday + 1) % 7  # Convert to Sunday=0 basis
+    this_sunday = today - timedelta(days=days_since_sunday)
+    last_week_sunday = this_sunday - timedelta(days=7)  # Go back to previous week's Sunday
     assessment1 = Assessment(
         patient_id=patient.id,
         protocol_id=protocol.id,
@@ -720,7 +723,7 @@ def seed_date_check_data():
     )
     
     # 2. Last week (Wednesday)
-    last_week_wednesday = today - timedelta(days=today.weekday() + 4) 
+    last_week_wednesday = last_week_sunday + timedelta(days=3)  # Sunday + 3 days = Wednesday
     assessment2 = Assessment(
         patient_id=patient.id,
         protocol_id=protocol.id,
@@ -733,7 +736,8 @@ def seed_date_check_data():
     )
     
     # 3. This week (Sunday)
-    this_week_sunday = today - timedelta(days=today.weekday() + 1)
+    # We already computed this_sunday above, reuse it
+    this_week_sunday = this_sunday
     if this_week_sunday.date() > today.date():  # Ensure we're not in the future
         this_week_sunday = today - timedelta(days=7)
     assessment3 = Assessment(
@@ -748,7 +752,7 @@ def seed_date_check_data():
     )
     
     # 4. This week (Monday)
-    this_week_monday = today - timedelta(days=today.weekday())
+    this_week_monday = this_sunday + timedelta(days=1)  # Sunday + 1 day = Monday
     if this_week_monday.date() > today.date():  # Ensure we're not in the future
         this_week_monday = this_week_monday - timedelta(days=7)
     assessment4 = Assessment(

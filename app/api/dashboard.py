@@ -72,9 +72,10 @@ def get_dashboard_summary():
     ).count()
     
     # Get assessment statistics
+    # Make sure we use <= for the end date to include any assessments exactly at the end time
     assessments_this_week = assessment_query.filter(
         Assessment.assessment_date >= week_start,
-        Assessment.assessment_date < week_end
+        Assessment.assessment_date <= week_end
     ).count()
     
     urgent_followups = assessment_query.filter(

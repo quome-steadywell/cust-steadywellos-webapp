@@ -99,12 +99,18 @@ test-all:
     @python tests/simple_test.py && \
     python tests/http_test.py && \
     python tests/ui_test.py && \
+    python tests/test_autologout.py && \
     docker-compose exec web python tests/date_test.py
 
 # Run tests for date handling
 test-dates:
     @echo "Running date handling tests..."
     @docker-compose exec web python tests/date_test.py
+    
+# Run auto-logout tests
+test-autologout:
+    @echo "Running auto-logout tests..."
+    @python tests/test_autologout.py
 
 # Show application status
 status:

@@ -22,7 +22,7 @@ def get_date_bounds(period='week'):
         current_weekday = today.weekday()  # Monday=0, Sunday=6
         days_since_sunday = (current_weekday + 1) % 7  # Convert to Sunday=0 basis
         start_date = today - timedelta(days=days_since_sunday)
-        # End date is 7 days later (exclusive)
+        # End date is 7 days later (inclusive of the entire day)
         end_date = start_date + timedelta(days=7)
     elif period == 'month':
         # Get the first day of current month

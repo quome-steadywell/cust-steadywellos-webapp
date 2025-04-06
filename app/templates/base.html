@@ -109,7 +109,203 @@
             window.location.href = '/login';
         }
         
-        // Logout functionality
+        // Auto-logout functionality - default values that will be overridden by API settings
+        let AUTO_LOGOUT_TIME = 30 * 60 * 1000; // 30 minutes in milliseconds
+        let WARNING_TIME = 5 * 60 * 1000; // 5 minutes before logout
+        
+        // Fetch session settings from the server
+        function fetchSessionSettings() {
+            // Prepare headers - add auth token if available
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            // Fetch settings (works with or without authentication)
+            fetch('/api/v1/auth/session-settings', {
+                headers: headers
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.warn('Could not fetch session settings, using defaults');
+                    return null;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data) {
+                    console.log('Session settings loaded:', data);
+                    AUTO_LOGOUT_TIME = data.auto_logout_time;
+                    WARNING_TIME = data.warning_time;
+                    
+                    // Reset the timers with the new values
+                    resetInactivityTimer();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching session settings:', error);
+            });
+        }
+        
+        // Load session settings when page loads
+        fetchSessionSettings();
+        let inactivityTimer;
+        let warningTimer;
+        let countdownTimer;
+        let warningModal;
+        
+        // Create session timeout warning modal
+        function createWarningModal() {
+            const modalHtml = `
+                <div class="modal fade" id="sessionTimeoutModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="sessionTimeoutModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title" id="sessionTimeoutModalLabel">
+                                    <i class="fas fa-exclamation-triangle me-2"></i> Session Timeout Warning
+                                </h5>
+                            </div>
+                            <div class="modal-body">
+                                <p>Your session is about to expire due to inactivity.</p>
+                                <p>You will be logged out in <span id="sessionCountdown">5:00</span> minutes.</p>
+                                <p>Do you want to continue your session?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success" id="continueSessionBtn">
+                                    <i class="fas fa-check me-1"></i> Continue Session
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="logoutNowBtn">
+                                    <i class="fas fa-sign-out-alt me-1"></i> Logout Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const modalContainer = document.createElement('div');
+            modalContainer.innerHTML = modalHtml;
+            document.body.appendChild(modalContainer);
+            
+            // Initialize Bootstrap modal
+            warningModal = new bootstrap.Modal(document.getElementById('sessionTimeoutModal'));
+            
+            // Setup event handlers
+            document.getElementById('continueSessionBtn').addEventListener('click', () => {
+                hideWarningAndResetTimers();
+            });
+            
+            document.getElementById('logoutNowBtn').addEventListener('click', () => {
+                performAutoLogout();
+            });
+        }
+        
+        function resetInactivityTimer() {
+            // Clear existing timers
+            clearTimeout(inactivityTimer);
+            clearTimeout(warningTimer);
+            clearInterval(countdownTimer);
+            
+            // Hide warning modal if it's showing
+            if (warningModal && document.getElementById('sessionTimeoutModal').classList.contains('show')) {
+                hideWarningAndResetTimers();
+            }
+            
+            // Only set timer if user is logged in and not on login page
+            if (token && window.location.pathname !== '/login') {
+                // Set warning timer to show warning before logout
+                warningTimer = setTimeout(showWarning, AUTO_LOGOUT_TIME - WARNING_TIME);
+                
+                // Set auto-logout timer
+                inactivityTimer = setTimeout(performAutoLogout, AUTO_LOGOUT_TIME);
+            }
+        }
+        
+        function hideWarningAndResetTimers() {
+            // Hide modal
+            warningModal.hide();
+            
+            // Reset timers for another full session
+            resetInactivityTimer();
+        }
+        
+        function showWarning() {
+            // Create modal if it doesn't exist
+            if (!warningModal) {
+                createWarningModal();
+            }
+            
+            // Show the warning modal
+            warningModal.show();
+            
+            // Initialize countdown
+            let timeLeft = WARNING_TIME / 1000; // Convert to seconds
+            updateCountdown(timeLeft);
+            
+            // Start countdown timer
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    performAutoLogout();
+                } else {
+                    updateCountdown(timeLeft);
+                }
+            }, 1000);
+        }
+        
+        function updateCountdown(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            const countdownElement = document.getElementById('sessionCountdown');
+            if (countdownElement) {
+                countdownElement.textContent = formattedTime;
+            }
+        }
+
+        function performAutoLogout() {
+            console.log('Auto-logout triggered due to inactivity');
+            
+            // Clear timers
+            clearTimeout(inactivityTimer);
+            clearTimeout(warningTimer);
+            clearInterval(countdownTimer);
+            
+            // Hide warning modal if it's showing
+            if (warningModal) {
+                warningModal.hide();
+            }
+            
+            // Show alert that session expired
+            const logoutAlert = document.createElement('div');
+            logoutAlert.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+            logoutAlert.innerHTML = `
+                <strong>Session Expired!</strong> You have been logged out due to inactivity.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.body.appendChild(logoutAlert);
+            
+            // Perform logout after alert appears
+            setTimeout(() => {
+                // Clear local storage
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('current_user');
+                
+                // Redirect to login page
+                window.location.href = '/login';
+            }, 1500);
+        }
+
+        // Setup event listeners to track user activity
+        ['mousemove', 'mousedown', 'keypress', 'touchmove', 'click', 'scroll'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, true);
+        });
+
+        // Initialize inactivity timer
+        resetInactivityTimer();
+        
+        // Logout functionality for manual logout
         document.getElementById('logout-btn').addEventListener('click', function(e) {
             e.preventDefault();
             

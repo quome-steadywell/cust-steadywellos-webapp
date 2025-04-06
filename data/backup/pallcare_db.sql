@@ -602,6 +602,96 @@ COPY public.audit_logs (id, user_id, action, resource_type, resource_id, details
 91	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 07:14:35.464057
 92	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 07:18:55.779631
 93	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 07:19:03.014547
+94	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 19:54:12.794466
+95	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-04 22:29:46.47346
+96	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-05 04:09:13.691813
+97	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-05 04:12:46.395215
+98	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-05 18:10:34.33532
+99	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-05 18:10:34.544822
+100	26	login	user	26	null	127.0.0.1	Python-urllib/3.10	2025-04-05 18:10:40.909228
+101	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-05 18:41:38.82006
+102	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 02:26:00.000557
+103	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 02:32:55.653268
+104	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 02:33:05.687422
+105	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 02:33:05.698355
+106	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 02:33:44.153739
+107	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:14.643478
+108	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:14.653413
+109	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:14.662242
+110	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:22.984858
+111	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:23.167608
+112	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:29.510833
+113	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:29.5256
+114	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 02:34:29.537013
+115	26	login	user	26	null	127.0.0.1	Python-urllib/3.10	2025-04-06 02:34:29.735117
+116	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 03:11:36.238344
+117	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 03:11:36.250749
+118	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 03:11:36.259624
+119	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:11:50.568014
+120	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:11:50.579674
+121	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:11:50.58816
+122	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:12:01.398311
+123	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:12:01.503555
+124	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:12:07.759066
+125	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:12:07.771505
+126	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:12:07.782882
+127	26	login	user	26	null	127.0.0.1	Python-urllib/3.10	2025-04-06 03:12:07.974683
+128	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 03:12:41.026374
+129	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 03:57:18.760807
+130	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 03:57:58.228559
+131	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:58:09.943285
+132	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:58:10.058448
+133	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:58:16.278616
+134	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:58:16.290903
+135	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:58:16.302054
+136	26	login	user	26	null	127.0.0.1	Python-urllib/3.10	2025-04-06 03:58:16.494262
+137	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:58:54.937921
+138	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:58:55.044225
+140	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:59:01.322313
+141	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:59:01.33619
+144	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:00:18.937334
+145	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:07.464637
+146	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:13.577449
+148	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:22.436903
+152	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:28.688746
+153	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:28.708556
+154	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:03:15.289657
+155	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:03:15.38596
+156	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:03:21.486842
+157	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:03:21.502517
+161	26	login	user	26	null	127.0.0.1	Python-urllib/3.10	2025-04-06 04:03:21.820897
+162	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:04:32.970467
+165	25	login	user	25	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:04:33.007541
+166	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:04:33.01991
+167	28	login	user	28	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:04:33.030053
+168	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:04:49.123909
+139	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 03:59:01.309275
+142	26	login	user	26	null	127.0.0.1	Python-urllib/3.10	2025-04-06 03:59:01.533914
+143	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:00:06.065536
+147	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:13.594766
+149	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:22.449291
+150	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:22.459821
+151	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:02:22.588584
+158	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:03:21.590704
+159	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:03:21.600944
+160	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:03:21.610586
+163	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:04:32.985973
+164	26	login	user	26	null	192.168.65.1	Python-urllib/3.8	2025-04-06 04:04:32.996147
+169	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:04:55.216443
+170	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:04:55.229547
+171	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:27.726816
+172	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:27.837983
+173	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:33.937422
+174	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:33.960001
+175	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:34.049817
+176	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:34.061382
+177	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:34.071225
+178	25	login	user	25	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:34.081215
+179	26	login	user	26	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:34.092616
+180	28	login	user	28	null	192.168.65.1	Python-urllib/3.12	2025-04-06 04:05:34.10399
+181	26	login	user	26	null	127.0.0.1	Python-urllib/3.10	2025-04-06 04:06:04.138193
+182	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 04:06:48.858001
+183	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 04:17:08.042583
 \.
 
 
@@ -660,9 +750,9 @@ COPY public.protocols (id, name, description, protocol_type, version, questions,
 
 COPY public.users (id, username, email, password, first_name, last_name, role, phone_number, license_number, is_active, login_attempts, last_login_at, created_at, updated_at) FROM stdin;
 27	nurse2	nurse2@example.com	$2b$04$Gbde4mHJJMKvfNkjaKZ2xedturot4y705G2FciFd2RLPTEMFbUgBy	Robert	Johnson	NURSE	555-345-6789	RN67890	t	0	\N	2025-04-02 18:38:56.0849	2025-04-02 18:38:56.084901
-28	physician	physician@example.com	$2b$04$2WsgpUdPPxjbMPEWrz6loe6k.4XSW0dilY9BWk.2NzinNh4necvb2	Sarah	Williams	PHYSICIAN	555-456-7890	MD12345	t	0	\N	2025-04-02 18:38:56.084901	2025-04-02 18:38:56.084901
-26	nurse1	nurse1@example.com	$2b$04$cQgvcUWOGaCsqyM1hmOyNOb7Lrd4o.EXQU6yBQqNP3Ecs3LgOTXla	Jane	Smith	NURSE	555-234-5678	RN12345	t	0	2025-04-04 05:49:41.925504	2025-04-02 18:38:56.0849	2025-04-04 05:49:41.926121
-25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-04 07:19:03.00988	2025-04-02 18:38:56.084898	2025-04-04 07:19:03.010941
+28	physician	physician@example.com	$2b$04$2WsgpUdPPxjbMPEWrz6loe6k.4XSW0dilY9BWk.2NzinNh4necvb2	Sarah	Williams	PHYSICIAN	555-456-7890	MD12345	t	0	2025-04-06 04:05:34.102029	2025-04-02 18:38:56.084901	2025-04-06 04:05:34.102298
+26	nurse1	nurse1@example.com	$2b$04$cQgvcUWOGaCsqyM1hmOyNOb7Lrd4o.EXQU6yBQqNP3Ecs3LgOTXla	Jane	Smith	NURSE	555-234-5678	RN12345	t	0	2025-04-06 04:06:04.136225	2025-04-02 18:38:56.0849	2025-04-06 04:06:04.136389
+25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-06 04:06:48.853251	2025-04-02 18:38:56.084898	2025-04-06 04:06:48.853752
 \.
 
 
@@ -677,7 +767,7 @@ SELECT pg_catalog.setval('public.assessments_id_seq', 147, true);
 -- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: pallcare
 --
 
-SELECT pg_catalog.setval('public.audit_logs_id_seq', 93, true);
+SELECT pg_catalog.setval('public.audit_logs_id_seq', 183, true);
 
 
 --

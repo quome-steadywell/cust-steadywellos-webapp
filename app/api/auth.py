@@ -211,3 +211,24 @@ def logout():
     # In a real implementation, you would blacklist the token
     # For now, just return success (client will delete the token)
     return jsonify({"message": "Successfully logged out"}), 200
+
+@auth_bp.route('/session-settings', methods=['GET'])
+def get_session_settings():
+    """Get session timeout settings for the frontend"""
+    # Get the timeout settings from environment or config
+    auto_logout_mins = int(current_app.config.get('AUTO_LOGOUT_TIME', 30))
+    warning_mins = int(current_app.config.get('WARNING_TIME', 5))
+    
+    # Convert to milliseconds for the frontend
+    auto_logout_ms = auto_logout_mins * 60 * 1000
+    warning_ms = warning_mins * 60 * 1000
+    
+    # Log the settings that are being returned
+    current_app.logger.info(f"Returning session settings: auto_logout={auto_logout_mins}min, warning={warning_mins}min")
+    
+    return jsonify({
+        "auto_logout_time": auto_logout_ms,
+        "warning_time": warning_ms,
+        "auto_logout_minutes": auto_logout_mins,
+        "warning_minutes": warning_mins
+    }), 200

@@ -234,7 +234,8 @@ class DateTestClient:
 def get_week_start_date():
     """Get the first day (Sunday) of current week according to app logic"""
     today = datetime.now()
-    days_since_sunday = today.weekday() + 1 % 7  # Convert to Sunday=0 basis
+    current_weekday = today.weekday()  # Monday=0, Sunday=6
+    days_since_sunday = (current_weekday + 1) % 7  # Convert to Sunday=0 basis
     return today - timedelta(days=days_since_sunday)
 
 def format_date(date_obj):
@@ -359,7 +360,8 @@ def test_weekly_assessment_boundary_cases(client):
     today = datetime.now()
     
     # Calculate last week's Sunday
-    days_since_sunday = today.weekday() + 1 % 7  # Convert to Sunday=0 basis
+    current_weekday = today.weekday()  # Monday=0, Sunday=6
+    days_since_sunday = (current_weekday + 1) % 7  # Convert to Sunday=0 basis
     this_sunday = today - timedelta(days=days_since_sunday)
     last_sunday = this_sunday - timedelta(days=7)
     next_sunday = this_sunday + timedelta(days=7)
@@ -415,7 +417,8 @@ def test_sunday_inclusion(client):
     
     # Calculate the current week start (Sunday)
     today = datetime.now()
-    days_since_sunday = today.weekday() + 1 % 7  # Convert to Sunday=0 basis
+    current_weekday = today.weekday()  # Monday=0, Sunday=6
+    days_since_sunday = (current_weekday + 1) % 7  # Convert to Sunday=0 basis
     this_sunday = today - timedelta(days=days_since_sunday)
     next_sunday = this_sunday + timedelta(days=7)
     monday = this_sunday + timedelta(days=1)
