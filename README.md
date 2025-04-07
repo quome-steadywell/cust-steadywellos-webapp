@@ -1,5 +1,3 @@
-# SteadywellOS - Palliative Care Coordination Platform
-
 SteadywellOS is a comprehensive platform designed for palliative care coordination and remote patient management. It enables healthcare providers to efficiently manage patient assessments, schedule follow-up calls, and implement specialized care protocols for conditions like cancer, heart failure, and COPD.
 
 ## 🏛️ System Architecture
@@ -212,38 +210,38 @@ The system is seeded with the following test users:
 
 ## 🧰 Key Scripts
 
-| Script | Purpose | When to Use |
-|--------|---------|-------------|
-| `scripts/install.sh` | Initial setup and dependency checks | First-time setup |
-| `scripts/up.sh` | Start application containers | Starting the application |
-| `scripts/down.sh` | Stop application containers | Shutting down the application |
-| `scripts/db_init.sh` | Initialize database structure | First-time setup or after reset |
-| `scripts/db_seed.sh` | Populate database with sample data | After database initialization |
-| `scripts/db_backup.sh` | Create database backups | Before changes or regularly |
-| `scripts/db_reset.sh` | Reset database to clean state | When database is corrupted |
-| `scripts/db_reset_from_backup.sh` | Restore database from backup | After failure or to revert changes |
-| `scripts/protocol_ingest.py` | Initialize clinical protocols | During setup or updating protocols |
-| `scripts/upgrade_anthropic.sh` | Update Anthropic library | When API compatibility issues arise |
-| `run.py` | Main application entry point | Various database operations |
-| `start.sh` | Root-level startup script | Alternative entry point |
+| Script                            | Purpose                             | When to Use                         |
+|-----------------------------------|-------------------------------------|-------------------------------------|
+| `scripts/install.sh`              | Initial setup and dependency checks | First-time setup                    |
+| `scripts/up.sh`                   | Start application containers        | Starting the application            |
+| `scripts/down.sh`                 | Stop application containers         | Shutting down the application       |
+| `scripts/db_init.sh`              | Initialize database structure       | First-time setup or after reset     |
+| `scripts/db_seed.sh`              | Populate database with sample data  | After database initialization       |
+| `scripts/db_backup.sh`            | Create database backups             | Before changes or regularly         |
+| `scripts/db_reset.sh`             | Reset database to clean state       | When database is corrupted          |
+| `scripts/db_reset_from_backup.sh` | Restore database from backup        | After failure or to revert changes  |
+| `scripts/protocol_ingest.py`      | Initialize clinical protocols       | During setup or updating protocols  |
+| `scripts/upgrade_anthropic.sh`    | Update Anthropic library            | When API compatibility issues arise |
+| `run.py`                          | Main application entry point        | Various database operations         |
+| `start.sh`                        | Root-level startup script           | Alternative entry point             |
 
 ## 🛠️ Available Commands
 
 The following commands are available through the Just command runner:
 
-| Command | Description |
-|---------|-------------|
-| `just up` | Start the application |
-| `just down` | Stop the application |
-| `just restart` | Restart the application |
-| `just logs` | View application logs |
-| `just db-init` | Initialize the database schema |
-| `just db-seed` | Seed the database with sample data |
-| `just db-reset` | Reset the database (drop, create, seed) |
+| Command                 | Description                                                      |
+|-------------------------|------------------------------------------------------------------|
+| `just up`               | Start the application                                            |
+| `just down`             | Stop the application                                             |
+| `just restart`          | Restart the application                                          |
+| `just logs`             | View application logs                                            |
+| `just db-init`          | Initialize the database schema                                   |
+| `just db-seed`          | Seed the database with sample data                               |
+| `just db-reset`         | Reset the database (drop, create, seed)                          |
 | `just protocols [type]` | Initialize protocols (type: cancer, heart_failure, copd, or all) |
-| `just status` | Check application status |
-| `just test` | Run tests |
-| `just install` | Install dependencies |
+| `just status`           | Check application status                                         |
+| `just test`             | Run tests                                                        |
+| `just install`          | Install dependencies                                             |
 
 ### Protocol Initialization
 
@@ -332,7 +330,7 @@ To modify the platform:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License—see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
