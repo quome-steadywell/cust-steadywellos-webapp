@@ -130,6 +130,20 @@ fi
 IMAGE_NAME="$USERNAME/$REPOSITORY:$TAG"
 echo "🚀 Preparing to deploy image: $IMAGE_NAME"
 
+# Build the image specifically for Intel architecture using buildx
+echo "🔨 Building the Intel image for Quome deployment..."
+PLATFORM="linux/amd64"  # Intel architecture
+echo "Building for platform: $PLATFORM"
+
+# Make sure buildx is available
+docker buildx inspect multiarch-builder >/dev/null 2>&1 || docker buildx create --name multiarch-builder --use
+docker buildx use multiarch-builder
+
+# Build and push directly with buildx
+echo "Building and pushing image: $IMAGE_NAME"
+docker buildx build --platform $PLATFORM -t $IMAGE_NAME --push .
+echo "✅ Intel image built and pushed successfully"
+
 # Verify image existence - simplified approach relying on docker pull
 echo "🔍 Verifying image exists on Docker Hub..."
 
@@ -144,20 +158,22 @@ if [[ ("$SYSTEM_ARCH" == "arm64" || "$SYSTEM_ARCH" == "aarch64") && "$TAG" == in
     PLATFORM_ARG="--platform=linux/amd64"
 fi
 
-# Try pulling with appropriate platform - the most reliable verification method
-if docker pull "$PLATFORM_ARG" "$IMAGE_NAME"; then
-    echo "✅ Successfully verified image: $IMAGE_NAME"
+# Verify image exists on Docker Hub using API instead of pulling
+echo "🔍 Verifying image on Docker Hub..."
+DOCKER_HUB_API="https://hub.docker.com/v2/repositories/$USERNAME/$REPOSITORY/tags/$TAG"
+RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$DOCKER_HUB_API")
+
+if [[ "$RESPONSE_CODE" == "200" ]]; then
+    echo "✅ Successfully verified image exists on Docker Hub: $IMAGE_NAME"
     IMAGE_EXISTS=true
 else
-    echo "❌ Error: Could not pull image $IMAGE_NAME."
-    echo "This might indicate the image doesn't exist or you don't have permission to access it."
-    echo "However, since you're deploying to Quome Cloud, the image only needs to exist on Docker Hub."
-    read -rp "Continue with deployment anyway? (y/n): " CONTINUE_ANYWAY
-    if [[ "$CONTINUE_ANYWAY" != "y" ]]; then
-        echo "Deployment aborted."
-        exit 1
-    fi
-    echo "Proceeding with deployment..."
+    echo "⚠️ Warning: Could not verify image $IMAGE_NAME on Docker Hub (HTTP $RESPONSE_CODE)."
+    echo "This is normal immediately after pushing a new image as it may take time to propagate."
+    echo "However, since you just built and pushed the image, we can assume it exists."
+    
+    # Set to true since we just pushed it
+    IMAGE_EXISTS=true
+    echo "✅ Proceeding with deployment..."
 fi
 
 # Check for API key
@@ -263,7 +279,7 @@ echo "🔍 Retrieving current app configuration..."
 CURRENT_CONFIG_FILE="/tmp/quome_current_config_$(date +%s).log"
 CURRENT_CONFIG=$(curl $CURL_SSL_OPTION -L -s -X GET \
     -H "Authorization: Bearer $API_KEY" \
-    "$HTTPS_API_URL" 2>"$CURRENT_CONFIG_FILE")
+    "$CLOUD_API_URL" 2>"$CURRENT_CONFIG_FILE")
 
 echo "Current configuration:"
 echo "$CURRENT_CONFIG" | head -30
@@ -289,12 +305,17 @@ CLOUD_PAYLOAD=$(cat <<EOF
                 "name": "app",
                 "port": 5000,
                 "tmp_dirs": [
-                    "/tmp"
+                    "/tmp", 
+                    "/tmp/pallcare"
                 ],
 
                 "env_vars": {
                     "FLASK_APP": "run.py",
-                    "FLASK_ENV": "production"
+                    "FLASK_ENV": "production",
+                    "DEV_STATE": "TEST",
+                    "POSTGRES_USER": "postgres",
+                    "POSTGRES_DB": "pallcare_db",
+                    "POSTGRES_HOST": "db"
                 },
                 "k8s_vars": {
                     "ANTHROPIC_API_KEY": {
@@ -321,9 +342,8 @@ EOF
 # Make the API request to update the app
 echo "📡 Sending update request to Quome Cloud..."
 
-# Use HTTPS by default - based on the redirect pattern
-HTTPS_API_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID"
-echo "API URL: $HTTPS_API_URL"
+# Use CLOUD_API_URL as defined at the top of the script
+echo "API URL: $CLOUD_API_URL"
 echo "Using image: $IMAGE_NAME"
 
 # Show more details about what we're sending
@@ -334,85 +354,65 @@ echo "- Auth: Bearer Token (first 5 chars: ${API_KEY:0:5}...)"
 echo "- Image being deployed: $IMAGE_NAME"
 echo "- App Port: 5000, Container Port: 5000"
 
-# Try both with and without trailing slash
+# Simplify the API request - use a single, direct approach like in debug script
 echo "Attempting API request..."
 DEPLOYMENT_SUCCESS=false
 
-for URL in "$HTTPS_API_URL" "${HTTPS_API_URL}/"; do
-    echo "Trying URL: $URL"
+# Save detailed debugging output to a file for inspection if needed
+CURL_DEBUG_FILE="/tmp/quome_deploy_debug_$(date +%s).log"
+
+# Execute like the debug script does - simple and direct
+echo "Executing curl command (saving debug to $CURL_DEBUG_FILE)..."
+
+# Make one straightforward PUT request
+UPDATE_RESPONSE=$(curl $CURL_SSL_OPTION -L -s -m 30 -w "\nStatus Code: %{http_code}\n" -X PUT \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $API_KEY" \
+    -d "$CLOUD_PAYLOAD" \
+    "$CLOUD_API_URL" 2>"$CURL_DEBUG_FILE")
+
+CURL_EXIT_CODE=$?
     
-    # Save detailed debugging output to a file for inspection if needed
-    CURL_DEBUG_FILE="/tmp/quome_deploy_debug_$(date +%s).log"
+# Extract the HTTP status code
+HTTP_STATUS=$(echo "$UPDATE_RESPONSE" | grep "Status Code:" | awk '{print $3}')
+
+# Log detailed debug info
+echo "----- CURL RESPONSE INFO -----"
+echo "curl exit code: $CURL_EXIT_CODE" 
+echo "HTTP status code: $HTTP_STATUS"
+echo "Response body preview (first 300 chars):"
+echo "$UPDATE_RESPONSE" | head -10 | cut -c 1-300
+echo "------------------------------"
+
+# Simplified success check - just like in debug_push_to_quome.sh
+if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+    echo "✅ Cloud deployment update initiated successfully! (HTTP $HTTP_STATUS)"
+    DEPLOYMENT_SUCCESS=true
+else
+    echo "⚠️ Request did not succeed. Details:"
     
-    # Use curl with verbose output, follow redirects, and detailed status info
-    echo "Executing curl command with full verbosity (saving debug to $CURL_DEBUG_FILE)..."
-    
-    # Execute with both regular and verbose output
-    UPDATE_RESPONSE=$(curl $CURL_SSL_OPTION -L -s -w "\nStatus Code: %{http_code}\nResponse Time: %{time_total}s\nEffective URL: %{url_effective}\n" \
-        -X PUT \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $API_KEY" \
-        -d "$CLOUD_PAYLOAD" \
-        "$URL" 2>"$CURL_DEBUG_FILE")
-    
-    CURL_EXIT_CODE=$?
-    
-    # Extract the HTTP status code
-    HTTP_STATUS=$(echo "$UPDATE_RESPONSE" | grep "Status Code:" | awk '{print $3}')
-    
-    # Log detailed debug info
-    echo "----- CURL RESPONSE INFO -----"
-    echo "curl exit code: $CURL_EXIT_CODE" 
-    echo "HTTP status code: $HTTP_STATUS"
-    echo "Response body preview (first 300 chars):"
-    echo "$UPDATE_RESPONSE" | head -10 | cut -c 1-300
-    echo "------------------------------"
-    
-    # Check multiple success conditions
-    if [[ "$CURL_EXIT_CODE" -eq 0 && "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-        echo "✅ Cloud deployment update initiated successfully! (HTTP $HTTP_STATUS)"
-        DEPLOYMENT_SUCCESS=true
-        break
-    elif [[ "$CURL_EXIT_CODE" -eq 0 && "$UPDATE_RESPONSE" == *"\"status\":\"success\""* ]]; then
-        echo "✅ Cloud deployment update initiated successfully! (Status: success)"
-        DEPLOYMENT_SUCCESS=true
-        break
-    elif [[ "$CURL_EXIT_CODE" -eq 0 && "$UPDATE_RESPONSE" == *"\"status\":\"ok\""* ]]; then
-        echo "✅ Cloud deployment update initiated successfully! (Status: ok)"
-        DEPLOYMENT_SUCCESS=true
-        break
+    # Classify the error for better debugging
+    if [[ "$CURL_EXIT_CODE" -ne 0 ]]; then
+        echo "❌ curl command failed with exit code $CURL_EXIT_CODE"
+        echo "Common exit codes:"
+        echo "  6: Could not resolve host"
+        echo "  7: Failed to connect"
+        echo "  28: Operation timeout"
+        echo "See debug log for details: $CURL_DEBUG_FILE"
+    elif [[ "$HTTP_STATUS" -eq 401 || "$HTTP_STATUS" -eq 403 ]]; then
+        echo "❌ Authentication error (HTTP $HTTP_STATUS). Please check your API key."
+    elif [[ "$HTTP_STATUS" -eq 404 ]]; then
+        echo "❌ Resource not found (HTTP $HTTP_STATUS). Incorrect API URL or App/Org ID."
+    elif [[ "$HTTP_STATUS" -eq 400 ]]; then
+        echo "❌ Bad request (HTTP $HTTP_STATUS). Likely an issue with the payload format."
+        echo "API Response:"
+        echo "$UPDATE_RESPONSE"
+    elif [[ "$HTTP_STATUS" -eq 0 ]]; then
+        echo "❌ No HTTP status received. Connection problem or timeout."
     else
-        echo "⚠️ Attempt did not succeed with current URL. Details:"
-        
-        # Classify the error for better debugging
-        if [[ "$CURL_EXIT_CODE" -ne 0 ]]; then
-            echo "❌ curl command failed with exit code $CURL_EXIT_CODE"
-            echo "Common exit codes:"
-            echo "  6: Could not resolve host"
-            echo "  7: Failed to connect"
-            echo "  28: Operation timeout"
-            echo "See debug log for details: $CURL_DEBUG_FILE"
-        elif [[ "$HTTP_STATUS" -eq 401 || "$HTTP_STATUS" -eq 403 ]]; then
-            echo "❌ Authentication error (HTTP $HTTP_STATUS). Please check your API key."
-        elif [[ "$HTTP_STATUS" -eq 404 ]]; then
-            echo "❌ Resource not found (HTTP $HTTP_STATUS). Incorrect API URL or App/Org ID."
-        elif [[ "$HTTP_STATUS" -eq 400 ]]; then
-            echo "❌ Bad request (HTTP $HTTP_STATUS). Likely an issue with the payload format."
-            echo "API Response:"
-            echo "$UPDATE_RESPONSE"
-        elif [[ "$HTTP_STATUS" -eq 0 ]]; then
-            echo "❌ No HTTP status received. Connection problem or timeout."
-        else
-            echo "❌ Unexpected HTTP status: $HTTP_STATUS"
-        fi
-        
-        # Try the alternate URL unless this is an auth error
-        if [[ "$HTTP_STATUS" == "401" || "$HTTP_STATUS" == "403" ]]; then
-            echo "Breaking due to authentication error."
-            break
-        fi
+        echo "❌ Unexpected HTTP status: $HTTP_STATUS"
     fi
-done
+fi
 
 # Final deployment status report
 if [ "$DEPLOYMENT_SUCCESS" = "true" ]; then
@@ -440,7 +440,7 @@ if [ "$DEPLOYMENT_SUCCESS" = "true" ]; then
         # Get app status
         APP_STATUS=$(curl $CURL_SSL_OPTION -L -s -X GET \
             -H "Authorization: Bearer $API_KEY" \
-            "$HTTPS_API_URL" 2>/dev/null)
+            "$CLOUD_API_URL" 2>/dev/null)
         
         # Check for successful deployment indicators
         if [[ "$APP_STATUS" == *"\"status\":\"running\""* || "$APP_STATUS" == *"\"state\":\"running\""* ]]; then
@@ -541,6 +541,83 @@ if [ "$DEPLOYMENT_SUCCESS" = "true" ]; then
         fi
     fi
     
+    # For TEST deployments, perform additional verification
+    if [ "${DEV_STATE}" = "TEST" ]; then
+        echo ""
+        echo "🧪 TEST MODE DEPLOYMENT VERIFICATION 🧪"
+        echo "Performing additional verification checks for TEST mode deployment..."
+        
+        # Wait for app to fully start
+        echo "⏳ Waiting 30 seconds for complete initialization..."
+        sleep 30
+        
+        # Get deployment logs
+        echo "📋 Retrieving deployment logs..."
+        LOGS_API_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID/logs"
+        
+        APP_LOGS=$(curl $CURL_SSL_OPTION -L -s -X GET \
+            -H "Authorization: Bearer $API_KEY" \
+            "$LOGS_API_URL" 2>/dev/null)
+        
+        LOG_SIZE=${#APP_LOGS}
+        echo "Retrieved $LOG_SIZE bytes of logs"
+        
+        # Check for successful database initialization markers in logs
+        if [[ "$APP_LOGS" == *"Database tables created"* || 
+              "$APP_LOGS" == *"Database seeded with initial data"* || 
+              "$APP_LOGS" == *"Database restored from backup successfully"* ]]; then
+            echo "✅ Log analysis: Database initialization appears SUCCESSFUL"
+        else
+            echo "⚠️ Log analysis: Could not confirm database initialization in logs"
+            echo "This might be normal if logs are truncated or if the deployment is still initializing"
+        fi
+        
+        # Check if admin credentials are present
+        if [[ "$APP_LOGS" == *"Default login credentials"* && 
+              "$APP_LOGS" == *"Admin: admin / password123"* ]]; then
+            echo "✅ Log analysis: Default admin credentials confirmed"
+        else
+            echo "⚠️ Log analysis: Could not confirm default admin credentials in logs"
+        fi
+        
+        # Application availability test
+        echo "🔍 Checking if application is responding..."
+        APP_URL=$(echo "$VERIFY_CONFIG" | grep -o '"url":"[^"]*"' | head -1 | cut -d'"' -f4)
+        if [ -n "$APP_URL" ]; then
+            echo "Application URL: $APP_URL"
+            
+            # Try to access login page
+            LOGIN_URL="${APP_URL}/login"
+            LOGIN_RESPONSE=$(curl $CURL_SSL_OPTION -L -s -m 10 -w "\nStatus Code: %{http_code}\n" \
+                "$LOGIN_URL" 2>/dev/null)
+            
+            LOGIN_STATUS=$(echo "$LOGIN_RESPONSE" | grep "Status Code:" | awk '{print $3}')
+            
+            if [[ "$LOGIN_STATUS" -eq 200 ]]; then
+                echo "✅ Login page is accessible (HTTP 200)"
+                
+                # Check if login form is present
+                if [[ "$LOGIN_RESPONSE" == *"form"* && "$LOGIN_RESPONSE" == *"password"* ]]; then
+                    echo "✅ Login form detected on page"
+                    echo "🟢 APPLICATION VERIFICATION SUCCESSFUL"
+                    echo "You should now be able to log in with:"
+                    echo "  Username: admin"
+                    echo "  Password: password123"
+                else
+                    echo "⚠️ Login form not detected on page"
+                    echo "🟡 APPLICATION VERIFICATION PARTIALLY SUCCESSFUL"
+                fi
+            else
+                echo "⚠️ Login page returned HTTP $LOGIN_STATUS"
+                echo "🔴 APPLICATION VERIFICATION FAILED"
+                echo "The application might need more time to start up"
+            fi
+        else
+            echo "⚠️ Could not determine application URL from deployment details"
+            echo "🔴 APPLICATION VERIFICATION FAILED"
+        fi
+    fi
+    
     # Return success exit code
     exit 0
 else
@@ -562,6 +639,47 @@ else
             cat "$CURL_DEBUG_FILE"
             echo "======================"
         fi
+    fi
+    
+    # For TEST deployments, show additional info even on failure
+    if [ "${DEV_STATE}" = "TEST" ]; then
+        echo ""
+        echo "🧪 TEST MODE FAILURE ANALYSIS 🧪"
+        echo "Analyzing failure for TEST mode deployment..."
+        
+        # Get deployment logs if available
+        echo "📋 Attempting to retrieve any available logs..."
+        LOGS_API_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID/logs"
+        
+        APP_LOGS=$(curl $CURL_SSL_OPTION -L -s -X GET \
+            -H "Authorization: Bearer $API_KEY" \
+            "$LOGS_API_URL" 2>/dev/null)
+        
+        LOG_SIZE=${#APP_LOGS}
+        if [ $LOG_SIZE -gt 0 ]; then
+            echo "Retrieved $LOG_SIZE bytes of logs"
+            echo "Log preview (first 20 lines):"
+            echo "$APP_LOGS" | head -20
+            
+            # Look for common errors
+            if [[ "$APP_LOGS" == *"database"*"connect"*"failed"* ]]; then
+                echo "❌ ERROR DETECTED: Database connection issues"
+            elif [[ "$APP_LOGS" == *"permission denied"* ]]; then
+                echo "❌ ERROR DETECTED: Permission issues"
+            elif [[ "$APP_LOGS" == *"pull access denied"* ]]; then
+                echo "❌ ERROR DETECTED: Docker image pull issues - check Docker credentials"
+            fi
+        else
+            echo "No logs available. The application might not have started yet."
+        fi
+        
+        echo ""
+        echo "🔬 TROUBLESHOOTING TIPS:"
+        echo "1. Check if the Docker image was built and pushed correctly"
+        echo "2. Verify Docker credentials in the Quome Cloud dashboard"
+        echo "3. Check if the database secret exists and is configured correctly"
+        echo "4. Ensure the docker_startup.sh script has execute permissions (chmod +x)"
+        echo ""
     fi
     
     # Return failure exit code

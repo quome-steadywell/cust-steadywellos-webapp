@@ -12,6 +12,7 @@ services:
     volumes:
       - ./:/app
     restart: always
+    command: ["bash", "/app/scripts/entrypoint.sh"]
     networks:
       - palliative-care-network
 
