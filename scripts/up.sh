@@ -52,10 +52,13 @@ fi
 if [ "${DEV_STATE}" = "TEST" ]; then
   echo -e "${YELLOW}DEV_STATE is set to TEST. Restoring database from backup...${NC}"
   
-  # Check if backup file exists
-  BACKUP_FILE="./data/backup/pallcare_db.sql"
-  if [ -f "$BACKUP_FILE" ]; then
-    echo -e "${GREEN}Found backup file. Setting up database from backup...${NC}"
+  # Find the latest backup file by date
+  BACKUP_DIR="./data/backup"
+  LATEST_BACKUP=$(ls -t $BACKUP_DIR/pallcare_db*.sql 2>/dev/null | head -1)
+  
+  if [ -n "$LATEST_BACKUP" ]; then
+    BACKUP_FILE="$LATEST_BACKUP"
+    echo -e "${GREEN}Found latest backup file: $(basename $BACKUP_FILE). Setting up database from backup...${NC}"
     
     # Create a fresh database
     echo -e "${GREEN}Dropping existing database...${NC}"
@@ -73,6 +76,10 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     # Check and ensure assessment data is correctly set up after restore
     echo -e "${GREEN}Checking and ensuring assessment data...${NC}"
     docker-compose exec -T web python scripts/check_assessments_data.py
+    
+    # Fix Mary Johnson's data specifically to prevent common issues
+    echo -e "${GREEN}Fixing Mary Johnson's patient record...${NC}"
+    docker-compose exec -T web python scripts/fix_mary_johnson.py
   else
     echo -e "${YELLOW}Backup file not found. Using default initialization and seeding...${NC}"
     # Initialize the database

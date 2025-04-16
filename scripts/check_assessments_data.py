@@ -33,10 +33,65 @@ def check_assessments_data():
         heart_failure_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
         nurse = User.query.filter_by(role=UserRole.NURSE).first()
         
+        # If Mary Johnson doesn't exist, check if we can create her
         if not mary_johnson:
-            print("Error: Mary Johnson patient record not found")
-            return False
+            print("Warning: Mary Johnson patient record not found. Attempting to create it...")
             
+            # Check if we have a nurse user
+            if not nurse:
+                # Try to find any user
+                nurse = User.query.filter_by(role=UserRole.ADMIN).first()
+                if not nurse:
+                    # Create a default nurse user
+                    nurse = User(
+                        username="nurse1",
+                        email="nurse1@example.com",
+                        password="$2b$12$tJ9xPNz4LX5Ql0aaP/RI/.HzP5pWkFHuHBh0gVgVXupQHKfF7zRl2",  # password123 hashed
+                        first_name="Sarah",
+                        last_name="Nurse",
+                        role=UserRole.NURSE,
+                        phone_number="555-111-2222",
+                        license_number="RN123456",
+                        is_active=True,
+                        login_attempts=0
+                    )
+                    db.session.add(nurse)
+                    db.session.commit()
+                    print("Created nurse user")
+            
+            # Check for heart failure protocol
+            if not heart_failure_protocol:
+                print("Error: Heart failure protocol not found. Terminating setup.")
+                return False
+            
+            # Create Mary Johnson record
+            mary_johnson = Patient(
+                mrn="MRN67890",
+                first_name="Mary",
+                last_name="Johnson",
+                date_of_birth=datetime(1945, 9, 20).date(),
+                gender=Gender.FEMALE,
+                phone_number="555-333-4444",
+                email="mary.johnson@example.com",
+                address="456 Oak Ave, Somewhere, USA",
+                primary_diagnosis="Heart Failure NYHA Class IV",
+                secondary_diagnoses="Diabetes, Chronic Kidney Disease",
+                protocol_type=ProtocolType.HEART_FAILURE,
+                primary_nurse_id=nurse.id,
+                emergency_contact_name="Robert Johnson",
+                emergency_contact_phone="555-444-5555",
+                emergency_contact_relationship="Son",
+                advance_directive=True,
+                dnr_status=True,
+                allergies="Sulfa drugs",
+                notes="Hard of hearing, speak clearly and loudly",
+                is_active=True
+            )
+            db.session.add(mary_johnson)
+            db.session.commit()
+            print(f"Created Mary Johnson record with ID: {mary_johnson.id}")
+        
+        # Re-check that required objects exist
         if not heart_failure_protocol:
             print("Error: Heart failure protocol not found")
             return False

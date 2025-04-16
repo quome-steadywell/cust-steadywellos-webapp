@@ -84,12 +84,12 @@ else
   exit 1
 fi
 
-# 6. Check if startup-logs endpoint exists
-echo "6. Checking startup-logs endpoint in routes.py..."
-if grep -q "api_startup_logs" app/routes.py; then
-  echo "✅ api_startup_logs endpoint found in routes.py"
+# 6. Check if push_to_quome.sh has printf formatting
+echo "6. Checking if log formatting is configured correctly..."
+if grep -q "printf \"%b\\n\"" scripts/push_to_quome.sh; then
+  echo "✅ Line break formatting is configured in push_to_quome.sh"
 else
-  echo "❌ api_startup_logs endpoint not found in routes.py"
+  echo "❌ Line break formatting is not configured in push_to_quome.sh"
   exit 1
 fi
 

@@ -1,5 +1,9 @@
 #!/bin/bash
 # push_to_quome.sh - Update cloud deployment for palliative care app using the latest Intel image
+#
+# Usage:
+#   ./push_to_quome.sh           - Deploy the application to Quome Cloud
+#   ./push_to_quome.sh --logs    - Fetch and display application logs from Quome Cloud
 
 set -e  # Exit on error
 
@@ -15,6 +19,7 @@ DEFAULT_TAG="intel-0.0.1"  # Default tag if nothing found
 CLOUD_ORG_ID="86880079-c52c-4e5f-9501-101f8a779c66"
 CLOUD_APP_ID="cd32baa7-f14e-4035-9ec3-056f4aba5985"  # Your updated App ID
 CLOUD_API_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID"
+CLOUD_LOGS_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID/logs"
 
 # Get script directory and environment file
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -222,6 +227,49 @@ DOCKER_SECRET_PAYLOAD=$(cat <<EOF
 }
 EOF
 )
+
+# Function to fetch and display logs
+fetch_logs() {
+    echo "📋 Fetching application logs from Quome Cloud..."
+    
+    # Set these as global variables so they can be used outside the function
+    APP_LOGS=$(curl $CURL_SSL_OPTION -L -s -X GET \
+        -H "Authorization: Bearer $API_KEY" \
+        "$CLOUD_LOGS_URL" 2>/dev/null)
+    
+    LOG_SIZE=${#APP_LOGS}
+    
+    if [ $LOG_SIZE -gt 0 ]; then
+        echo "Retrieved $LOG_SIZE bytes of logs"
+        echo "========================== APPLICATION LOGS =========================="
+        # Use printf to interpret escape sequences like \n for line breaks
+        printf "%b\n" "$APP_LOGS"
+        echo "======================================================================"
+        
+        # Save logs to a file for reference
+        LOG_FILE="/tmp/quome_app_logs_$(date +%s).log"
+        echo "$APP_LOGS" > "$LOG_FILE"
+        echo "Full logs saved to: $LOG_FILE"
+        return 0
+    else
+        echo "No logs retrieved from $CLOUD_LOGS_URL"
+        echo "Make sure the application is deployed and the API key is correct."
+        return 1
+    fi
+}
+
+# Add a command-line option to just fetch logs
+if [ "$1" = "--logs" ]; then
+    # Make sure we have an API key
+    if [ -z "$API_KEY" ]; then
+        echo "No API key found. Please check your .env file or provide the key manually."
+        exit 1
+    fi
+    
+    echo "Log-only mode activated. Fetching logs for app ID: $CLOUD_APP_ID"
+    fetch_logs
+    exit $?
+fi
 
 # Check if Docker token is available
 if [ -z "$DOCKER_TOKEN" ]; then
@@ -551,16 +599,11 @@ if [ "$DEPLOYMENT_SUCCESS" = "true" ]; then
         echo "⏳ Waiting 30 seconds for complete initialization..."
         sleep 30
         
-        # Get deployment logs
+        # Get deployment logs using our fetch_logs function
         echo "📋 Retrieving deployment logs..."
-        LOGS_API_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID/logs"
+        fetch_logs
         
-        APP_LOGS=$(curl $CURL_SSL_OPTION -L -s -X GET \
-            -H "Authorization: Bearer $API_KEY" \
-            "$LOGS_API_URL" 2>/dev/null)
-        
-        LOG_SIZE=${#APP_LOGS}
-        echo "Retrieved $LOG_SIZE bytes of logs"
+        # The function sets up APP_LOGS and LOG_SIZE globally
         
         # Check for successful database initialization markers in logs
         if [[ "$APP_LOGS" == *"Database tables created"* || 
@@ -647,19 +690,11 @@ else
         echo "🧪 TEST MODE FAILURE ANALYSIS 🧪"
         echo "Analyzing failure for TEST mode deployment..."
         
-        # Get deployment logs if available
+        # Get deployment logs if available using our fetch_logs function
         echo "📋 Attempting to retrieve any available logs..."
-        LOGS_API_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID/logs"
+        fetch_logs
         
-        APP_LOGS=$(curl $CURL_SSL_OPTION -L -s -X GET \
-            -H "Authorization: Bearer $API_KEY" \
-            "$LOGS_API_URL" 2>/dev/null)
-        
-        LOG_SIZE=${#APP_LOGS}
         if [ $LOG_SIZE -gt 0 ]; then
-            echo "Retrieved $LOG_SIZE bytes of logs"
-            echo "Log preview (first 20 lines):"
-            echo "$APP_LOGS" | head -20
             
             # Look for common errors
             if [[ "$APP_LOGS" == *"database"*"connect"*"failed"* ]]; then

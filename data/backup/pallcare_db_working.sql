@@ -1,3 +1,9 @@
+-- SteadwellOS Palliative Care Platform
+-- WORKING DATABASE BACKUP
+-- Created: Tue Apr 15 19:04:00 PDT 2025
+-- This is a known working backup for use in Quome Cloud environment
+-- Format tweaked to avoid ownership issues
+
 --
 -- PostgreSQL database dump
 --

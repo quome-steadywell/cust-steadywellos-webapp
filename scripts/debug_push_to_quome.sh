@@ -125,7 +125,7 @@ echo "$CURRENT_CONFIG" | head -c 300
 # Define payload with proper k8s_vars section
 TEST_PAYLOAD=$(cat <<EOF
 {
-    "name": "palliative-care-test",
+    "name": "palliative-care",
     "spec": {
         "port": 5000,
         "containers": [
