@@ -4,3 +4,22 @@ selenium==4.14.0
 webdriver-manager==4.0.1
 pytest-html==4.1.1
 pytest-selenium==4.0.1
+
+# Application dependencies needed for service layer tests
+Flask==2.3.3
+Flask-SQLAlchemy==3.1.1
+Flask-Cors==4.0.0
+Flask-RESTful==0.3.10
+Flask-Migrate==4.0.5
+Flask-Login==0.6.3
+Flask-Bcrypt==1.0.1
+Flask-JWT-Extended==4.5.3
+Flask-Marshmallow==0.15.0
+marshmallow==3.20.1
+marshmallow-sqlalchemy==0.29.0
+twilio==8.10.2
+anthropic==0.18.1
+requests==2.31.0
+python-dotenv==1.0.0
+psycopg2-binary==2.9.9
+SQLAlchemy==2.0.23

@@ -1,4 +1,4 @@
-=== STARTUP LOG Wed Apr 16 02:03:41 UTC 2025 ===
+=== STARTUP LOG Fri Apr 18 18:19:03 UTC 2025 ===
 Starting Palliative Care Platform...
 Waiting for database to be available...
 db:5432 - accepting connections
@@ -144,44 +144,44 @@ ALTER TABLE
 Database restored from backup successfully!
 Checking and ensuring assessment data...
 Checking and ensuring assessment data...
-2025-04-16 02:03:41,947 INFO sqlalchemy.engine.Engine select pg_catalog.version()
-2025-04-16 02:03:41,947 INFO sqlalchemy.engine.Engine [raw sql] {}
-2025-04-16 02:03:41,948 INFO sqlalchemy.engine.Engine select current_schema()
-2025-04-16 02:03:41,948 INFO sqlalchemy.engine.Engine [raw sql] {}
-2025-04-16 02:03:41,948 INFO sqlalchemy.engine.Engine show standard_conforming_strings
-2025-04-16 02:03:41,948 INFO sqlalchemy.engine.Engine [raw sql] {}
-2025-04-16 02:03:41,949 INFO sqlalchemy.engine.Engine BEGIN (implicit)
-2025-04-16 02:03:41,950 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+2025-04-18 18:19:03,864 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2025-04-18 18:19:03,864 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:03,864 INFO sqlalchemy.engine.Engine select current_schema()
+2025-04-18 18:19:03,864 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:03,864 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2025-04-18 18:19:03,865 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:03,865 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:03,867 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
 FROM patients 
 WHERE patients.first_name = %(first_name_1)s AND patients.last_name = %(last_name_1)s 
  LIMIT %(param_1)s
-2025-04-16 02:03:41,950 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'first_name_1': 'Mary', 'last_name_1': 'Johnson', 'param_1': 1}
-2025-04-16 02:03:41,952 INFO sqlalchemy.engine.Engine SELECT protocols.id AS protocols_id, protocols.name AS protocols_name, protocols.description AS protocols_description, protocols.protocol_type AS protocols_protocol_type, protocols.version AS protocols_version, protocols.questions AS protocols_questions, protocols.decision_tree AS protocols_decision_tree, protocols.interventions AS protocols_interventions, protocols.is_active AS protocols_is_active, protocols.created_at AS protocols_created_at, protocols.updated_at AS protocols_updated_at 
+2025-04-18 18:19:03,867 INFO sqlalchemy.engine.Engine [generated in 0.00007s] {'first_name_1': 'Mary', 'last_name_1': 'Johnson', 'param_1': 1}
+2025-04-18 18:19:03,868 INFO sqlalchemy.engine.Engine SELECT protocols.id AS protocols_id, protocols.name AS protocols_name, protocols.description AS protocols_description, protocols.protocol_type AS protocols_protocol_type, protocols.version AS protocols_version, protocols.questions AS protocols_questions, protocols.decision_tree AS protocols_decision_tree, protocols.interventions AS protocols_interventions, protocols.is_active AS protocols_is_active, protocols.created_at AS protocols_created_at, protocols.updated_at AS protocols_updated_at 
 FROM protocols 
 WHERE protocols.protocol_type = %(protocol_type_1)s 
  LIMIT %(param_1)s
-2025-04-16 02:03:41,952 INFO sqlalchemy.engine.Engine [generated in 0.00007s] {'protocol_type_1': 'HEART_FAILURE', 'param_1': 1}
-2025-04-16 02:03:41,953 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+2025-04-18 18:19:03,868 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'protocol_type_1': 'HEART_FAILURE', 'param_1': 1}
+2025-04-18 18:19:03,869 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
 FROM users 
 WHERE users.role = %(role_1)s 
  LIMIT %(param_1)s
-2025-04-16 02:03:41,953 INFO sqlalchemy.engine.Engine [generated in 0.00007s] {'role_1': 'NURSE', 'param_1': 1}
-2025-04-16 02:03:41,955 INFO sqlalchemy.engine.Engine SELECT assessments.id AS assessments_id, assessments.patient_id AS assessments_patient_id, assessments.protocol_id AS assessments_protocol_id, assessments.conducted_by_id AS assessments_conducted_by_id, assessments.call_id AS assessments_call_id, assessments.assessment_date AS assessments_assessment_date, assessments.responses AS assessments_responses, assessments.symptoms AS assessments_symptoms, assessments.interventions AS assessments_interventions, assessments.notes AS assessments_notes, assessments.follow_up_needed AS assessments_follow_up_needed, assessments.follow_up_date AS assessments_follow_up_date, assessments.follow_up_priority AS assessments_follow_up_priority, assessments.ai_guidance AS assessments_ai_guidance, assessments.created_at AS assessments_created_at, assessments.updated_at AS assessments_updated_at 
+2025-04-18 18:19:03,869 INFO sqlalchemy.engine.Engine [generated in 0.00006s] {'role_1': 'NURSE', 'param_1': 1}
+2025-04-18 18:19:03,871 INFO sqlalchemy.engine.Engine SELECT assessments.id AS assessments_id, assessments.patient_id AS assessments_patient_id, assessments.protocol_id AS assessments_protocol_id, assessments.conducted_by_id AS assessments_conducted_by_id, assessments.call_id AS assessments_call_id, assessments.assessment_date AS assessments_assessment_date, assessments.responses AS assessments_responses, assessments.symptoms AS assessments_symptoms, assessments.interventions AS assessments_interventions, assessments.notes AS assessments_notes, assessments.follow_up_needed AS assessments_follow_up_needed, assessments.follow_up_date AS assessments_follow_up_date, assessments.follow_up_priority AS assessments_follow_up_priority, assessments.ai_guidance AS assessments_ai_guidance, assessments.created_at AS assessments_created_at, assessments.updated_at AS assessments_updated_at 
 FROM assessments 
 WHERE assessments.patient_id = %(patient_id_1)s AND assessments.assessment_date >= %(assessment_date_1)s AND assessments.assessment_date <= %(assessment_date_2)s AND assessments.follow_up_priority = %(follow_up_priority_1)s 
  LIMIT %(param_1)s
-2025-04-16 02:03:41,955 INFO sqlalchemy.engine.Engine [generated in 0.00007s] {'patient_id_1': 20, 'assessment_date_1': datetime.datetime(2025, 3, 25, 0, 0), 'assessment_date_2': datetime.datetime(2025, 3, 25, 23, 59), 'follow_up_priority_1': 'HIGH', 'param_1': 1}
+2025-04-18 18:19:03,871 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'patient_id_1': 20, 'assessment_date_1': datetime.datetime(2025, 3, 25, 0, 0), 'assessment_date_2': datetime.datetime(2025, 3, 25, 23, 59), 'follow_up_priority_1': 'HIGH', 'param_1': 1}
 Urgent assessment already exists.
-2025-04-16 02:03:41,957 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+2025-04-18 18:19:03,873 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
 FROM (SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
 FROM patients) AS anon_1
-2025-04-16 02:03:41,957 INFO sqlalchemy.engine.Engine [generated in 0.00006s] {}
-2025-04-16 02:03:41,959 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+2025-04-18 18:19:03,873 INFO sqlalchemy.engine.Engine [generated in 0.00006s] {}
+2025-04-18 18:19:03,875 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
 FROM (SELECT assessments.id AS assessments_id, assessments.patient_id AS assessments_patient_id, assessments.protocol_id AS assessments_protocol_id, assessments.conducted_by_id AS assessments_conducted_by_id, assessments.call_id AS assessments_call_id, assessments.assessment_date AS assessments_assessment_date, assessments.responses AS assessments_responses, assessments.symptoms AS assessments_symptoms, assessments.interventions AS assessments_interventions, assessments.notes AS assessments_notes, assessments.follow_up_needed AS assessments_follow_up_needed, assessments.follow_up_date AS assessments_follow_up_date, assessments.follow_up_priority AS assessments_follow_up_priority, assessments.ai_guidance AS assessments_ai_guidance, assessments.created_at AS assessments_created_at, assessments.updated_at AS assessments_updated_at 
 FROM assessments) AS anon_1
-2025-04-16 02:03:41,959 INFO sqlalchemy.engine.Engine [generated in 0.00007s] {}
+2025-04-18 18:19:03,875 INFO sqlalchemy.engine.Engine [generated in 0.00005s] {}
 Sufficient assessments found (21). No additional history needed.
-2025-04-16 02:03:41,959 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-04-18 18:19:03,875 INFO sqlalchemy.engine.Engine ROLLBACK
 Assessment data verification completed successfully!
 Database initialization and seeding complete!
 Default login credentials:
@@ -189,10 +189,163 @@ Default login credentials:
   Nurse: nurse1 / password123
   Physician: physician / password123
 Starting Gunicorn server...
-[2025-04-16 02:03:42 +0000] [1] [INFO] Starting gunicorn 21.2.0
-[2025-04-16 02:03:42 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
-[2025-04-16 02:03:42 +0000] [1] [INFO] Using worker: sync
-[2025-04-16 02:03:42 +0000] [14] [INFO] Booting worker with pid: 14
-[2025-04-16 02:03:42 +0000] [15] [INFO] Booting worker with pid: 15
-[2025-04-16 02:03:42 +0000] [16] [INFO] Booting worker with pid: 16
-[2025-04-16 02:03:42 +0000] [17] [INFO] Booting worker with pid: 17
+[2025-04-18 18:19:04 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-04-18 18:19:04 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+[2025-04-18 18:19:04 +0000] [1] [INFO] Using worker: sync
+[2025-04-18 18:19:04 +0000] [13] [INFO] Booting worker with pid: 13
+[2025-04-18 18:19:04 +0000] [14] [INFO] Booting worker with pid: 14
+[2025-04-18 18:19:04 +0000] [15] [INFO] Booting worker with pid: 15
+[2025-04-18 18:19:04 +0000] [16] [INFO] Booting worker with pid: 16
+{"timestamp": "2025-04-18 18:19:26,506", "level": "INFO", "message": "Resource not found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.", "module": "error_handlers", "function": "handle_not_found", "line": 48, "url": "http://localhost:8080/favicon.ico", "method": "GET", "remote_addr": "192.168.65.1", "user_id": null}
+2025-04-18 18:19:35,484 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2025-04-18 18:19:35,484 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,485 INFO sqlalchemy.engine.Engine select current_schema()
+2025-04-18 18:19:35,485 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,485 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2025-04-18 18:19:35,485 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,486 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:35,488 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s
+2025-04-18 18:19:35,488 INFO sqlalchemy.engine.Engine [generated in 0.00018s] {'username_1': 'admin', 'param_1': 1}
+2025-04-18 18:19:35,491 INFO sqlalchemy.engine.Engine UPDATE users SET last_login_at=%(last_login_at)s, updated_at=%(updated_at)s WHERE users.id = %(users_id)s
+2025-04-18 18:19:35,491 INFO sqlalchemy.engine.Engine [generated in 0.00013s] {'last_login_at': datetime.datetime(2025, 4, 18, 18, 19, 35, 490575), 'updated_at': datetime.datetime(2025, 4, 18, 18, 19, 35, 491472), 'users_id': 25}
+2025-04-18 18:19:35,492 INFO sqlalchemy.engine.Engine COMMIT
+2025-04-18 18:19:35,492 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:35,493 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-04-18 18:19:35,493 INFO sqlalchemy.engine.Engine [generated in 0.00006s] {'pk_1': 25}
+2025-04-18 18:19:35,494 INFO sqlalchemy.engine.Engine INSERT INTO audit_logs (user_id, action, resource_type, resource_id, details, ip_address, user_agent, timestamp) VALUES (%(user_id)s, %(action)s, %(resource_type)s, %(resource_id)s, %(details)s, %(ip_address)s, %(user_agent)s, %(timestamp)s) RETURNING audit_logs.id
+2025-04-18 18:19:35,494 INFO sqlalchemy.engine.Engine [generated in 0.00010s] {'user_id': 25, 'action': 'login', 'resource_type': 'user', 'resource_id': 25, 'details': 'null', 'ip_address': '192.168.65.1', 'user_agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', 'timestamp': datetime.datetime(2025, 4, 18, 18, 19, 35, 494717)}
+2025-04-18 18:19:35,495 INFO sqlalchemy.engine.Engine COMMIT
+2025-04-18 18:19:35,496 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:35,497 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-04-18 18:19:35,497 INFO sqlalchemy.engine.Engine [cached since 0.003803s ago] {'pk_1': 25}
+2025-04-18 18:19:35,497 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-04-18 18:19:35,558 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:35,559 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-04-18 18:19:35,559 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'pk_1': 25}
+2025-04-18 18:19:35,563 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients) AS anon_1
+2025-04-18 18:19:35,563 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {}
+2025-04-18 18:19:35,565 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients 
+WHERE patients.is_active = true) AS anon_1
+2025-04-18 18:19:35,565 INFO sqlalchemy.engine.Engine [generated in 0.00009s] {}
+2025-04-18 18:19:35,567 INFO sqlalchemy.engine.Engine SELECT patients.protocol_type AS patients_protocol_type, count(patients.id) AS count_1 
+FROM patients 
+WHERE patients.is_active = true GROUP BY patients.protocol_type
+2025-04-18 18:19:35,567 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {}
+2025-04-18 18:19:35,569 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT calls.id AS calls_id, calls.patient_id AS calls_patient_id, calls.conducted_by_id AS calls_conducted_by_id, calls.scheduled_time AS calls_scheduled_time, calls.start_time AS calls_start_time, calls.end_time AS calls_end_time, calls.duration AS calls_duration, calls.status AS calls_status, calls.call_type AS calls_call_type, calls.twilio_call_sid AS calls_twilio_call_sid, calls.recording_url AS calls_recording_url, calls.transcript AS calls_transcript, calls.notes AS calls_notes, calls.created_at AS calls_created_at, calls.updated_at AS calls_updated_at 
+FROM calls 
+WHERE calls.scheduled_time >= %(scheduled_time_1)s AND calls.scheduled_time < %(scheduled_time_2)s) AS anon_1
+2025-04-18 18:19:35,570 INFO sqlalchemy.engine.Engine [generated in 0.00010s] {'scheduled_time_1': datetime.datetime(2025, 4, 18, 0, 0), 'scheduled_time_2': datetime.datetime(2025, 4, 19, 0, 0)}
+2025-04-18 18:19:35,573 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT calls.id AS calls_id, calls.patient_id AS calls_patient_id, calls.conducted_by_id AS calls_conducted_by_id, calls.scheduled_time AS calls_scheduled_time, calls.start_time AS calls_start_time, calls.end_time AS calls_end_time, calls.duration AS calls_duration, calls.status AS calls_status, calls.call_type AS calls_call_type, calls.twilio_call_sid AS calls_twilio_call_sid, calls.recording_url AS calls_recording_url, calls.transcript AS calls_transcript, calls.notes AS calls_notes, calls.created_at AS calls_created_at, calls.updated_at AS calls_updated_at 
+FROM calls 
+WHERE calls.status = %(status_1)s AND calls.end_time >= %(end_time_1)s AND calls.end_time < %(end_time_2)s) AS anon_1
+2025-04-18 18:19:35,573 INFO sqlalchemy.engine.Engine [generated in 0.00012s] {'status_1': 'COMPLETED', 'end_time_1': datetime.datetime(2025, 4, 18, 0, 0), 'end_time_2': datetime.datetime(2025, 4, 19, 0, 0)}
+2025-04-18 18:19:35,577 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT calls.id AS calls_id, calls.patient_id AS calls_patient_id, calls.conducted_by_id AS calls_conducted_by_id, calls.scheduled_time AS calls_scheduled_time, calls.start_time AS calls_start_time, calls.end_time AS calls_end_time, calls.duration AS calls_duration, calls.status AS calls_status, calls.call_type AS calls_call_type, calls.twilio_call_sid AS calls_twilio_call_sid, calls.recording_url AS calls_recording_url, calls.transcript AS calls_transcript, calls.notes AS calls_notes, calls.created_at AS calls_created_at, calls.updated_at AS calls_updated_at 
+FROM calls 
+WHERE calls.status = %(status_1)s) AS anon_1
+2025-04-18 18:19:35,577 INFO sqlalchemy.engine.Engine [generated in 0.00045s] {'status_1': 'SCHEDULED'}
+2025-04-18 18:19:35,578 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2025-04-18 18:19:35,578 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2025-04-18 18:19:35,578 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,578 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,579 INFO sqlalchemy.engine.Engine select current_schema()
+2025-04-18 18:19:35,579 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,579 INFO sqlalchemy.engine.Engine select current_schema()
+2025-04-18 18:19:35,579 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,579 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2025-04-18 18:19:35,579 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,580 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2025-04-18 18:19:35,580 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2025-04-18 18:19:35,580 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,580 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,580 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT assessments.id AS assessments_id, assessments.patient_id AS assessments_patient_id, assessments.protocol_id AS assessments_protocol_id, assessments.conducted_by_id AS assessments_conducted_by_id, assessments.call_id AS assessments_call_id, assessments.assessment_date AS assessments_assessment_date, assessments.responses AS assessments_responses, assessments.symptoms AS assessments_symptoms, assessments.interventions AS assessments_interventions, assessments.notes AS assessments_notes, assessments.follow_up_needed AS assessments_follow_up_needed, assessments.follow_up_date AS assessments_follow_up_date, assessments.follow_up_priority AS assessments_follow_up_priority, assessments.ai_guidance AS assessments_ai_guidance, assessments.created_at AS assessments_created_at, assessments.updated_at AS assessments_updated_at 
+FROM assessments 
+WHERE assessments.assessment_date >= %(assessment_date_1)s AND assessments.assessment_date <= %(assessment_date_2)s) AS anon_1
+2025-04-18 18:19:35,581 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:35,581 INFO sqlalchemy.engine.Engine [generated in 0.00067s] {'assessment_date_1': datetime.datetime(2025, 4, 13, 0, 0), 'assessment_date_2': datetime.datetime(2025, 4, 20, 0, 0)}
+2025-04-18 18:19:35,581 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:35,581 INFO sqlalchemy.engine.Engine select current_schema()
+2025-04-18 18:19:35,581 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,582 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2025-04-18 18:19:35,582 INFO sqlalchemy.engine.Engine [raw sql] {}
+2025-04-18 18:19:35,582 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-04-18 18:19:35,582 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-04-18 18:19:35,582 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'pk_1': 25}
+2025-04-18 18:19:35,582 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-04-18 18:19:35,582 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'pk_1': 25}
+2025-04-18 18:19:35,583 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM (SELECT assessments.id AS assessments_id, assessments.patient_id AS assessments_patient_id, assessments.protocol_id AS assessments_protocol_id, assessments.conducted_by_id AS assessments_conducted_by_id, assessments.call_id AS assessments_call_id, assessments.assessment_date AS assessments_assessment_date, assessments.responses AS assessments_responses, assessments.symptoms AS assessments_symptoms, assessments.interventions AS assessments_interventions, assessments.notes AS assessments_notes, assessments.follow_up_needed AS assessments_follow_up_needed, assessments.follow_up_date AS assessments_follow_up_date, assessments.follow_up_priority AS assessments_follow_up_priority, assessments.ai_guidance AS assessments_ai_guidance, assessments.created_at AS assessments_created_at, assessments.updated_at AS assessments_updated_at 
+FROM assessments 
+WHERE assessments.follow_up_needed = true AND assessments.follow_up_priority = %(follow_up_priority_1)s) AS anon_1
+2025-04-18 18:19:35,583 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'follow_up_priority_1': 'HIGH'}
+2025-04-18 18:19:35,583 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-04-18 18:19:35,584 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.role AS users_role, users.phone_number AS users_phone_number, users.license_number AS users_license_number, users.is_active AS users_is_active, users.login_attempts AS users_login_attempts, users.last_login_at AS users_last_login_at, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-04-18 18:19:35,584 INFO sqlalchemy.engine.Engine [generated in 0.00011s] {'pk_1': 25}
+2025-04-18 18:19:35,585 INFO sqlalchemy.engine.Engine SELECT calls.id AS calls_id, calls.patient_id AS calls_patient_id, calls.conducted_by_id AS calls_conducted_by_id, calls.scheduled_time AS calls_scheduled_time, calls.start_time AS calls_start_time, calls.end_time AS calls_end_time, calls.duration AS calls_duration, calls.status AS calls_status, calls.call_type AS calls_call_type, calls.twilio_call_sid AS calls_twilio_call_sid, calls.recording_url AS calls_recording_url, calls.transcript AS calls_transcript, calls.notes AS calls_notes, calls.created_at AS calls_created_at, calls.updated_at AS calls_updated_at 
+FROM calls 
+WHERE calls.status = %(status_1)s ORDER BY calls.end_time DESC 
+ LIMIT %(param_1)s
+2025-04-18 18:19:35,585 INFO sqlalchemy.engine.Engine [generated in 0.00009s] {'status_1': 'COMPLETED', 'param_1': 5}
+2025-04-18 18:19:35,585 INFO sqlalchemy.engine.Engine SELECT assessments.id AS assessments_id, assessments.patient_id AS assessments_patient_id, assessments.protocol_id AS assessments_protocol_id, assessments.conducted_by_id AS assessments_conducted_by_id, assessments.call_id AS assessments_call_id, assessments.assessment_date AS assessments_assessment_date, assessments.responses AS assessments_responses, assessments.symptoms AS assessments_symptoms, assessments.interventions AS assessments_interventions, assessments.notes AS assessments_notes, assessments.follow_up_needed AS assessments_follow_up_needed, assessments.follow_up_date AS assessments_follow_up_date, assessments.follow_up_priority AS assessments_follow_up_priority, assessments.ai_guidance AS assessments_ai_guidance, assessments.created_at AS assessments_created_at, assessments.updated_at AS assessments_updated_at 
+FROM assessments 
+WHERE assessments.follow_up_needed = true AND assessments.follow_up_priority = %(follow_up_priority_1)s ORDER BY assessments.follow_up_date 
+ LIMIT %(param_1)s
+2025-04-18 18:19:35,585 INFO sqlalchemy.engine.Engine [generated in 0.00009s] {'follow_up_priority_1': 'HIGH', 'param_1': 10}
+2025-04-18 18:19:35,587 INFO sqlalchemy.engine.Engine SELECT calls.id AS calls_id, calls.patient_id AS calls_patient_id, calls.conducted_by_id AS calls_conducted_by_id, calls.scheduled_time AS calls_scheduled_time, calls.start_time AS calls_start_time, calls.end_time AS calls_end_time, calls.duration AS calls_duration, calls.status AS calls_status, calls.call_type AS calls_call_type, calls.twilio_call_sid AS calls_twilio_call_sid, calls.recording_url AS calls_recording_url, calls.transcript AS calls_transcript, calls.notes AS calls_notes, calls.created_at AS calls_created_at, calls.updated_at AS calls_updated_at 
+FROM calls 
+WHERE calls.status = %(status_1)s AND calls.scheduled_time >= %(scheduled_time_1)s AND calls.scheduled_time < %(scheduled_time_2)s ORDER BY calls.scheduled_time 
+ LIMIT %(param_1)s
+2025-04-18 18:19:35,587 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'status_1': 'SCHEDULED', 'scheduled_time_1': datetime.datetime(2025, 4, 18, 18, 19, 35, 586013), 'scheduled_time_2': datetime.datetime(2025, 4, 19, 0, 0), 'param_1': 10}
+2025-04-18 18:19:35,587 INFO sqlalchemy.engine.Engine SELECT assessments.id AS assessments_id, assessments.patient_id AS assessments_patient_id, assessments.protocol_id AS assessments_protocol_id, assessments.conducted_by_id AS assessments_conducted_by_id, assessments.call_id AS assessments_call_id, assessments.assessment_date AS assessments_assessment_date, assessments.responses AS assessments_responses, assessments.symptoms AS assessments_symptoms, assessments.interventions AS assessments_interventions, assessments.notes AS assessments_notes, assessments.follow_up_needed AS assessments_follow_up_needed, assessments.follow_up_date AS assessments_follow_up_date, assessments.follow_up_priority AS assessments_follow_up_priority, assessments.ai_guidance AS assessments_ai_guidance, assessments.created_at AS assessments_created_at, assessments.updated_at AS assessments_updated_at 
+FROM assessments ORDER BY assessments.assessment_date DESC 
+ LIMIT %(param_1)s
+2025-04-18 18:19:35,587 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'param_1': 5}
+2025-04-18 18:19:35,587 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients 
+WHERE patients.id = %(pk_1)s
+2025-04-18 18:19:35,587 INFO sqlalchemy.engine.Engine [generated in 0.00007s] {'pk_1': 20}
+2025-04-18 18:19:35,588 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-04-18 18:19:35,588 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients 
+WHERE patients.id = %(pk_1)s
+2025-04-18 18:19:35,588 INFO sqlalchemy.engine.Engine [cached since 0.0008627s ago] {'pk_1': 19}
+2025-04-18 18:19:35,589 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients 
+WHERE patients.id = %(pk_1)s
+2025-04-18 18:19:35,589 INFO sqlalchemy.engine.Engine [cached since 0.001374s ago] {'pk_1': 21}
+2025-04-18 18:19:35,589 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients 
+WHERE patients.id = %(pk_1)s
+2025-04-18 18:19:35,589 INFO sqlalchemy.engine.Engine [generated in 0.00006s] {'pk_1': 20}
+2025-04-18 18:19:35,589 INFO sqlalchemy.engine.Engine ROLLBACK
+2025-04-18 18:19:35,590 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients 
+WHERE patients.id = %(pk_1)s
+2025-04-18 18:19:35,590 INFO sqlalchemy.engine.Engine [cached since 0.0007525s ago] {'pk_1': 19}
+2025-04-18 18:19:35,590 INFO sqlalchemy.engine.Engine SELECT patients.id AS patients_id, patients.mrn AS patients_mrn, patients.first_name AS patients_first_name, patients.last_name AS patients_last_name, patients.date_of_birth AS patients_date_of_birth, patients.gender AS patients_gender, patients.phone_number AS patients_phone_number, patients.email AS patients_email, patients.address AS patients_address, patients.primary_diagnosis AS patients_primary_diagnosis, patients.secondary_diagnoses AS patients_secondary_diagnoses, patients.protocol_type AS patients_protocol_type, patients.primary_nurse_id AS patients_primary_nurse_id, patients.emergency_contact_name AS patients_emergency_contact_name, patients.emergency_contact_phone AS patients_emergency_contact_phone, patients.emergency_contact_relationship AS patients_emergency_contact_relationship, patients.advance_directive AS patients_advance_directive, patients.dnr_status AS patients_dnr_status, patients.allergies AS patients_allergies, patients.notes AS patients_notes, patients.is_active AS patients_is_active, patients.created_at AS patients_created_at, patients.updated_at AS patients_updated_at 
+FROM patients 
+WHERE patients.id = %(pk_1)s
+2025-04-18 18:19:35,590 INFO sqlalchemy.engine.Engine [generated in 0.00005s] {'pk_1': 21}
+2025-04-18 18:19:35,591 INFO sqlalchemy.engine.Engine ROLLBACK

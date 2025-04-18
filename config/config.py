@@ -18,40 +18,40 @@ class Config:
         'http://0.0.0.0:5000',
         'http://localhost:5000',
     ]
-    
+
     # Security
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', SECRET_KEY)
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=int(os.getenv('AUTH_TOKEN_EXPIRY_DAYS', 1)))
     PASSWORD_SALT = os.getenv('PASSWORD_SALT', 'default-salt-for-dev-only')
     SESSION_TIMEOUT_MINUTES = int(os.getenv('SESSION_TIMEOUT_MINUTES', 30))
-    
+
     # Auto-logout settings
     AUTO_LOGOUT_TIME = int(os.getenv('AUTO_LOGOUT_TIME', 30))  # Minutes until auto-logout
     WARNING_TIME = int(os.getenv('WARNING_TIME', 5))  # Minutes before auto-logout to show warning
-    
+
     # Database
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/palliative_care_db')
-    
+
     # AWS
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_REGION = os.getenv('AWS_REGION', 'us-west-2')
     S3_BUCKET = os.getenv('S3_BUCKET')
-    
+
     # Twilio
     TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
     TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
     TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
-    
+
     # RAG Model
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    
+
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     LOG_FORMAT = os.getenv('LOG_FORMAT', 'json')
-    
+
     # Email
     SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.example.com')
     SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
@@ -73,7 +73,7 @@ class TestingConfig(Config):
     ENV = 'testing'
     TESTING = True
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/palliative_care_test')
+    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'sqlite:///:memory:')
     BCRYPT_LOG_ROUNDS = 4
     WTF_CSRF_ENABLED = False  # Disable CSRF for testing
 

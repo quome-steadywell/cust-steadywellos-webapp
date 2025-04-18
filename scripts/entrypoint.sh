@@ -19,7 +19,7 @@ echo "Starting Palliative Care Platform..."
 echo "Waiting for database to be available..."
 # Try to connect to Postgres for up to 60 seconds (12 tries, 5 seconds each)
 RETRIES=12
-until pg_isready -h ${POSTGRES_HOST:-db} -p ${POSTGRES_PORT:-5432} -U ${POSTGRES_USER:-postgres} || [ $RETRIES -eq 0 ]; do
+until pg_isready -h ${POSTGRES_HOST:-db} -p ${POSTGRES_PORT:-5432} -U ${POSTGRES_USER} || [ $RETRIES -eq 0 ]; do
   echo "Waiting for postgres server to be ready, $((RETRIES--)) remaining attempts..."
   sleep 5
 done
@@ -27,24 +27,24 @@ done
 # Initialize and seed database if in TEST mode
 if [ "${DEV_STATE}" = "TEST" ]; then
   echo "DEV_STATE is set to TEST. Setting up test database..."
-  
+
   # Check if backup file exists
   BACKUP_FILE="/app/data/backup/pallcare_db.sql"
   if [ -f "$BACKUP_FILE" ]; then
     echo "Found backup file. Setting up database from backup..."
-    
+
     # Create a fresh database (using psql directly since we're inside the container)
     echo "Setting up database..."
     export PGPASSWORD="${POSTGRES_PASSWORD}"
-    psql -h ${POSTGRES_HOST:-db} -U ${POSTGRES_USER:-postgres} -c "DROP DATABASE IF EXISTS ${POSTGRES_DB:-pallcare_db};" postgres
-    psql -h ${POSTGRES_HOST:-db} -U ${POSTGRES_USER:-postgres} -c "CREATE DATABASE ${POSTGRES_DB:-pallcare_db};" postgres
-    
+    psql -h ${POSTGRES_HOST:-db} -U ${POSTGRES_USER} -c "DROP DATABASE IF EXISTS ${POSTGRES_DB};" postgres
+    psql -h ${POSTGRES_HOST:-db} -U ${POSTGRES_USER} -c "CREATE DATABASE ${POSTGRES_DB};" postgres
+
     # Restore from backup
     echo "Restoring from backup file..."
-    psql -h ${POSTGRES_HOST:-db} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pallcare_db} -f "$BACKUP_FILE"
-    
+    psql -h ${POSTGRES_HOST:-db} -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f "$BACKUP_FILE"
+
     echo "Database restored from backup successfully!"
-    
+
     # Check and ensure assessment data is correctly set up after restore
     echo "Checking and ensuring assessment data..."
     python scripts/check_assessments_data.py
@@ -53,16 +53,16 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     # Initialize the database
     echo "Initializing database tables..."
     python run.py create_db
-    
+
     # Initialize protocols before seeding
     echo "Initializing protocols..."
     python scripts/protocol_ingest.py
-    
+
     # Seed the database with test data
     echo "Seeding database with sample data..."
     python run.py seed_db
   fi
-  
+
   echo "Database initialization and seeding complete!"
   echo "Default login credentials:"
   echo "  Admin: admin / password123"

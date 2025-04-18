@@ -14,6 +14,10 @@ echo -e "${YELLOW}=======================================${NC}"
 echo -e "${GREEN}Installing test dependencies...${NC}"
 pip install -r tests/requirements.txt
 
+# Run service layer tests
+echo -e "${GREEN}Running service layer tests...${NC}"
+python -m pytest tests/test_anthropic_client.py tests/test_rag_service.py tests/test_twilio_service.py -v
+
 # Run UI tests
 echo -e "${GREEN}Running UI tests...${NC}"
 python -m pytest tests/ui -v
