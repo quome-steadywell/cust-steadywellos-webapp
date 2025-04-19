@@ -56,9 +56,6 @@ def app():
     # Use a test configuration
     app = create_app("config.config.TestingConfig")
 
-    # Override the database URI to use in-memory SQLite
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-
     # Create a test context
     with app.app_context():
         # Create all tables in the test database

@@ -73,7 +73,7 @@ class TestingConfig(Config):
     ENV = 'testing'
     TESTING = True
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'sqlite:///:memory:')
+    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/palliative_care_test_db')
     BCRYPT_LOG_ROUNDS = 4
     WTF_CSRF_ENABLED = False  # Disable CSRF for testing
 
