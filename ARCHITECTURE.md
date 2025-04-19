@@ -9,29 +9,33 @@ graph TB
     Client[Client Browser]
     LoadBalancer[Load Balancer]
     WebServer[Web Server]
-    API[FastAPI Application]
-    DB[(PostgreSQL/TimescaleDB)]
+    API[Flask Application]
+    DB[(PostgreSQL)]
     TwilioAPI[Twilio API]
     AnthropicAPI[Anthropic Claude API]
-    
+    OpenAIAPI[OpenAI API]
+    S3[AWS S3]
+
     Client --> LoadBalancer
     LoadBalancer --> WebServer
     WebServer --> API
-    
+
     subgraph "Backend Application"
         API --> Routes
-        Routes --> AuthAPI[Auth API]
-        Routes --> PatientAPI[Patient API]
-        Routes --> ProtocolAPI[Protocol API]
-        Routes --> AssessmentAPI[Assessment API]
-        Routes --> CallAPI[Call API]
-        Routes --> DashboardAPI[Dashboard API]
-        
-        AuthAPI & PatientAPI & ProtocolAPI & AssessmentAPI & CallAPI & DashboardAPI --> Services
+        Routes --> AuthAPI[Auth API v1]
+        Routes --> UsersAPI[Users API v1]
+        Routes --> PatientAPI[Patient API v1]
+        Routes --> ProtocolAPI[Protocol API v1]
+        Routes --> AssessmentAPI[Assessment API v1]
+        Routes --> CallAPI[Call API v1]
+        Routes --> DashboardAPI[Dashboard API v1]
+
+        AuthAPI & UsersAPI & PatientAPI & ProtocolAPI & AssessmentAPI & CallAPI & DashboardAPI --> Services
         Services --> RAGService[RAG Service]
         Services --> TwilioService[Twilio Service]
-        
-        AuthAPI & PatientAPI & ProtocolAPI & AssessmentAPI & CallAPI --> Models
+        Services --> AnthropicClient[Anthropic Client]
+
+        AuthAPI & UsersAPI & PatientAPI & ProtocolAPI & AssessmentAPI & CallAPI & DashboardAPI --> Models
         Models --> UserModel[User Model]
         Models --> PatientModel[Patient Model]
         Models --> ProtocolModel[Protocol Model]
@@ -40,9 +44,12 @@ graph TB
         Models --> MedicationModel[Medication Model]
         Models --> AuditLogModel[Audit Log Model]
     end
-    
+
     RAGService --> AnthropicAPI
+    RAGService --> OpenAIAPI
+    AnthropicClient --> AnthropicAPI
     TwilioService --> TwilioAPI
+    API --> S3
     Models --> DB
 ```
 
@@ -56,17 +63,23 @@ graph TB
 ### Backend
 - Python 3.10 with Flask framework
 - RESTful API design with modular components
+- Flask extensions: Flask-SQLAlchemy, Flask-Migrate, Flask-Marshmallow, Flask-Bcrypt, Flask-JWT-Extended
 - JWT-based authentication system
 - Role-based access control
+- Blueprint-based API organization
 
 ### Database
-- PostgreSQL with TimescaleDB extension for time-series data
-- Models for users, patients, protocols, assessments, calls, and medications
-- Audit logging for compliance and security
+- PostgreSQL database
+- SQLAlchemy ORM for database interactions
+- Models for users, patients, protocols, assessments, calls, medications, and audit logs
+- Database migrations using Flask-Migrate
 
 ### External Services
 - Twilio API for telephony integration (calls, SMS, recordings)
 - Anthropic Claude API for protocol guidance and RAG capabilities
+- OpenAI API as an alternative for RAG capabilities
+- AWS S3 for file storage
+- SMTP for email notifications
 
 ### Security Features
 - JWT authentication
@@ -86,20 +99,22 @@ graph TB
 
 ## API Structure
 
-The API is organized around resources:
-- `/api/auth`: Authentication endpoints
-- `/api/patients`: Patient management
-- `/api/protocols`: Protocol definitions and management
-- `/api/assessments`: Patient assessments
-- `/api/calls`: Call scheduling and management
-- `/api/dashboard`: Dashboard data aggregation
+The API is organized around resources with versioning (v1):
+- `/api/v1/auth`: Authentication endpoints
+- `/api/v1/users`: User management
+- `/api/v1/patients`: Patient management
+- `/api/v1/protocols`: Protocol definitions and management
+- `/api/v1/assessments`: Patient assessments
+- `/api/v1/calls`: Call scheduling and management
+- `/api/v1/dashboard`: Dashboard data aggregation
 
 ## Deployment
 
 The application is containerized using Docker with:
 - Application container running Flask
 - PostgreSQL database container
-- Nginx for serving static files and proxying
+- Docker Compose for orchestration
+- Volume mounting for persistent data storage
 
 ## Scaling Considerations
 
