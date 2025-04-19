@@ -26,8 +26,11 @@ class Config:
     SESSION_TIMEOUT_MINUTES = int(os.getenv('SESSION_TIMEOUT_MINUTES', 30))
 
     # Auto-logout settings
-    AUTO_LOGOUT_TIME = int(os.getenv('AUTO_LOGOUT_TIME', 30))  # Minutes until auto-logout
-    WARNING_TIME = int(os.getenv('WARNING_TIME', 5))  # Minutes before auto-logout to show warning
+    TIME_UNIT = os.getenv('TIME', 'MINUTES').upper()  # Time unit for auto-logout settings (SECONDS or MINUTES)
+    AUTO_LOGOUT_TIME = int(os.getenv('AUTO_LOGOUT_TIME', 30))  # Time until auto-logout (in TIME_UNIT)
+    WARNING_TIME = int(os.getenv('WARNING_TIME', 5))  # Time before auto-logout to show warning (in TIME_UNIT)
+    # Special debug mode for auto-logout
+    AUTO_LOGOUT_DEBUG = os.getenv('AUTO_LOGOUT', '') == 'TEST'  # Enable debug display for auto-logout timing
 
     # Database
     SQLALCHEMY_TRACK_MODIFICATIONS = False
