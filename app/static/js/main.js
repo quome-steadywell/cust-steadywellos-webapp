@@ -4,8 +4,8 @@
  */
 
 // Global variables
-let userToken = localStorage.getItem('auth_token') || null;
-let currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
+window.userToken = localStorage.getItem('auth_token') || null;
+window.currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
 
 // Check authentication on each page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Redirect to login if no token
-    if (!userToken) {
+    if (!window.userToken) {
         window.location.href = '/login';
         return;
     }
@@ -40,7 +40,7 @@ function setupAjaxHeaders() {
     window.authFetch = (url, options = {}) => {
         const defaultOptions = {
             headers: {
-                'Authorization': `Bearer ${userToken}`,
+                'Authorization': `Bearer ${window.userToken}`,
                 'Content-Type': 'application/json'
             }
         };
@@ -61,8 +61,8 @@ function setupAjaxHeaders() {
     if (typeof $ !== 'undefined') {
         $.ajaxSetup({
             beforeSend: function(xhr) {
-                if (userToken) {
-                    xhr.setRequestHeader('Authorization', `Bearer ${userToken}`);
+                if (window.userToken) {
+                    xhr.setRequestHeader('Authorization', `Bearer ${window.userToken}`);
                 }
             }
         });
