@@ -38,6 +38,7 @@ ENV/
 # Logs
 logs/
 *.log
+startup_log.txt
 
 # Database
 *.db
