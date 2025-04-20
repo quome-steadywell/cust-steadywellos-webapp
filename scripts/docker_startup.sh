@@ -19,6 +19,13 @@ echo "Starting Palliative Care Platform..."
 echo "Setting up temporary directory for writable files..."
 TMP_DIR="/tmp/pallcare"
 
+# Create logs directory in /tmp to avoid permission issues
+mkdir -p /tmp/logs
+# Create symlink from /app/logs to /tmp/logs for backward compatibility
+if [ ! -L "/app/logs" ] && [ ! -d "/app/logs" ]; then
+  ln -s /tmp/logs /app/logs 2>/dev/null || true
+fi
+
 # Wait for database to be ready
 echo "Waiting for database to be available..."
 
@@ -273,8 +280,23 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     echo "Verifying database tables exist..."
     TABLE_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -c "\dt" | grep -c "patients")
     if [ "$TABLE_CHECK" -eq 0 ]; then
-        echo "❌ Error: Tables not found after initialization/restore. Something is wrong!" >&2
-        exit 1
+        echo "❌ Warning: Tables not found after initialization/restore. Attempting to create tables..." >&2
+        
+        # Create empty tables
+        echo "Creating database tables..." >&2
+        export TEMP_DIR="$TMP_DIR"
+        export PYTHONUNBUFFERED=1
+        export FLASK_APP="run.py"
+        python run.py create_db
+        
+        # Check again
+        TABLE_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -c "\dt" | grep -c "patients")
+        if [ "$TABLE_CHECK" -eq 0 ]; then
+            echo "❌ Error: Tables still not found after create_db. Cannot continue!" >&2
+            exit 1
+        else
+            echo "✅ Database tables created successfully"
+        fi
     else
         echo "✅ Database tables verified"
     fi

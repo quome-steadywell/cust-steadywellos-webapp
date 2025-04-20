@@ -52,13 +52,35 @@ fi
 if [ "${DEV_STATE}" = "TEST" ]; then
   echo -e "${YELLOW}DEV_STATE is set to TEST. Restoring database from backup...${NC}"
   
-  # Find the latest backup file by date
+  # Find the latest backup file by date encoding
   BACKUP_DIR="./data/backup"
-  LATEST_BACKUP=$(ls -t $BACKUP_DIR/pallcare_db*.sql 2>/dev/null | head -1)
   
-  if [ -n "$LATEST_BACKUP" ]; then
-    BACKUP_FILE="$LATEST_BACKUP"
-    echo -e "${GREEN}Found latest backup file: $(basename $BACKUP_FILE). Setting up database from backup...${NC}"
+  # First, check for date-encoded backups (pallcare_db.YYYYMMDD.sql)
+  LATEST_DATE_BACKUP=$(ls -t $BACKUP_DIR/pallcare_db.20*.sql 2>/dev/null | head -1)
+  
+  # If no date-encoded backup is found, fall back to non-dated backup
+  if [ -n "$LATEST_DATE_BACKUP" ]; then
+    BACKUP_FILE="$LATEST_DATE_BACKUP"
+    DATE_PART=$(basename $BACKUP_FILE | sed 's/pallcare_db\.\([0-9]*\)\.sql/\1/')
+    echo -e "${GREEN}Found date-encoded backup from $DATE_PART: $(basename $BACKUP_FILE)${NC}"
+  else
+    # Try fallback options in order of preference
+    if [ -f "$BACKUP_DIR/pallcare_db.latest.sql" ]; then
+      BACKUP_FILE="$BACKUP_DIR/pallcare_db.latest.sql"
+      echo -e "${YELLOW}No date-encoded backup found. Using latest backup: $(basename $BACKUP_FILE)${NC}"
+    elif [ -f "$BACKUP_DIR/pallcare_db.sql" ]; then
+      BACKUP_FILE="$BACKUP_DIR/pallcare_db.sql"
+      echo -e "${YELLOW}No date-encoded or latest backup found. Using standard backup: $(basename $BACKUP_FILE)${NC}"
+    elif [ -f "$BACKUP_DIR/pallcare_db_working.sql" ]; then
+      BACKUP_FILE="$BACKUP_DIR/pallcare_db_working.sql"
+      echo -e "${YELLOW}No other backups found. Using working backup: $(basename $BACKUP_FILE)${NC}"
+    else
+      BACKUP_FILE=""
+    fi
+  fi
+  
+  if [ -n "$BACKUP_FILE" ]; then
+    echo -e "${GREEN}Setting up database from backup: $(basename $BACKUP_FILE)...${NC}"
     
     # Create a fresh database
     echo -e "${GREEN}Dropping existing database...${NC}"

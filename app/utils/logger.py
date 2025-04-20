@@ -2,7 +2,6 @@ import logging
 import os
 import json
 from flask import request, g, has_request_context
-from logging.handlers import RotatingFileHandler
 
 # Configure logging levels based on environment
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
@@ -24,6 +23,7 @@ class RequestFormatter(logging.Formatter):
             record.user_id = None
             
         return super().format(record)
+
 
 class JsonFormatter(RequestFormatter):
     """Formatter that outputs JSON strings after formatting the record."""
@@ -55,8 +55,9 @@ class JsonFormatter(RequestFormatter):
             
         return json.dumps(log_data)
 
+
 def setup_logger(app):
-    """Configure application logging."""
+    """Configure application logging to stdout/stderr only."""
     # Create logger
     logger = logging.getLogger('palliative_care')
     logger.setLevel(getattr(logging, LOG_LEVEL))
@@ -64,17 +65,9 @@ def setup_logger(app):
     # Clear existing handlers
     logger.handlers = []
     
-    # Create console handler
+    # Create console handler for stdout/stderr
     console_handler = logging.StreamHandler()
     console_handler.setLevel(getattr(logging, LOG_LEVEL))
-    
-    # Create file handler for important logs
-    file_handler = RotatingFileHandler(
-        'logs/palliative_care.log', 
-        maxBytes=10485760,  # 10MB
-        backupCount=10
-    )
-    file_handler.setLevel(logging.INFO)
     
     # Set formatter based on configuration
     if LOG_FORMAT == 'json':
@@ -85,19 +78,18 @@ def setup_logger(app):
         )
     
     console_handler.setFormatter(formatter)
-    file_handler.setFormatter(formatter)
     
-    # Add handlers to logger
+    # Add console handler to logger
     logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
-    
-    # Ensure log directory exists
-    os.makedirs('logs', exist_ok=True)
     
     # Set as app logger
     app.logger = logger
     
+    # Log a message about the logging configuration
+    logger.info("Application logging configured to use stdout/stderr only")
+    
     return logger
+
 
 def get_logger():
     """Get the application logger."""
