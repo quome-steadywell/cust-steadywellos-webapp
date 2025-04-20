@@ -40,9 +40,35 @@ echo -e "${GREEN}Dropping existing database...${NC}"
 docker-compose exec db psql -U $POSTGRES_USER -c "DROP DATABASE IF EXISTS $POSTGRES_DB;" postgres
 docker-compose exec db psql -U $POSTGRES_USER -c "CREATE DATABASE $POSTGRES_DB;" postgres
 
-echo -e "${GREEN}Restoring from backup...${NC}"
-BACKUP_FILE="./data/backup/pallcare_db.sql"
-if [ -f "$BACKUP_FILE" ]; then
+echo -e "${GREEN}Finding latest backup file...${NC}"
+BACKUP_DIR="./data/backup"
+
+# First, check for date-encoded backups (pallcare_db.YYYYMMDD.sql)
+LATEST_DATE_BACKUP=$(ls -t $BACKUP_DIR/pallcare_db.20*.sql 2>/dev/null | head -1)
+
+# If no date-encoded backup is found, fall back to non-dated backup
+if [ -n "$LATEST_DATE_BACKUP" ]; then
+  BACKUP_FILE="$LATEST_DATE_BACKUP"
+  DATE_PART=$(basename $BACKUP_FILE | sed 's/pallcare_db\.\([0-9]*\)\.sql/\1/')
+  echo -e "${GREEN}Found date-encoded backup from $DATE_PART: $(basename $BACKUP_FILE)${NC}"
+else
+  # Try fallback options in order of preference
+  if [ -f "$BACKUP_DIR/pallcare_db.latest.sql" ]; then
+    BACKUP_FILE="$BACKUP_DIR/pallcare_db.latest.sql"
+    echo -e "${YELLOW}No date-encoded backup found. Using latest backup: $(basename $BACKUP_FILE)${NC}"
+  elif [ -f "$BACKUP_DIR/pallcare_db.sql" ]; then
+    BACKUP_FILE="$BACKUP_DIR/pallcare_db.sql"
+    echo -e "${YELLOW}No date-encoded or latest backup found. Using standard backup: $(basename $BACKUP_FILE)${NC}"
+  elif [ -f "$BACKUP_DIR/pallcare_db_working.sql" ]; then
+    BACKUP_FILE="$BACKUP_DIR/pallcare_db_working.sql"
+    echo -e "${YELLOW}No other backups found. Using working backup: $(basename $BACKUP_FILE)${NC}"
+  else
+    BACKUP_FILE=""
+  fi
+fi
+
+if [ -n "$BACKUP_FILE" ]; then
+  echo -e "${GREEN}Restoring from backup: $(basename $BACKUP_FILE)...${NC}"
   # Copy the backup file to the container
   docker-compose exec -T db bash -c "cat > /tmp/backup.sql" < $BACKUP_FILE
   

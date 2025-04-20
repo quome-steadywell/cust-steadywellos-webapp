@@ -30,23 +30,33 @@ DATE=$(date +%Y%m%d)
 BACKUP_DIR="./data/backup"
 BACKUP_FILE="$BACKUP_DIR/pallcare_db.$DATE.sql"
 STANDARD_BACKUP="$BACKUP_DIR/pallcare_db.sql"
+LATEST_BACKUP="$BACKUP_DIR/pallcare_db.latest.sql"
 
-echo -e "${GREEN}Creating database backup...${NC}"
+# Display backup information
+echo -e "${GREEN}Creating date-encoded backup: $BACKUP_FILE${NC}"
 docker-compose exec -T db pg_dump -U $POSTGRES_USER $POSTGRES_DB > "$BACKUP_FILE"
 
 if [ $? -eq 0 ]; then
-  echo -e "${GREEN}Database backup created: $BACKUP_FILE${NC}"
+  echo -e "${GREEN}Date-encoded backup created successfully!${NC}"
   
   # Update the standard backup file
   echo -e "${GREEN}Updating standard backup file: $STANDARD_BACKUP${NC}"
   cp -f "$BACKUP_FILE" "$STANDARD_BACKUP"
   
+  # Update the "latest" backup file
+  echo -e "${GREEN}Updating latest backup file: $LATEST_BACKUP${NC}"
+  cp -f "$BACKUP_FILE" "$LATEST_BACKUP"
+  
   if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Standard backup file updated successfully!${NC}"
+    echo -e "${GREEN}Backup files updated successfully!${NC}"
   else
     echo -e "${RED}Failed to update standard backup file.${NC}"
     exit 1
   fi
+  
+  # Show list of available backups
+  echo -e "${GREEN}Available database backups:${NC}"
+  ls -lh $BACKUP_DIR/pallcare_db*.sql | awk '{print $6, $7, $8, $9}'
 else
   echo -e "${RED}Failed to create database backup.${NC}"
   exit 1

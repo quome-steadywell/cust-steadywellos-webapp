@@ -64,7 +64,7 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     from app.utils.error_handlers import register_error_handlers
     register_error_handlers(app)
 
-    # Setup application logging
+    # Setup application logging (stdout/stderr only)
     setup_logger(app)
 
     # Shell context
