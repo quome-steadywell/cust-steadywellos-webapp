@@ -693,6 +693,16 @@ COPY public.audit_logs (id, user_id, action, resource_type, resource_id, details
 182	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 04:06:48.858001
 183	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36	2025-04-06 04:17:08.042583
 184	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-20 04:26:00.448762
+185	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-20 05:10:45.357117
+186	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-20 05:10:56.897409
+187	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-20 05:11:46.483361
+188	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-20 05:12:00.961773
+189	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-22 18:08:04.272596
+190	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-22 18:08:34.489306
+191	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-22 18:09:44.371429
+192	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-22 18:10:14.491348
+193	25	login	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-22 18:24:49.785459
+194	25	logout	user	25	null	192.168.65.1	Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0	2025-04-22 18:26:18.130841
 \.
 
 
@@ -753,7 +763,7 @@ COPY public.users (id, username, email, password, first_name, last_name, role, p
 27	nurse2	nurse2@example.com	$2b$04$Gbde4mHJJMKvfNkjaKZ2xedturot4y705G2FciFd2RLPTEMFbUgBy	Robert	Johnson	NURSE	555-345-6789	RN67890	t	0	\N	2025-04-02 18:38:56.0849	2025-04-02 18:38:56.084901
 28	physician	physician@example.com	$2b$04$2WsgpUdPPxjbMPEWrz6loe6k.4XSW0dilY9BWk.2NzinNh4necvb2	Sarah	Williams	PHYSICIAN	555-456-7890	MD12345	t	0	2025-04-06 04:05:34.102029	2025-04-02 18:38:56.084901	2025-04-06 04:05:34.102298
 26	nurse1	nurse1@example.com	$2b$04$cQgvcUWOGaCsqyM1hmOyNOb7Lrd4o.EXQU6yBQqNP3Ecs3LgOTXla	Jane	Smith	NURSE	555-234-5678	RN12345	t	0	2025-04-06 04:06:04.136225	2025-04-02 18:38:56.0849	2025-04-06 04:06:04.136389
-25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-20 04:26:00.444054	2025-04-02 18:38:56.084898	2025-04-20 04:26:00.445106
+25	admin	admin@example.com	$2b$04$ETDfV1vMz2CqcV5ktS752.wPeov9MXHKOA5Ughp1vJ3z0TMooW7Ti	Admin	User	ADMIN	555-123-4567	\N	t	0	2025-04-22 18:24:49.779617	2025-04-02 18:38:56.084898	2025-04-22 18:24:49.780173
 \.
 
 
@@ -768,7 +778,7 @@ SELECT pg_catalog.setval('public.assessments_id_seq', 147, true);
 -- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: pallcare
 --
 
-SELECT pg_catalog.setval('public.audit_logs_id_seq', 184, true);
+SELECT pg_catalog.setval('public.audit_logs_id_seq', 194, true);
 
 
 --
