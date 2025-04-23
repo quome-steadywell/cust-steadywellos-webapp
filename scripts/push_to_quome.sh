@@ -807,19 +807,9 @@ CLOUD_PAYLOAD=$(cat <<EOF
                     "POSTGRES_DB": "pallcare_db",
                     "POSTGRES_HOST": "db"
                 },
-                "k8s_vars": {
-                    "ANTHROPIC_API_KEY": {
-                        "name": "anthropic-key",
-                        "key": "key"
-                    },
-                    "DATABASE_URL": {
-                        "name": "db-url",
-                        "key": "url"
-                    },
-                    "PALLCARE_URL": {
-                        "name": "pallcare-url",
-                        "key": "url"
-                    }
+                "secret_vars" : {
+                    "ANTHROPIC_API_KEY": "anthropic-key",
+                    "DATABASE_URL": "pallcare-db-url"
                 },
                 "registry_secret": "$DOCKER_SECRET_NAME"
             }
