@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SteadywellOS</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         body {
             background-color: #f5f5f5;
@@ -20,40 +20,40 @@
             padding-bottom: 40px;
             min-height: 100vh;
         }
-        
+
         .form-signin {
             width: 100%;
             max-width: 400px;
             padding: 15px;
             margin: auto;
         }
-        
+
         .form-signin .form-floating:focus-within {
             z-index: 2;
         }
-        
+
         .form-signin input[type="text"] {
             margin-bottom: -1px;
             border-bottom-right-radius: 0;
             border-bottom-left-radius: 0;
         }
-        
+
         .form-signin input[type="password"] {
             margin-bottom: 10px;
             border-top-left-radius: 0;
             border-top-right-radius: 0;
         }
-        
+
         .logo-container {
             text-align: center;
             margin-bottom: 25px;
         }
-        
+
         .logo-icon {
             font-size: 4rem;
             color: #0d6efd;
         }
-        
+
         .alert {
             display: none;
         }
@@ -66,13 +66,13 @@
             <h1 class="h3 mb-3 fw-normal">SteadywellOS</h1>
             <p class="text-muted">Palliative Care Coordination Platform</p>
         </div>
-        
+
         <div class="card shadow-sm">
             <div class="card-body">
                 <h2 class="card-title h5 text-center mb-4">Sign In</h2>
-                
+
                 <div class="alert alert-danger" id="error-alert" role="alert"></div>
-                
+
                 <form id="login-form">
                     <div class="form-floating mb-3">
                         <input type="text" class="form-control" id="username" placeholder="Username" required>
@@ -82,39 +82,33 @@
                         <input type="password" class="form-control" id="password" placeholder="Password" required>
                         <label for="password">Password</label>
                     </div>
-                    
+
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" value="remember-me" id="remember-me">
                         <label class="form-check-label" for="remember-me">
                             Remember me
                         </label>
                     </div>
-                    
+
                     <button class="w-100 btn btn-lg btn-primary" type="submit" id="login-button">
                         <span class="spinner-border spinner-border-sm d-none" id="login-spinner" role="status" aria-hidden="true"></span>
                         Sign in
                     </button>
-                    
+
                     <div class="text-center mt-3">
                         <a href="/forgot-password" class="text-decoration-none">Forgot password?</a>
                     </div>
                 </form>
             </div>
         </div>
-        
+
         <p class="mt-4 text-center text-muted">&copy; 2025 SteadwellOS</p>
-        
-        <!-- Link to startup logs (always visible) -->
-        <div class="mt-3 text-center">
-            <a href="/startup-logs" class="text-decoration-none text-muted small">
-                <i class="fas fa-terminal"></i> View Container Startup Logs
-            </a>
-        </div>
+
     </main>
-    
+
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Check if user is already logged in
@@ -122,26 +116,26 @@
             if (token) {
                 window.location.href = '/dashboard';
             }
-            
+
             const loginForm = document.getElementById('login-form');
             const loginButton = document.getElementById('login-button');
             const loginSpinner = document.getElementById('login-spinner');
             const errorAlert = document.getElementById('error-alert');
-            
+
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+
                 // Clear previous errors
                 errorAlert.style.display = 'none';
-                
+
                 // Show loading spinner
                 loginButton.disabled = true;
                 loginSpinner.classList.remove('d-none');
-                
+
                 // Get form values
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
-                
+
                 // Make login request
                 fetch('/api/v1/auth/login', {
                     method: 'POST',
@@ -163,7 +157,7 @@
                     // Store auth token and user data
                     localStorage.setItem('auth_token', data.access_token);
                     localStorage.setItem('current_user', JSON.stringify(data.user));
-                    
+
                     // Redirect to dashboard
                     window.location.href = '/dashboard';
                 })
@@ -171,7 +165,7 @@
                     // Show error message
                     errorAlert.textContent = error.message;
                     errorAlert.style.display = 'block';
-                    
+
                     // Hide loading spinner
                     loginButton.disabled = false;
                     loginSpinner.classList.add('d-none');
