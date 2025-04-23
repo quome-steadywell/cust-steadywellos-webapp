@@ -208,22 +208,42 @@ The system is seeded with the following test users:
 
 **IMPORTANT:** These are default test credentials. In a production environment, you must change these passwords.
 
+## 📁 Project Structure
+
+The project is organized into the following directories:
+
+- `app/` - Main application code
+  - `api/` - API endpoints and routes
+  - `models/` - Database models
+  - `schemas/` - Pydantic schemas for validation
+  - `services/` - Business logic and external services
+  - `static/` - Static assets (CSS, JS)
+  - `templates/` - HTML templates
+  - `utils/` - Utility functions
+- `config/` - Configuration files
+- `data/` - Data files and backups
+- `docs/` - Documentation files
+- `logs/` - Log files
+- `scripts/` - Utility scripts
+  - `obsolete/` - Deprecated scripts
+- `tests/` - Test files
+
 ## 🧰 Key Scripts
 
-| Script                            | Purpose                             | When to Use                         |
-|-----------------------------------|-------------------------------------|-------------------------------------|
-| `scripts/install.sh`              | Initial setup and dependency checks | First-time setup                    |
-| `scripts/up.sh`                   | Start application containers        | Starting the application            |
-| `scripts/down.sh`                 | Stop application containers         | Shutting down the application       |
-| `scripts/db_init.sh`              | Initialize database structure       | First-time setup or after reset     |
-| `scripts/db_seed.sh`              | Populate database with sample data  | After database initialization       |
-| `scripts/db_backup.sh`            | Create database backups             | Before changes or regularly         |
-| `scripts/db_reset.sh`             | Reset database to clean state       | When database is corrupted          |
-| `scripts/db_reset_from_backup.sh` | Restore database from backup        | After failure or to revert changes  |
-| `scripts/protocol_ingest.py`      | Initialize clinical protocols       | During setup or updating protocols  |
-| `scripts/upgrade_anthropic.sh`    | Update Anthropic library            | When API compatibility issues arise |
-| `run.py`                          | Main application entry point        | Various database operations         |
-| `start.sh`                        | Root-level startup script           | Alternative entry point             |
+| Script                            | Purpose                                | When to Use                         |
+|-----------------------------------|----------------------------------------|-------------------------------------|
+| `scripts/install.sh`              | Initial setup and dependency checks    | First-time setup                    |
+| `scripts/up.sh`                   | Start application containers           | Starting the application            |
+| `scripts/down.sh`                 | Stop application containers            | Shutting down the application       |
+| `scripts/db_reset.sh`             | Reset database to clean state          | When database is corrupted          |
+| `scripts/db_seed.sh`              | Populate database with sample data     | After database initialization       |
+| `scripts/db_backup.sh`            | Create database backups                | Before changes or regularly         |
+| `scripts/db_reset_from_backup.sh` | Restore database from backup           | After failure or to revert changes  |
+| `scripts/protocol_ingest.py`      | Initialize clinical protocols          | During setup or updating protocols  |
+| `scripts/upgrade_anthropic.sh`    | Update Anthropic library               | When API compatibility issues arise |
+| `scripts/push_to_dockerhub.sh`    | Build and push container to DockerHub  | When deploying new versions         |
+| `scripts/push_to_quome.sh`        | Deploy container to Quome              | When deploying to production        |
+| `run.py`                          | Main application entry point           | Various database operations         |
 
 ## 🛠️ Available Commands
 
@@ -235,12 +255,20 @@ The following commands are available through the Just command runner:
 | `just down`             | Stop the application                                             |
 | `just restart`          | Restart the application                                          |
 | `just logs`             | View application logs                                            |
-| `just db-init`          | Initialize the database schema                                   |
+| `just db-init`          | Initialize the database (delete, initialize, then seed)          |
 | `just db-seed`          | Seed the database with sample data                               |
 | `just db-reset`         | Reset the database (drop, create, seed)                          |
 | `just protocols [type]` | Initialize protocols (type: cancer, heart_failure, copd, or all) |
 | `just status`           | Check application status                                         |
 | `just test`             | Run tests                                                        |
+| `just test-http`        | Run HTTP-based tests (no browser dependencies)                   |
+| `just test-ui`          | Run UI tests without Selenium                                    |
+| `just test-dates`       | Run tests for date handling                                      |
+| `just test-autologout`  | Run auto-logout tests                                            |
+| `just test-all`         | Run all tests in sequence                                        |
+| `just build`            | Build the Docker container                                       |
+| `just push-to-dockerhub`| Build and push the Docker container to DockerHub                 |
+| `just push-to-quome`    | Pull the Docker container and push to Quome                      |
 | `just install`          | Install dependencies                                             |
 
 ### Protocol Initialization

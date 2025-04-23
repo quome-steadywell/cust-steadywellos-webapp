@@ -18,10 +18,10 @@ down:
 restart: down up
     @echo "SteadywellOS has been restarted"
 
-# Initialize the database
+# Initialize the database (delete, initialize, then seed)
 db-init:
-    @echo "Initializing database..."
-    @./scripts/db_init.sh
+    @echo "Deleting, initializing, and seeding database..."
+    @./scripts/db_reset.sh --force
 
 # Initialize protocols only
 protocols-init:
@@ -42,12 +42,12 @@ db-reset:
 db-reset-force:
     @echo "Force resetting database without confirmation..."
     @./scripts/db_reset.sh --force
-    
+
 # Reset the database (wipe and restore from backup)
 db-reset-from-backup:
     @echo "Resetting database from backup..."
     @./scripts/db_reset_from_backup.sh
-    
+
 # Reset the database (wipe and restore from backup) without confirmation
 db-reset-from-backup-force:
     @echo "Force resetting database from backup without confirmation..."
@@ -106,7 +106,7 @@ test-all:
 test-dates:
     @echo "Running date handling tests..."
     @docker-compose exec web python tests/date_test.py
-    
+
 # Run auto-logout tests
 test-autologout:
     @echo "Running auto-logout tests..."
@@ -116,6 +116,21 @@ test-autologout:
 status:
     @echo "Application status:"
     @docker-compose ps
+
+# Build the Docker container
+build:
+    @echo "Building Docker container..."
+    @docker-compose build
+
+# Build and push the Docker container to DockerHub
+push-to-dockerhub:
+    @echo "Building and pushing Docker container to DockerHub..."
+    @./scripts/push_to_dockerhub.sh
+
+# Pull the Docker container and push to Quome
+push-to-quome:
+    @echo "Pulling Docker container and pushing to Quome..."
+    @./scripts/push_to_quome.sh
 
 # Upgrade Anthropic library
 upgrade-anthropic:
