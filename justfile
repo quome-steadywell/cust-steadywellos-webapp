@@ -11,6 +11,11 @@ op_cli_installed := if `command -v op` =~ "" { "true" } else { "false" }
 # defaults to calling scripts normally if 1Password cli is not installed
 _command_wrapper COMMAND:
     #!/usr/bin/env sh
+    # If there's already a .env file back it up temporarily
+    # that way we don't accidentally clobber the .env file 
+    if [ -f .env ]; then
+        mv .env .env.tmp
+    fi
     if {{op_cli_installed}}; then
         # using op inject since this project has plenty of scripts/code that
         # expect a .env file with plaintext secrets
@@ -19,9 +24,12 @@ _command_wrapper COMMAND:
         cp .env.secrets .env
     fi
     {{COMMAND}}
-    # after we've run the recipe, there's no reason to keep these secrets
-    # around in plaintext
-    rm .env
+    # if we created a backup for the .env file, copy it back, otherwise delete .env
+    if [ -f .env.tmp ]; then
+        mv .env.tmp .env
+    else
+        rm .env
+    fi
 
 # Setup the environment and start the application
 up:
