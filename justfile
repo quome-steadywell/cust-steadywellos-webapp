@@ -19,7 +19,7 @@ _command_wrapper COMMAND:
     if {{op_cli_installed}}; then
         # using op inject since this project has plenty of scripts/code that
         # expect a .env file with plaintext secrets
-        op inject -f -i .env.secrets -o .env
+        op inject -f -i .env.secrets -o .env > /dev/null
     else
         cp .env.secrets .env
     fi
@@ -148,6 +148,14 @@ status:
 build:
     @echo "Building Docker container..."
     @just _command_wrapper "docker-compose build"
+
+# Docker command wrappers
+ps: (_command_wrapper "docker-compose ps")
+list-services: (_command_wrapper "docker-compose config --services")
+run SERVICE *COMMAND:
+    @just _command_wrapper "docker-compose exec {{SERVICE}} {{COMMAND}}"
+terminal SERVICE:
+    @just _command_wrapper "docker-compose exec {{SERVICE}} bash"
 
 # Build and push the Docker container to DockerHub
 push-to-dockerhub:
