@@ -141,10 +141,25 @@ SteadywellOS can be set up and run using the Just command runner or directly usi
 
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 - [Just](https://github.com/casey/just#installation) (optional but recommended)
+- [1Password CLI](https://developer.1password.com/docs/cli/get-started/) (optional but recommended 1Password secret references)
 
 ### Installation Steps
 
-#### Step 1: Install dependencies
+#### Step 1: Set up environment variables
+
+If using just
+
+```bash
+cp .env.example .env.secrets
+```
+
+If you're going to run scripts manually without just you'll also want to copy `.env.secrets` into `.env`
+
+```bash
+cp .env.secrets .env
+```
+
+#### Step 2: Install dependencies
 
 ```bash
 # Using Just (recommended)
@@ -155,11 +170,12 @@ just install
 ```
 
 This will:
+
 - Check prerequisites (Docker, Docker Compose)
 - Set up necessary environment files
 - Configure required permissions
 
-#### Step 2: Start the application
+#### Step 3: Start the application
 
 ```bash
 # Using Just (recommended)
@@ -170,6 +186,7 @@ just up
 ```
 
 This will:
+
 - Build and start all necessary containers
 - Configure the application environment
 - Make the application available at http://localhost:8080
@@ -195,10 +212,12 @@ After completing these steps, the platform will be available at http://localhost
 The system is seeded with the following test users:
 
 - **Admin**
+
   - Username: `admin`
   - Password: `password123`
 
 - **Nurse**
+
   - Username: `nurse1`
   - Password: `password123`
 
@@ -230,46 +249,46 @@ The project is organized into the following directories:
 
 ## 🧰 Key Scripts
 
-| Script                            | Purpose                                | When to Use                         |
-|-----------------------------------|----------------------------------------|-------------------------------------|
-| `scripts/install.sh`              | Initial setup and dependency checks    | First-time setup                    |
-| `scripts/up.sh`                   | Start application containers           | Starting the application            |
-| `scripts/down.sh`                 | Stop application containers            | Shutting down the application       |
-| `scripts/db_reset.sh`             | Reset database to clean state          | When database is corrupted          |
-| `scripts/db_seed.sh`              | Populate database with sample data     | After database initialization       |
-| `scripts/db_backup.sh`            | Create database backups                | Before changes or regularly         |
-| `scripts/db_reset_from_backup.sh` | Restore database from backup           | After failure or to revert changes  |
-| `scripts/protocol_ingest.py`      | Initialize clinical protocols          | During setup or updating protocols  |
-| `scripts/upgrade_anthropic.sh`    | Update Anthropic library               | When API compatibility issues arise |
-| `scripts/push_to_dockerhub.sh`    | Build and push container to DockerHub  | When deploying new versions         |
-| `scripts/push_to_quome.sh`        | Deploy container to Quome              | When deploying to production        |
-| `run.py`                          | Main application entry point           | Various database operations         |
+| Script                            | Purpose                               | When to Use                         |
+| --------------------------------- | ------------------------------------- | ----------------------------------- |
+| `scripts/install.sh`              | Initial setup and dependency checks   | First-time setup                    |
+| `scripts/up.sh`                   | Start application containers          | Starting the application            |
+| `scripts/down.sh`                 | Stop application containers           | Shutting down the application       |
+| `scripts/db_reset.sh`             | Reset database to clean state         | When database is corrupted          |
+| `scripts/db_seed.sh`              | Populate database with sample data    | After database initialization       |
+| `scripts/db_backup.sh`            | Create database backups               | Before changes or regularly         |
+| `scripts/db_reset_from_backup.sh` | Restore database from backup          | After failure or to revert changes  |
+| `scripts/protocol_ingest.py`      | Initialize clinical protocols         | During setup or updating protocols  |
+| `scripts/upgrade_anthropic.sh`    | Update Anthropic library              | When API compatibility issues arise |
+| `scripts/push_to_dockerhub.sh`    | Build and push container to DockerHub | When deploying new versions         |
+| `scripts/push_to_quome.sh`        | Deploy container to Quome             | When deploying to production        |
+| `run.py`                          | Main application entry point          | Various database operations         |
 
 ## 🛠️ Available Commands
 
 The following commands are available through the Just command runner:
 
-| Command                 | Description                                                      |
-|-------------------------|------------------------------------------------------------------|
-| `just up`               | Start the application                                            |
-| `just down`             | Stop the application                                             |
-| `just restart`          | Restart the application                                          |
-| `just logs`             | View application logs                                            |
-| `just db-init`          | Initialize the database (delete, initialize, then seed)          |
-| `just db-seed`          | Seed the database with sample data                               |
-| `just db-reset`         | Reset the database (drop, create, seed)                          |
-| `just protocols [type]` | Initialize protocols (type: cancer, heart_failure, copd, or all) |
-| `just status`           | Check application status                                         |
-| `just test`             | Run tests                                                        |
-| `just test-http`        | Run HTTP-based tests (no browser dependencies)                   |
-| `just test-ui`          | Run UI tests without Selenium                                    |
-| `just test-dates`       | Run tests for date handling                                      |
-| `just test-autologout`  | Run auto-logout tests                                            |
-| `just test-all`         | Run all tests in sequence                                        |
-| `just build`            | Build the Docker container                                       |
-| `just push-to-dockerhub`| Build and push the Docker container to DockerHub                 |
-| `just push-to-quome`    | Pull the Docker container and push to Quome                      |
-| `just install`          | Install dependencies                                             |
+| Command                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| `just up`                | Start the application                                            |
+| `just down`              | Stop the application                                             |
+| `just restart`           | Restart the application                                          |
+| `just logs`              | View application logs                                            |
+| `just db-init`           | Initialize the database (delete, initialize, then seed)          |
+| `just db-seed`           | Seed the database with sample data                               |
+| `just db-reset`          | Reset the database (drop, create, seed)                          |
+| `just protocols [type]`  | Initialize protocols (type: cancer, heart_failure, copd, or all) |
+| `just status`            | Check application status                                         |
+| `just test`              | Run tests                                                        |
+| `just test-http`         | Run HTTP-based tests (no browser dependencies)                   |
+| `just test-ui`           | Run UI tests without Selenium                                    |
+| `just test-dates`        | Run tests for date handling                                      |
+| `just test-autologout`   | Run auto-logout tests                                            |
+| `just test-all`          | Run all tests in sequence                                        |
+| `just build`             | Build the Docker container                                       |
+| `just push-to-dockerhub` | Build and push the Docker container to DockerHub                 |
+| `just push-to-quome`     | Pull the Docker container and push to Quome                      |
+| `just install`           | Install dependencies                                             |
 
 ### Protocol Initialization
 
@@ -286,6 +305,7 @@ just protocols copd
 ```
 
 Each protocol includes:
+
 - Structured assessment questions
 - Recommended interventions based on symptoms
 - Decision tree logic for determining appropriate care actions
@@ -343,6 +363,7 @@ SteadwellOS comes with three specialized protocols:
 3. **COPD Protocol**: Respiratory symptoms, oxygen use, and breathing technique assessments
 
 Each protocol includes:
+
 - Structured question sets for telephone assessments
 - Severity rating systems for symptoms
 - Decision tree algorithms for intervention recommendations

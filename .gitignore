@@ -27,6 +27,7 @@ ENV/
 .env
 .env.bak
 .env.example
+.env.secrets
 
 # IDE
 .idea/
