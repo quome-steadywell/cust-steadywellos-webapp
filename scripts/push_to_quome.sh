@@ -427,7 +427,7 @@ if [ -n "$ANTHROPIC_API_KEY" ]; then
     "type": "generic",
     "description": "anthropic api key",
     "secret": {
-        "key": "$ANTHROPIC_API_KEY"
+        "value": "$ANTHROPIC_API_KEY"
     }
 }
 EOF
@@ -802,14 +802,11 @@ CLOUD_PAYLOAD=$(cat <<EOF
                 "env_vars": {
                     "FLASK_APP": "run.py",
                     "FLASK_ENV": "production",
-                    "DEV_STATE": "TEST",
-                    "POSTGRES_USER": "postgres",
-                    "POSTGRES_DB": "pallcare_db",
-                    "POSTGRES_HOST": "db"
+                    "DEV_STATE": "TEST"
                 },
                 "secret_vars" : {
                     "ANTHROPIC_API_KEY": "anthropic-key",
-                    "DATABASE_URL": "pallcare-db-url"
+                    "PALLCARE_URL": "pallcare-db-url"
                 },
                 "registry_secret": "$DOCKER_SECRET_NAME"
             }
