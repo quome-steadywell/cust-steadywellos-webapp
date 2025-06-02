@@ -32,9 +32,16 @@ echo "Waiting for database to be available..."
 # Check if we're running in Quome Cloud
 if [ -n "$PALLCARE_URL" ] || [ -n "$QUOME_CLOUD" ]; then
   echo "Using Quome Cloud database connection..."
-  DB_HOST="pallcare-cluster.databases"
-  DB_PORT="5432"
-  DB_USER="cust-86880079-c52c-4e5f-9501-101f8a779c66.pallcare"
+  
+  DB_URL=$PALLCARE_URL
+  # We have the PALLCARE_URL set since we're in quome cloud, so we can extract
+  # all the db info from there
+  DB_USER=$(echo "$DB_URL" | sed -E 's/.*\/\/([^:]*).*/\1/')
+  DB_PASS=$(echo "$DB_URL" | sed -E 's/.*:(.*)@.*/\1/')
+  DB_HOST=$(echo "$DB_URL" | sed -E 's/.*@([^:\/]*)[:\/].*/\1/')
+  DB_PORT=$(echo "$DB_URL" | sed -E 's/.*:([^@\/]*)\/.*/\1/')
+  DB_PORT="${DB_PORT:-5432}"
+  DB_NAME=$(echo "$DB_URL" | sed -E 's/.*\/([^?]*).*/\1/')
   
   # Debug output for database connection
   echo "Quome environment detected" >/dev/stdout
@@ -98,10 +105,10 @@ if [ "${DEV_STATE}" = "TEST" ]; then
       echo "Setting up database in Quome environment..." >/dev/stdout
     
       # Use constructed URL for Quome Cloud
-      DB_USER="cust-86880079-c52c-4e5f-9501-101f8a779c66.pallcare"
-      DB_PASS="ubcgvwXWWOliJ3NzA0lHNmnZQZoToF2r0TQxoP9wEhvkc1swrX6oHQiN9AVdSWdt"
-      DB_HOST="pallcare-cluster.databases"
-      DB_NAME="pallcare"
+      DB_USER=$(echo "$DB_URL" | sed -E 's/.*\/\/([^:]*).*/\1/')
+      DB_PASS=$(echo "$DB_URL" | sed -E 's/.*:(.*)@.*/\1/')
+      DB_HOST=$(echo "$DB_URL" | sed -E 's/.*@([^:\/]*)[:\/].*/\1/')
+      DB_NAME=$(echo "$DB_URL" | sed -E 's/.*\/([^?]*).*/\1/')
       
       # Connect to postgres database to perform operations
       POSTGRES_DB="postgres"
@@ -109,7 +116,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
       # First try to drop and then recreate the database
       echo "Attempting to drop database '$DB_NAME' if it exists..." >/dev/stdout
       DROP_RESULT=0
-      DROP_OUTPUT=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$POSTGRES_DB" -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>&1) || DROP_RESULT=$?
+      DROP_OUTPUT=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$POSTGRES_DB" -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>&1) || DROP_RESULT=$?
       
       if [ "$DROP_RESULT" -eq 0 ]; then
         echo "Database dropped successfully or didn't exist." >/dev/stdout
@@ -121,7 +128,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
       # Now create a fresh database
       echo "Creating a fresh database '$DB_NAME'..." >/dev/stdout
       CREATE_RESULT=0
-      CREATE_OUTPUT=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$POSTGRES_DB" -c "CREATE DATABASE $DB_NAME;" 2>&1) || CREATE_RESULT=$?
+      CREATE_OUTPUT=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$POSTGRES_DB" -c "CREATE DATABASE $DB_NAME;" 2>&1) || CREATE_RESULT=$?
       
       if [ "$CREATE_RESULT" -eq 0 ]; then
         echo "Database created successfully." >/dev/stdout
@@ -130,7 +137,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
         
         # Try again with template0 as a fallback
         echo "Trying again with template0..." >/dev/stdout
-        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$POSTGRES_DB" -c "CREATE DATABASE $DB_NAME TEMPLATE template0;" 2>/dev/stdout || {
+        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$POSTGRES_DB" -c "CREATE DATABASE $DB_NAME TEMPLATE template0;" 2>/dev/stdout || {
           echo "All database creation attempts failed. Will try to continue anyway..." >/dev/stdout
         }
       fi
@@ -146,7 +153,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     fi
     
     echo "Testing database connection..." >/dev/stdout
-    if PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -c "SELECT 1;" "$DB_NAME" 2>/dev/stdout; then
+    if PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -c "SELECT 1;" "$DB_NAME" 2>/dev/stdout; then
       echo "✅ Database connection successful" >/dev/stdout
     else
       echo "⚠️ Database connection failed, will retry after creating tables" >/dev/stdout
@@ -215,11 +222,11 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     
     # Create schema first
     echo "Creating schema..." >/dev/stdout
-    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -c "CREATE SCHEMA IF NOT EXISTS public; GRANT ALL ON SCHEMA public TO \"$DB_USER\";"
+    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$DB_NAME" -c "CREATE SCHEMA IF NOT EXISTS public; GRANT ALL ON SCHEMA public TO \"$DB_USER\";"
     
     # Now try the restore
     RESTORE_SUCCEEDED=false
-    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -f "$MODIFIED_BACKUP" && RESTORE_SUCCEEDED=true
+    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$DB_NAME" -f "$MODIFIED_BACKUP" && RESTORE_SUCCEEDED=true
     
     # If the restore succeeded, we're done
     if [ "$RESTORE_SUCCEEDED" = true ]; then
@@ -227,7 +234,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
         
         # Grant proper permissions to all objects 
         echo "Granting all permissions to current user..." >/dev/stdout
-        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -c "
+        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$DB_NAME" -c "
             -- Grant schema 
             GRANT ALL ON SCHEMA public TO \"$DB_USER\";
             
@@ -278,7 +285,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     
     # Verify the database has tables (we no longer need to create them as fallback)
     echo "Verifying database tables exist..."
-    TABLE_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -c "\dt" | grep -c "patients")
+    TABLE_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$DB_NAME" -c "\dt" | grep -c "patients")
     if [ "$TABLE_CHECK" -eq 0 ]; then
         echo "❌ Warning: Tables not found after initialization/restore. Attempting to create tables..." >&2
         
@@ -290,7 +297,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
         python run.py create_db
         
         # Check again
-        TABLE_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -c "\dt" | grep -c "patients")
+        TABLE_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$DB_NAME" -c "\dt" | grep -c "patients")
         if [ "$TABLE_CHECK" -eq 0 ]; then
             echo "❌ Error: Tables still not found after create_db. Cannot continue!" >&2
             exit 1
@@ -303,7 +310,7 @@ if [ "${DEV_STATE}" = "TEST" ]; then
     
     # Second check: Make sure Mary Johnson exists (common issue)
     echo "Checking for Mary Johnson record..."
-    MARY_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p 5432 -d "$DB_NAME" -c "SELECT COUNT(*) FROM patients WHERE first_name='Mary' AND last_name='Johnson'" | grep -c "1")
+    MARY_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -p $DB_PORT -d "$DB_NAME" -c "SELECT COUNT(*) FROM patients WHERE first_name='Mary' AND last_name='Johnson'" | grep -c "1")
     
     if [ "$MARY_CHECK" -eq 0 ]; then
         echo "Mary Johnson not found. Running seed again to create essential data..." >/dev/stdout

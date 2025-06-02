@@ -162,6 +162,14 @@ else
         echo -e "${GREEN}✅ Found DOCKER_PASSWORD in .env file${NC}"
     fi
 
+    # ANTHROPIC_API_KEY (if available)
+    ANTHROPIC_API_KEY=$(grep '^ANTHROPIC_API_KEY=' "$ENV_FILE" | cut -d '=' -f2)
+    if [ -n "$ANTHROPIC_API_KEY" ]; then
+        # Strip quotes if present
+        ANTHROPIC_API_KEY=$(echo "$ANTHROPIC_API_KEY" | sed -e 's/^"//' -e 's/"$//')
+        echo -e "${GREEN}✅ Found ANTHROPIC_API_KEY in .env file${NC}"
+    fi
+
     # Get API key - try all possible env var names
     API_KEY=$(grep -E '^(CLOUD_API_KEY|QUOME_KEY|QUOME_API_KEY)=' "$ENV_FILE" | head -1 | cut -d '=' -f2)
     if [ -n "$API_KEY" ]; then
@@ -401,6 +409,34 @@ EOF
     if [ "$DEBUG_MODE" = true ]; then
         echo -e "${BLUE}Debug: DOCKER_SECRET_PAYLOAD:${NC}"
         echo "$DOCKER_SECRET_PAYLOAD" | jq . 2>/dev/null || echo "$DOCKER_SECRET_PAYLOAD"
+        echo ""
+    fi
+fi
+
+# Create or verify Anthropic Key secret
+echo "🔑 Ensuring Anthropic Key secret exists..."
+
+# Secret name to use for Anthropic Key
+ANTHROPIC_SECRET_NAME="anthropic-key"
+
+# Create Docker credentials secret with proper payload structure
+if [ -n "$ANTHROPIC_API_KEY" ]; then
+    ANTHROPIC_SECRET_PAYLOAD=$(cat <<EOF
+{
+    "name": "anthropic-key",
+    "type": "generic",
+    "description": "anthropic api key",
+    "secret": {
+        "value": "$ANTHROPIC_API_KEY"
+    }
+}
+EOF
+)
+
+    # Debug: Show Docker secret payload if debug mode is enabled
+    if [ "$DEBUG_MODE" = true ]; then
+        echo -e "${BLUE}Debug: ANTHROPIC_SECRET_PAYLOAD:${NC}"
+        echo "$ANTHROPIC_SECRET_PAYLOAD" | jq . 2>/dev/null || echo "$ANTHROPIC_SECRET_PAYLOAD"
         echo ""
     fi
 fi
@@ -645,7 +681,7 @@ else
     SECRET_DEBUG_FILE="/tmp/quome_secret_debug_$(date +%s).log"
 
     # Try to create the secret via API (with SSL option if in test mode)
-    SECRET_RESPONSE=$(curl $CURL_SSL_OPTION -L -s -w "\nStatus Code: %{http_code}\n" -X PUT \
+    SECRET_RESPONSE=$(curl $CURL_SSL_OPTION -L -s -w "\nStatus Code: %{http_code}\n" -X POST \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $API_KEY" \
         -d "$DOCKER_SECRET_PAYLOAD" \
@@ -667,6 +703,55 @@ else
         echo -e "${BLUE}ℹ️ Secret '$DOCKER_SECRET_NAME' already exists${NC}"
     else
         echo -e "${YELLOW}⚠️ Could not create Docker credentials secret (HTTP status: $SECRET_STATUS)${NC}"
+        if [ -n "$SECRET_REQUEST_ID" ]; then
+            echo "Request ID: $SECRET_REQUEST_ID"
+        fi
+        echo "Response preview:"
+        echo "$SECRET_RESPONSE" | head -10
+        echo "You may need to create this secret manually via the Quome Cloud dashboard"
+        echo "Debug log: $SECRET_DEBUG_FILE"
+    fi
+fi
+
+# Check if Anthropic API Key is available
+if [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo -e "${YELLOW}⚠️ Anthropic API Key not found in .env file${NC}"
+    echo "Skipping Anthropic Key secret creation."
+    echo "The existing secret '$ANTHROPIC_SECRET_NAME' will be used if available."
+else
+    # Create Anthropic Key secret
+    echo -e "${BLUE}📡 Creating Anthropic Key secret '$ANTHROPIC_SECRET_NAME'...${NC}"
+
+    # API URL for secrets
+    SECRETS_API_URL="https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/secrets"
+    echo "Secrets API URL: $SECRETS_API_URL"
+
+    # Save detailed debugging output to a file for inspection if needed
+    SECRET_DEBUG_FILE="/tmp/quome_secret_debug_$(date +%s).log"
+
+    # Try to create the secret via API (with SSL option if in test mode)
+    SECRET_RESPONSE=$(curl $CURL_SSL_OPTION -L -s -w "\nStatus Code: %{http_code}\n" -X POST \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $API_KEY" \
+        -d "$ANTHROPIC_SECRET_PAYLOAD" \
+        "$SECRETS_API_URL" 2>"$SECRET_DEBUG_FILE")
+
+    SECRET_STATUS=$(echo "$SECRET_RESPONSE" | grep "Status Code:" | awk '{print $3}')
+
+    # Extract request ID if present
+    SECRET_REQUEST_ID=$(echo "$SECRET_RESPONSE" | grep -o '"requestId":"[^"]*"' | cut -d'"' -f4)
+    if [ -z "$SECRET_REQUEST_ID" ]; then
+        SECRET_REQUEST_ID=$(echo "$SECRET_RESPONSE" | grep -o '"request_id":"[^"]*"' | cut -d'"' -f4)
+    fi
+
+    # Check if the secret was created successfully
+    if [[ "$SECRET_STATUS" -ge 200 && "$SECRET_STATUS" -lt 300 ]] || \
+       [[ "$SECRET_RESPONSE" == *"\"status\":\"success\""* || "$SECRET_RESPONSE" == *"\"status\":\"ok\""* ]]; then
+        echo -e "${GREEN}✅ Anthropic Key secret created or updated successfully${NC}"
+    elif [[ "$SECRET_STATUS" -eq 409 || "$SECRET_RESPONSE" == *"already exists"* ]]; then
+        echo -e "${BLUE}ℹ️ Secret '$ANTHROPIC_SECRET_NAME' already exists${NC}"
+    else
+        echo -e "${YELLOW}⚠️ Could not create Anthropic Key secret (HTTP status: $SECRET_STATUS)${NC}"
         if [ -n "$SECRET_REQUEST_ID" ]; then
             echo "Request ID: $SECRET_REQUEST_ID"
         fi
@@ -717,24 +802,11 @@ CLOUD_PAYLOAD=$(cat <<EOF
                 "env_vars": {
                     "FLASK_APP": "run.py",
                     "FLASK_ENV": "production",
-                    "DEV_STATE": "TEST",
-                    "POSTGRES_USER": "postgres",
-                    "POSTGRES_DB": "pallcare_db",
-                    "POSTGRES_HOST": "db"
+                    "DEV_STATE": "TEST"
                 },
-                "k8s_vars": {
-                    "ANTHROPIC_API_KEY": {
-                        "name": "anthropic-key",
-                        "key": "key"
-                    },
-                    "DATABASE_URL": {
-                        "name": "db-url",
-                        "key": "url"
-                    },
-                    "PALLCARE_URL": {
-                        "name": "pallcare-url",
-                        "key": "url"
-                    }
+                "secret_vars" : {
+                    "ANTHROPIC_API_KEY": "anthropic-key",
+                    "PALLCARE_URL": "pallcare-db-url"
                 },
                 "registry_secret": "$DOCKER_SECRET_NAME"
             }

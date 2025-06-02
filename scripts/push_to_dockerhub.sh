@@ -5,8 +5,8 @@ set -e  # Exit on error
 
 # Default values
 DEFAULT_USERNAME="technophobe01"
-DEFAULT_REPOSITORY="palliative-carer-platform"
-DEFAULT_DESCRIPTION="Palliative Carer Platform"
+DEFAULT_REPOSITORY="palliative-care-platform"
+DEFAULT_DESCRIPTION="Palliative Care Platform"
 DEFAULT_PORT="5000"
 
 # Detect native architecture
