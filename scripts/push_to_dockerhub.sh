@@ -45,7 +45,10 @@ ENV_FILE="$(dirname "$SCRIPT_DIR")/.env"
 USERNAME=$DEFAULT_USERNAME
 
 # Load environment variables if .env exists
-if [ -f "$ENV_FILE" ]; then
+if [ ! -f "$ENV_FILE" ]; then
+  echo "❌ Error: .env file not found at $ENV_FILE"
+  exit 1
+else
     ENV_USERNAME=$(grep '^DOCKER_USERNAME=' "$ENV_FILE" | cut -d '=' -f2)
     if [ -n "$ENV_USERNAME" ]; then
         USERNAME=$ENV_USERNAME

@@ -13,9 +13,14 @@ echo -e "${YELLOW}=======================================${NC}"
 echo -e "${YELLOW}  Starting Palliative Care Platform   ${NC}"
 echo -e "${YELLOW}=======================================${NC}"
 
-# Load environment variables
-if [ -f .env ]; then
-  source .env
+# Check if .env file exists and load environment variables
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$(dirname "$SCRIPT_DIR")/.env"
+if [ -f "$ENV_FILE" ]; then
+    source .env
+else
+    echo "❌ Error: .env file not found at $ENV_FILE"
+    exit 1
 fi
 
 # Check if Docker is running

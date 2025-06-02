@@ -29,6 +29,7 @@ echo -e "${GREEN}Checking prerequisites...${NC}"
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}Docker is not installed. Please install Docker to continue.${NC}"
     echo -e "Visit https://docs.docker.com/get-docker/ for installation instructions."
+    echo
     exit 1
 fi
 
@@ -36,6 +37,7 @@ fi
 if ! command -v docker-compose &> /dev/null; then
     echo -e "${RED}Docker Compose is not installed. Please install Docker Compose to continue.${NC}"
     echo -e "Visit https://docs.docker.com/compose/install/ for installation instructions."
+    echo
     exit 1
 fi
 
@@ -52,12 +54,33 @@ if ! command -v just &> /dev/null; then
     fi
 fi
 
-# Create or update environment variables file
-echo -e "${GREEN}Setting up environment variables...${NC}"
-echo -e "${GREEN} TODO ${NC}"
-#cat > .env << EOF
-#EOF
-echo -e "${GREEN}Environment variables configured.${NC}"
+# Check if 1Password cli is installed
+if ! command -v op &> /dev/null; then
+    echo -e "${YELLOW}1Password CLI is not installed. It's recommended to avoid storing secrets on disk.${NC}"
+    echo -e "Visit https://developer.1password.com/docs/cli/get-started/ for more information."
+    echo
+    read -p "Do you want to continue without 1Password CLI? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${RED}Installation aborted.${NC}"
+        exit 1
+    fi
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$(dirname "$SCRIPT_DIR")/.env.secrets"
+
+# Check for .env file
+if [ ! -f "$ENV_FILE" ]; then
+    echo -e "${RED}ERROR: .env.secrets file not found at $ENV_FILE${NC}"
+    echo -e "${YELLOW}Please create a .env.secrets file based on the provided example${NC}"
+    echo
+    echo -e "   cp .env.example .env.secrets${NC}"
+    echo
+    echo -e "${YELLOW}and add all required values or 1Password secret references${NC}"
+    echo
+    exit 1
+fi
 
 echo
 echo -e "${GREEN}Installation completed! You can now start the application:${NC}"
