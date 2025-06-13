@@ -28,16 +28,16 @@ def setup_basic_logging():
 # Set up basic logging before imports to avoid file logging issues
 setup_basic_logging()
 
-# Add the parent directory to path so we can import app
+# Add the parent directory to path so we can import src
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
-from app import create_app, db
-from app.models.user import User, UserRole
-from app.models.patient import Patient, Gender, ProtocolType
-from app.models.protocol import Protocol
-from app.models.assessment import Assessment, FollowUpPriority
-from app.utils.db_seeder import seed_patient_history
+from src import create_app, db
+from src.models.user import User, UserRole
+from src.models.patient import Patient, Gender, ProtocolType
+from src.models.protocol import Protocol
+from src.models.assessment import Assessment, FollowUpPriority
+from src.utils.db_seeder import seed_patient_history
 
 app = create_app()
 

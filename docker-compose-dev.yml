@@ -15,7 +15,7 @@ services:
       - "8081:5000"
     volumes:
       - ./data:/app/data
-      - ./app:/app/app  # Mount webapp source code for live development
+      - ./src:/app/src  # Mount webapp source code for live development
       - ./run.py:/app/run.py
     env_file:
       - .env

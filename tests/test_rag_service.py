@@ -4,9 +4,9 @@ import json
 import pytest
 from flask import Flask, current_app
 
-from app.services.rag_service import process_assessment, generate_call_script, analyze_call_transcript
-from app.models.patient import Patient, ProtocolType, Gender
-from app.models.protocol import Protocol
+from src.core.rag_service import process_assessment, generate_call_script, analyze_call_transcript
+from src.models.patient import Patient, ProtocolType, Gender
+from src.models.protocol import Protocol
 
 # Mark all tests as nondestructive
 pytestmark = pytest.mark.nondestructive
@@ -137,7 +137,7 @@ class TestRagService(unittest.TestCase):
         """Clean up after tests"""
         # No need to pop context as it's handled by the context manager
 
-    @patch('app.services.rag_service.get_anthropic_client')
+    @patch('src.core.rag_service.get_anthropic_client')
     def test_process_assessment(self, mock_get_client):
         """Test process_assessment function"""
         # Setup
@@ -161,7 +161,7 @@ class TestRagService(unittest.TestCase):
         self.assertIn(self.patient.full_name, prompt)
         self.assertIn(json.dumps(self.symptoms, indent=2), prompt)
 
-    @patch('app.services.rag_service.get_anthropic_client')
+    @patch('src.core.rag_service.get_anthropic_client')
     def test_generate_call_script(self, mock_get_client):
         """Test generate_call_script function"""
         # Setup
@@ -186,7 +186,7 @@ class TestRagService(unittest.TestCase):
         self.assertIn(call_type, prompt)
         self.assertIn(json.dumps(self.protocol.questions, indent=2), prompt)
 
-    @patch('app.services.rag_service.get_anthropic_client')
+    @patch('src.core.rag_service.get_anthropic_client')
     def test_analyze_call_transcript(self, mock_get_client):
         """Test analyze_call_transcript function"""
         # Setup
@@ -219,7 +219,7 @@ class TestRagService(unittest.TestCase):
         self.assertIn("concerns", result)
         self.assertEqual(result["symptoms"]["breathing_difficulty"], 7)
 
-    @patch('app.services.rag_service.get_anthropic_client')
+    @patch('src.core.rag_service.get_anthropic_client')
     def test_analyze_call_transcript_invalid_json(self, mock_get_client):
         """Test analyze_call_transcript with invalid JSON response"""
         # Setup
@@ -236,7 +236,7 @@ class TestRagService(unittest.TestCase):
         self.assertIn("analysis", result)
         self.assertEqual(result["analysis"], "This is not valid JSON")
 
-    @patch('app.services.rag_service.get_anthropic_client')
+    @patch('src.core.rag_service.get_anthropic_client')
     def test_process_assessment_exception(self, mock_get_client):
         """Test process_assessment with exception"""
         # Setup
@@ -257,7 +257,7 @@ class TestRagService(unittest.TestCase):
 ])
 def test_analyze_call_transcript_edge_cases(transcript, expected_keys, mock_patient, mock_protocol, app_context, app):
     """Test analyze_call_transcript with edge cases"""
-    with patch('app.services.rag_service.get_anthropic_client') as mock_get_client:
+    with patch('src.core.rag_service.get_anthropic_client') as mock_get_client:
         # Setup
         mock_client = MagicMock()
         mock_client.call_model.return_value = "Not JSON"

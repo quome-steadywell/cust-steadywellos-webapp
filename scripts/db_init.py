@@ -9,15 +9,15 @@ import sys
 import argparse
 from pathlib import Path
 
-# Add the parent directory to sys.path to import app modules
+# Add the parent directory to sys.path to import src modules
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
-from app import create_app, db
-from app.models.user import User, UserRole
-from app.models.patient import Patient, Gender, ProtocolType
-from app.models.protocol import Protocol
-from app.utils.db_seeder import seed_database
+from src import create_app, db
+from src.models.user import User, UserRole
+from src.models.patient import Patient, Gender, ProtocolType
+from src.models.protocol import Protocol
+from src.utils.db_seeder import seed_database
 
 
 def init_db(config=None, seed=False, reset=False):

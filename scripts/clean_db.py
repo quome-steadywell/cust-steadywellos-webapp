@@ -11,10 +11,10 @@ from pathlib import Path
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
-from app import create_app, db
-from app.models.protocol import Protocol
-from app.models.patient import Patient, ProtocolType
-from app.models.assessment import Assessment
+from src import create_app, db
+from src.models.protocol import Protocol
+from src.models.patient import Patient, ProtocolType
+from src.models.assessment import Assessment
 
 def clean_database():
     """Remove duplicate protocols and keep only one of each type"""

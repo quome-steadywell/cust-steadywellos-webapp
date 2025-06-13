@@ -5,10 +5,10 @@ from flask import Flask, url_for
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 
-from app.services.twilio_service import get_twilio_client, initiate_call, generate_call_twiml, process_call_recording
-from app.models.call import Call, CallStatus
-from app.models.patient import Patient, ProtocolType, Gender
-from app.models.protocol import Protocol
+from src.core.twilio_service import get_twilio_client, initiate_call, generate_call_twiml, process_call_recording
+from src.models.call import Call, CallStatus
+from src.models.patient import Patient, ProtocolType, Gender
+from src.models.protocol import Protocol
 
 # Mark all tests as nondestructive
 pytestmark = pytest.mark.nondestructive
@@ -132,7 +132,7 @@ class TestTwilioService(unittest.TestCase):
         """Clean up after tests"""
         # No need to pop contexts as they are handled by the context manager
 
-    @patch('app.services.twilio_service.Client')
+    @patch('src.core.twilio_service.Client')
     def test_get_twilio_client(self, mock_client_class):
         """Test get_twilio_client function"""
         # Setup
@@ -156,8 +156,8 @@ class TestTwilioService(unittest.TestCase):
 
         self.assertIn("Twilio credentials not configured", str(context.exception))
 
-    @patch('app.services.twilio_service.get_twilio_client')
-    @patch('app.services.twilio_service.url_for')
+    @patch('src.core.twilio_service.get_twilio_client')
+    @patch('src.core.twilio_service.url_for')
     def test_initiate_call(self, mock_url_for, mock_get_client):
         """Test initiate_call function"""
         # Setup
@@ -184,7 +184,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertEqual(result["call_sid"], "CA123456789")
         self.assertEqual(result["status"], "queued")
 
-    @patch('app.services.twilio_service.Patient')
+    @patch('src.core.twilio_service.Patient')
     def test_generate_call_twiml_assessment(self, mock_patient_class):
         """Test generate_call_twiml for assessment call type"""
         # Setup
@@ -200,7 +200,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertIn("Hello, this is the palliative care coordination service", result)
         self.assertIn("John Doe", result)
 
-    @patch('app.services.twilio_service.Patient')
+    @patch('src.core.twilio_service.Patient')
     def test_generate_call_twiml_follow_up(self, mock_patient_class):
         """Test generate_call_twiml for follow_up call type"""
         # Setup
@@ -216,7 +216,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertIn("follow up with", result)
         self.assertIn("John Doe", result)
 
-    @patch('app.services.twilio_service.Patient')
+    @patch('src.core.twilio_service.Patient')
     def test_generate_call_twiml_generic(self, mock_patient_class):
         """Test generate_call_twiml for generic call type"""
         # Setup
@@ -231,7 +231,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertIsInstance(result, str)
         self.assertIn("A care coordinator will be with you shortly", result)
 
-    @patch('app.services.twilio_service.Patient')
+    @patch('src.core.twilio_service.Patient')
     def test_generate_call_twiml_patient_not_found(self, mock_patient_class):
         """Test generate_call_twiml when patient not found"""
         # Setup
@@ -245,10 +245,10 @@ class TestTwilioService(unittest.TestCase):
         self.assertIsInstance(result, str)
         self.assertIn("Error: Patient information not found", result)
 
-    @patch('app.services.twilio_service.get_twilio_client')
-    @patch('app.services.twilio_service.Patient')
-    @patch('app.services.twilio_service.Protocol')
-    @patch('app.services.twilio_service.analyze_call_transcript')
+    @patch('src.core.twilio_service.get_twilio_client')
+    @patch('src.core.twilio_service.Patient')
+    @patch('src.core.twilio_service.Protocol')
+    @patch('src.core.twilio_service.analyze_call_transcript')
     def test_process_call_recording(self, mock_analyze, mock_protocol_class, mock_patient_class, mock_get_client):
         """Test process_call_recording function"""
         # Setup
@@ -290,7 +290,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertEqual(result["duration"], 120)
         self.assertEqual(result["analysis"], {"symptoms": {"pain": 5}})
 
-    @patch('app.services.twilio_service.get_twilio_client')
+    @patch('src.core.twilio_service.get_twilio_client')
     def test_process_call_recording_no_transcription(self, mock_get_client):
         """Test process_call_recording with no transcription"""
         # Setup
@@ -315,7 +315,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertEqual(result["transcript"], "[Transcription not available]")
         self.assertIsNone(result["analysis"])
 
-    @patch('app.services.twilio_service.get_twilio_client')
+    @patch('src.core.twilio_service.get_twilio_client')
     def test_process_call_recording_exception(self, mock_get_client):
         """Test process_call_recording with exception"""
         # Setup
@@ -343,8 +343,8 @@ class TestTwilioService(unittest.TestCase):
 def test_initiate_call_edge_cases(to_number, from_number, expected_exception, app):
     """Test initiate_call with edge cases"""
     with app.app_context():
-        with patch('app.services.twilio_service.get_twilio_client') as mock_get_client:
-            with patch('app.services.twilio_service.url_for') as mock_url_for:
+        with patch('src.core.twilio_service.get_twilio_client') as mock_get_client:
+            with patch('src.core.twilio_service.url_for') as mock_url_for:
                 # Setup
                 mock_client = MagicMock()
                 if expected_exception:

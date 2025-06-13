@@ -19,7 +19,7 @@ fi
 
 # Run date seeding in Docker container
 echo -e "${GREEN}Seeding test data for date handling tests...${NC}"
-docker-compose exec web python -c "from app.utils.db_seeder import seed_date_check_data; seed_date_check_data()"
+docker-compose exec web python -c "from src.utils.db_seeder import seed_date_check_data; seed_date_check_data()"
 
 # Run the date handling tests in Docker container
 echo -e "${GREEN}Running date handling tests...${NC}"

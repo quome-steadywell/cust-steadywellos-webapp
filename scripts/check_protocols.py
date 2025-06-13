@@ -7,13 +7,13 @@ import os
 import sys
 from pathlib import Path
 
-# Add the parent directory to sys.path to import app modules
+# Add the parent directory to sys.path to import src modules
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
-# Import app modules
-from app import create_app, db
-from app.models.protocol import Protocol
+# Import src modules
+from src import create_app, db
+from src.models.protocol import Protocol
 
 def main():
     """Check the protocols in the database"""

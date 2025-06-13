@@ -1,7 +1,7 @@
 """Database seeding utility for development and testing"""
 
 from datetime import datetime, timedelta, date
-from app import db
+from src import db
 from src.models.user import User, UserRole
 from src.models.patient import Patient, Gender, ProtocolType
 from src.models.protocol import Protocol
