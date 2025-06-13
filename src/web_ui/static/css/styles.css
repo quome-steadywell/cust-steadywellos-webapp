@@ -1,0 +1,249 @@
+/* Main Styling for SteadywellOS */
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--dark-color);
+    background-color: #f5f8fa;
+}
+
+/* Card Styling */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.10);
+}
+
+.card-header {
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Button Styling */
+.btn {
+    border-radius: 0.25rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* Form Styling */
+.form-control:focus, .form-select:focus {
+    border-color: rgba(13, 110, 253, 0.5);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Table Styling */
+.table {
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Navbar Styling */
+.navbar-dark {
+    background-color: #0b5ed7 !important;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Badge Styling */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+}
+
+/* Protocol Type Colors */
+.protocol-cancer {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.protocol-heart-failure {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.protocol-copd {
+    background-color: var(--warning-color);
+    color: black;
+}
+
+.protocol-general {
+    background-color: var(--info-color);
+    color: white;
+}
+
+/* Custom Login Page */
+.login-page {
+    background-color: #f5f8fa;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-form {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Assessment Form Styling */
+.symptom-slider {
+    margin-bottom: 1.5rem;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+}
+
+.slider-value {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+/* Range input styling for Firefox */
+input[type="range"]::-moz-range-track {
+    background: #e9ecef;
+}
+
+input[type="range"]::-moz-range-thumb {
+    background: var(--primary-color);
+}
+
+/* Range input styling for Chrome, Edge, and Safari */
+input[type="range"]::-webkit-slider-runnable-track {
+    background: #e9ecef;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    background: var(--primary-color);
+}
+
+/* Dashboard Card Styling */
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.stat-card .value {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.stat-card .label {
+    font-size: 0.875rem;
+    color: var(--secondary-color);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: rgba(13, 110, 253, 0.3);
+}
+
+/* Call Status Colors */
+.call-scheduled {
+    color: var(--primary-color);
+}
+
+.call-in-progress {
+    color: var(--info-color);
+}
+
+.call-completed {
+    color: var(--success-color);
+}
+
+.call-missed {
+    color: var(--danger-color);
+}
+
+.call-cancelled {
+    color: var(--secondary-color);
+}
+
+/* Timeline Component */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--primary-color);
+}
+
+.timeline-content {
+    padding: 0.5rem 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+}

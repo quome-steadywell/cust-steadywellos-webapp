@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Protocols - SteadywellOS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2><i class="fas fa-file-medical me-2"></i>Care Protocols</h2>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="/protocols/new" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> New Protocol
+        </a>
+    </div>
+</div>
+
+<!-- Protocol Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Protocols</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="protocolTypeFilter" class="form-label">Protocol Type</label>
+                    <select id="protocolTypeFilter" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="cancer">Cancer</option>
+                        <option value="heart_failure">Heart Failure</option>
+                        <option value="copd">COPD</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="activeFilter" class="form-label">Status</label>
+                    <select id="activeFilter" class="form-select">
+                        <option value="true">Active Only</option>
+                        <option value="false">Inactive Only</option>
+                        <option value="">All</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="versionFilter" class="form-label">Version</label>
+                    <select id="versionFilter" class="form-select">
+                        <option value="latest">Latest Versions Only</option>
+                        <option value="all">All Versions</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="text-end">
+            <button id="applyFilters" class="btn btn-secondary">Apply Filters</button>
+        </div>
+    </div>
+</div>
+
+<!-- Protocol Cards -->
+<div class="row" id="protocolCards">
+    <div class="col-md-12 text-center py-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading protocols...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Fetch and display protocols
+    function loadProtocols() {
+        // Get filter values
+        const protocolType = document.getElementById('protocolTypeFilter').value;
+        const isActive = document.getElementById('activeFilter').value;
+        const latestOnly = document.getElementById('versionFilter').value === 'latest';
+        
+        // Build URL with filters
+        let url = '/api/v1/protocols/?';
+        if (protocolType) url += `type=${protocolType}&`;
+        if (isActive !== '') url += `is_active=${isActive}&`;
+        if (latestOnly) url += `latest_only=true&`;
+        
+        fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(protocols => {
+            const protocolCards = document.getElementById('protocolCards');
+            protocolCards.innerHTML = '';
+            
+            if (protocols.length === 0) {
+                protocolCards.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted">No protocols found matching your filters.</p>
+                        <a href="/protocols/new" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus me-1"></i> Create New Protocol
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Group protocols by type
+            const groupedProtocols = {};
+            protocols.forEach(protocol => {
+                if (!groupedProtocols[protocol.protocol_type]) {
+                    groupedProtocols[protocol.protocol_type] = [];
+                }
+                groupedProtocols[protocol.protocol_type].push(protocol);
+            });
+            
+            // Display protocol cards by type
+            Object.entries(groupedProtocols).forEach(([type, protocols]) => {
+                // Format type name for display
+                const typeDisplay = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                const typeSection = document.createElement('div');
+                typeSection.className = 'col-12 mb-4';
+                typeSection.innerHTML = `
+                    <h4 class="border-bottom pb-2">${typeDisplay} Protocols</h4>
+                `;
+                protocolCards.appendChild(typeSection);
+                
+                const protocolRow = document.createElement('div');
+                protocolRow.className = 'row';
+                
+                // Sort protocols by version (descending)
+                protocols.sort((a, b) => {
+                    return a.version > b.version ? -1 : 1;
+                });
+                
+                // Add cards for each protocol
+                protocols.forEach(protocol => {
+                    // Determine active status badge
+                    const activeBadge = protocol.is_active ? 
+                        '<span class="badge bg-success">Active</span>' : 
+                        '<span class="badge bg-secondary">Inactive</span>';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'col-md-4 mb-4';
+                    card.innerHTML = `
+                        <div class="card h-100 ${!protocol.is_active ? 'bg-light' : ''}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">${protocol.name}</h5>
+                                ${activeBadge}
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Version:</strong> ${protocol.version}</p>
+                                <p><strong>Questions:</strong> ${protocol.questions ? protocol.questions.length : 0}</p>
+                                <p><strong>Interventions:</strong> ${protocol.interventions ? protocol.interventions.length : 0}</p>
+                                <p class="text-muted small">Created: ${new Date(protocol.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <div class="card-footer">
+                                <div class="btn-group w-100">
+                                    <a href="/protocols/${protocol.id}" class="btn btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i> View
+                                    </a>
+                                    <a href="/protocols/${protocol.id}/edit" class="btn btn-outline-secondary">
+                                        <i class="fas fa-edit me-1"></i> Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    protocolRow.appendChild(card);
+                });
+                
+                typeSection.appendChild(protocolRow);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching protocols:', error);
+            document.getElementById('protocolCards').innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error loading protocols. Please try again later or contact support.
+                    </div>
+                    <pre class="text-start bg-light p-3 mt-3">${error.toString()}</pre>
+                </div>
+            `;
+        });
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProtocols();
+        
+        // Add event listener for filter button
+        document.getElementById('applyFilters').addEventListener('click', loadProtocols);
+    });
+</script>
+{% endblock %}

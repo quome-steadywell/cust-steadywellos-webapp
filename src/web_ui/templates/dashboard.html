@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SteadywellOS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3">Dashboard</h1>
+        <p class="text-muted">Welcome to the SteadywellOS Palliative Care Coordination Platform</p>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" id="refresh-dashboard">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <a href="/patients/new" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> New Patient
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card h-100 border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Active Patients</h6>
+                        <h2 class="mb-0" id="active-patients-count">--</h2>
+                    </div>
+                    <div class="rounded-circle p-3 bg-primary bg-opacity-10">
+                        <i class="fas fa-user-circle fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-end">
+                <a href="/patients" class="text-decoration-none text-primary">View all patients <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card h-100 border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Today's Calls</h6>
+                        <h2 class="mb-0" id="today-calls-count">--</h2>
+                    </div>
+                    <div class="rounded-circle p-3 bg-success bg-opacity-10">
+                        <i class="fas fa-phone fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-end">
+                <a href="/calls" class="text-decoration-none text-success">Manage calls <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card h-100 border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Urgent Follow-ups</h6>
+                        <h2 class="mb-0" id="urgent-followups-count">--</h2>
+                    </div>
+                    <div class="rounded-circle p-3 bg-warning bg-opacity-10">
+                        <i class="fas fa-exclamation-circle fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-end">
+                <a href="/assessments/followups" class="text-decoration-none text-warning">View follow-ups <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card h-100 border-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Weekly Assessments</h6>
+                        <h2 class="mb-0" id="weekly-assessments-count">--</h2>
+                    </div>
+                    <div class="rounded-circle p-3 bg-info bg-opacity-10">
+                        <i class="fas fa-clipboard-list fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-end">
+                <a href="/assessments" class="text-decoration-none text-info">View assessments <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- Upcoming Calls -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Upcoming Calls</h5>
+                    <a href="/calls/schedule" class="btn btn-sm btn-outline-primary">Schedule Call</a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Time</th>
+                                <th>Patient</th>
+                                <th>Protocol</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcoming-calls-table">
+                            <tr>
+                                <td colspan="5" class="text-center py-4">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="recent-activity-list">
+                    <div class="list-group-item text-center py-4">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- Patient Distribution -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Patient Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="protocol-distribution-chart" height="220"></canvas>
+            </div>
+        </div>
+        
+        <!-- Urgent Follow-ups -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i> Urgent Follow-ups</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="urgent-followups-list">
+                    <div class="list-group-item text-center py-4">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Date utility function to match server-side week calculation
+    function getWeekStartDate() {
+        const today = new Date();
+        // Get Sunday as the start of the week (0=Sunday)
+        const day = today.getDay();
+        const diff = today.getDate() - day;
+        return new Date(today.setDate(diff));
+    }
+
+    // Dashboard data loading
+    function loadDashboardData() {
+        // Fetch dashboard summary
+        fetch('/api/v1/dashboard/summary', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update metrics
+            document.getElementById('active-patients-count').textContent = data.patients.active;
+            document.getElementById('today-calls-count').textContent = data.calls.today;
+            document.getElementById('urgent-followups-count').textContent = data.assessments.urgent_followups;
+            document.getElementById('weekly-assessments-count').textContent = data.assessments.this_week;
+            
+            // Update protocol distribution chart
+            updateProtocolChart(data.patients.by_protocol);
+        })
+        .catch(error => console.error('Error loading dashboard summary:', error));
+        
+        // Fetch upcoming calls
+        fetch('/api/v1/dashboard/upcoming-calls', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('upcoming-calls-table');
+            tableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-3">No upcoming calls scheduled</td></tr>';
+                return;
+            }
+            
+            data.forEach(call => {
+                const time = new Date(call.scheduled_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${time}</td>
+                    <td>${call.patient_name}</td>
+                    <td><span class="badge bg-${getProtocolBadgeColor(call.protocol_type)}">${formatProtocolType(call.protocol_type)}</span></td>
+                    <td>${formatCallType(call.call_type)}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/calls/${call.id}" class="btn btn-outline-primary"><i class="fas fa-eye"></i></a>
+                            <a href="/calls/${call.id}/initiate" class="btn btn-success"><i class="fas fa-phone-alt"></i></a>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => console.error('Error loading upcoming calls:', error));
+        
+        // Fetch urgent follow-ups
+        fetch('/api/v1/dashboard/urgent-followups', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const followupsList = document.getElementById('urgent-followups-list');
+            followupsList.innerHTML = '';
+            
+            if (data.length === 0) {
+                followupsList.innerHTML = '<div class="list-group-item text-center py-3">No urgent follow-ups</div>';
+                return;
+            }
+            
+            data.forEach(followup => {
+                const date = new Date(followup.follow_up_date || followup.assessment_date).toLocaleDateString();
+                const listItem = document.createElement('a');
+                listItem.href = `/assessments/${followup.id}`;
+                listItem.className = 'list-group-item list-group-item-action';
+                listItem.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <h6 class="mb-1">${followup.patient_name}</h6>
+                        <small class="text-muted">${date}</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-${getProtocolBadgeColor(followup.protocol_type)} me-2">${formatProtocolType(followup.protocol_type)}</span>
+                        <small class="text-truncate">${followup.assessment_date ? 'Assessment needs follow-up' : 'Scheduled follow-up'}</small>
+                    </div>
+                `;
+                followupsList.appendChild(listItem);
+            });
+        })
+        .catch(error => console.error('Error loading urgent follow-ups:', error));
+        
+        // Fetch recent activity
+        fetch('/api/v1/dashboard/recent-activity', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const activityList = document.getElementById('recent-activity-list');
+            activityList.innerHTML = '';
+            
+            // Check if both arrays are empty
+            if (data.calls.length === 0 && data.assessments.length === 0) {
+                activityList.innerHTML = '<div class="list-group-item text-center py-3">No recent activity</div>';
+                return;
+            }
+            
+            // Combine and sort by timestamp
+            const allActivities = [
+                ...data.calls.map(call => ({
+                    ...call,
+                    type: 'call',
+                    timestamp: new Date(call.timestamp)
+                })),
+                ...data.assessments.map(assessment => ({
+                    ...assessment,
+                    type: 'assessment',
+                    timestamp: new Date(assessment.timestamp)
+                }))
+            ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+            
+            allActivities.forEach(activity => {
+                const date = activity.timestamp.toLocaleDateString();
+                const time = activity.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const listItem = document.createElement('div');
+                listItem.className = 'list-group-item';
+                
+                if (activity.type === 'call') {
+                    listItem.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle p-2 bg-success bg-opacity-10 me-3">
+                                <i class="fas fa-phone text-success"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Call with ${activity.patient_name}</h6>
+                                    <small class="text-muted">${time}</small>
+                                </div>
+                                <p class="mb-1 small">${formatCallType(activity.call_type)} call - ${activity.duration ? Math.round(activity.duration / 60) : 'Unknown'} minutes</p>
+                                <small class="text-muted">${date}</small>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    listItem.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle p-2 bg-info bg-opacity-10 me-3">
+                                <i class="fas fa-clipboard-check text-info"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Assessment for ${activity.patient_name}</h6>
+                                    <small class="text-muted">${time}</small>
+                                </div>
+                                <p class="mb-1 small">
+                                    <span class="badge bg-${getProtocolBadgeColor(activity.protocol_type)}">${formatProtocolType(activity.protocol_type)}</span>
+                                    ${activity.follow_up_needed ? '<span class="badge bg-warning ms-2">Follow-up needed</span>' : ''}
+                                </p>
+                                <small class="text-muted">${date}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                activityList.appendChild(listItem);
+            });
+        })
+        .catch(error => console.error('Error loading recent activity:', error));
+    }
+    
+    // Protocol distribution chart
+    let protocolChart = null;
+    
+    function updateProtocolChart(protocolData) {
+        const ctx = document.getElementById('protocol-distribution-chart').getContext('2d');
+        
+        // Get protocol types and counts
+        const labels = Object.keys(protocolData).map(key => formatProtocolType(key));
+        const data = Object.values(protocolData);
+        
+        // Colors for different protocols
+        const backgroundColors = [
+            'rgba(255, 99, 132, 0.7)',  // Cancer - red
+            'rgba(54, 162, 235, 0.7)',  // Heart Failure - blue
+            'rgba(255, 206, 86, 0.7)',  // COPD - yellow
+            'rgba(75, 192, 192, 0.7)'   // General - teal
+        ];
+        
+        const borderColors = [
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)',
+            'rgb(255, 206, 86)',
+            'rgb(75, 192, 192)'
+        ];
+        
+        // Destroy previous chart if it exists
+        if (protocolChart) {
+            protocolChart.destroy();
+        }
+        
+        // Create new chart
+        protocolChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                const percentage = Math.round((value * 100) / total) + '%';
+                                return `${label}: ${value} (${percentage})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Helper functions for formatting
+    function formatProtocolType(type) {
+        switch(type) {
+            case 'cancer': return 'Cancer';
+            case 'heart_failure': return 'Heart Failure';
+            case 'copd': return 'COPD';
+            case 'general': return 'General';
+            default: return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
+        }
+    }
+    
+    function getProtocolBadgeColor(type) {
+        switch(type) {
+            case 'cancer': return 'danger';
+            case 'heart_failure': return 'primary';
+            case 'copd': return 'warning';
+            case 'general': return 'info';
+            default: return 'secondary';
+        }
+    }
+    
+    function formatCallType(type) {
+        switch(type) {
+            case 'assessment': return 'Assessment';
+            case 'follow_up': return 'Follow-up';
+            case 'medication_check': return 'Medication Check';
+            default: return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
+        }
+    }
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+        
+        // Refresh button handler
+        document.getElementById('refresh-dashboard').addEventListener('click', loadDashboardData);
+    });
+</script>
+{% endblock %}
