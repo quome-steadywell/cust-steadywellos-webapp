@@ -4,7 +4,7 @@ import string
 from flask import current_app
 import jwt
 from jwt.exceptions import PyJWTError
-from app import bcrypt
+from src import bcrypt
 from src.models.user import User
 
 def generate_password_hash(password):

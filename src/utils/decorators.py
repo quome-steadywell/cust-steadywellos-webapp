@@ -4,7 +4,7 @@ from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 from src.models.user import User, UserRole
 from src.models.audit_log import AuditLog
-from app import db
+from src import db
 
 def roles_required(*roles):
     """Decorator to restrict access based on user roles"""
