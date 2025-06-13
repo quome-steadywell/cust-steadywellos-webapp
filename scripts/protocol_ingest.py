@@ -15,19 +15,19 @@ import pypdf
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 
-# Add the parent directory to sys.path to import app modules
+# Add the parent directory to sys.path to import src modules
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
 # Import our custom Anthropic client wrapper
-from app.services.anthropic_client import get_anthropic_client
+from src.services.anthropic_client import get_anthropic_client
 
-# Import app modules
-from app import create_app, db
-from app.models.protocol import Protocol
-from app.models.patient import ProtocolType
+# Import src modules
+from src import create_app, db
+from src.models.protocol import Protocol
+from src.models.patient import ProtocolType
 # Import functions from rag_service instead of non-existent RAGService class
-from app.services.rag_service import get_anthropic_client
+from src.services.rag_service import get_anthropic_client
 
 # Protocol definitions for key conditions
 PROTOCOL_DEFINITIONS = {

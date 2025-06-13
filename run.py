@@ -1,4 +1,4 @@
-from app import create_app, db
+from src import create_app, db
 from flask.cli import FlaskGroup
 
 app = create_app()
@@ -34,7 +34,7 @@ def drop_db():
 @cli.command("seed_db")
 def seed_db():
     """Seed the database with initial data."""
-    from app.utils.db_seeder import seed_database
+    from src.utils.db_seeder import seed_database
     seed_database()
     print("Database seeded with initial data!")
 

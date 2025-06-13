@@ -37,8 +37,6 @@ anthropic==0.18.1
 twilio==8.10.2
 SpeechRecognition==3.10.0
 pyttsx3==2.90
-google-cloud-speech==2.23.0
-google-cloud-texttospeech==2.16.0
 
 # AWS Integration
 boto3==1.29.3

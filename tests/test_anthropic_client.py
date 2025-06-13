@@ -4,7 +4,7 @@ import json
 import pytest
 import requests
 
-from app.services.anthropic_client import AnthropicClientWrapper, get_anthropic_client
+from src.core.anthropic_client import AnthropicClientWrapper, get_anthropic_client
 
 # Mark all tests as nondestructive
 pytestmark = pytest.mark.nondestructive

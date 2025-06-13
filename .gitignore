@@ -16,30 +16,62 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 
-# Virtual Environment
-venv/
-ENV/
+# Environment files
 .env
 .env.bak
 .env.example
 .env.secrets
 
-# IDE
+# Credentials and temporary files
+oauth_token.pickle
+sheet_watch_channel.json
+webhook_verification_token.txt
+.ngrok*
+ngrok.yml
+client_secrets.json
+*client_secret*.json
+credentials.json
+*credentials*.json
+*token*.pickle
+*token*.json
+
+# Logs
+*.log
+log/*.log
+log/webhooks/*.json
+# Keep log directories but not their contents
+!log/.gitkeep
+!log/webhooks/.gitkeep
+
+# IDE files
 .idea/
 .vscode/
 *.swp
 *.swo
-.DS_Store
 
-# Logs
-logs/
-*.log
-startup_log.txt
+# PyCharm DB configuration files
+pycharm_db_config.py
+db_connection_test.py
+README_PYCHARM_DB.md
+
+
+# OS files
+.DS_Store
+Thumbs.db
+**/.claude/settings.local.json
+
+# Large files and directories with many files
+data/
+node_modules/
+legacy/.env.tmp
+
+# Gemini output files
+scripts/gemini*.txt
+scripts/gemini-archive/
 
 # Database
 *.db

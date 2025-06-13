@@ -12,15 +12,15 @@ from dotenv import load_dotenv
 env_path = Path(__file__).resolve().parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Add the parent directory to the path so we can import app
+# Add the parent directory to the path so we can import src
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
-from app import create_app, db
-from app.models.patient import Patient
-from app.models.protocol import Protocol
-from app.models.assessment import Assessment
-from app.models.user import User
+from src import create_app, db
+from src.models.patient import Patient
+from src.models.protocol import Protocol
+from src.models.assessment import Assessment
+from src.models.user import User
 
 def check_mary_johnson():
     """Check Mary Johnson record in database"""

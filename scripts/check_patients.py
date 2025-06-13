@@ -9,15 +9,15 @@ import json
 from pathlib import Path
 from datetime import datetime, timedelta
 
-# Add the parent directory to the path so we can import app
+# Add the parent directory to the path so we can import src
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
-from app import create_app, db
-from app.models.protocol import Protocol
-from app.models.patient import Patient, ProtocolType 
-from app.models.assessment import Assessment
-from app.models.user import User, UserRole
+from src import create_app, db
+from src.models.protocol import Protocol
+from src.models.patient import Patient, ProtocolType 
+from src.models.assessment import Assessment
+from src.models.user import User, UserRole
 
 def check_patients():
     """Check patient list and their active status"""

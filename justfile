@@ -1,6 +1,7 @@
-# SteadywellOS - Palliative Care Platform Just Commands
+# Palliative Care Platform
+set dotenv-load := true
 
-# Default recipe to run when just is called without arguments
+# Default help command
 default:
     @just --list
 
@@ -11,163 +12,224 @@ op_cli_installed := if `command -v op` =~ "" { "true" } else { "false" }
 # defaults to calling scripts normally if 1Password cli is not installed
 _command_wrapper COMMAND:
     #!/usr/bin/env sh
+    # Check if .env.secrets exists, if not, just run the command with existing .env
+    if [ ! -f .env.secrets ]; then
+        {{COMMAND}}
+        exit $?
+    fi
+    
     # If there's already a .env file back it up temporarily
     # that way we don't accidentally clobber the .env file 
     if [ -f .env ]; then
         mv .env .env.tmp
     fi
+    
+    # Try to inject secrets with 1Password CLI
+    injection_success=false
     if {{op_cli_installed}}; then
         # using op inject since this project has plenty of scripts/code that
         # expect a .env file with plaintext secrets
-        op inject -f -i .env.secrets -o .env > /dev/null
+        if op inject -f -i .env.secrets -o .env > /dev/null 2>&1; then
+            injection_success=true
+        else
+            echo "⚠️  1Password injection failed, falling back to original .env file"
+        fi
     else
-        cp .env.secrets .env
+        if cp .env.secrets .env 2>/dev/null; then
+            injection_success=true
+        else
+            echo "⚠️  Failed to copy .env.secrets, falling back to original .env file"
+        fi
     fi
-    {{COMMAND}}
-    # if we created a backup for the .env file, copy it back, otherwise delete .env
-    if [ -f .env.tmp ]; then
+    
+    # If injection failed, restore the original .env file
+    if [ "$injection_success" = "false" ] && [ -f .env.tmp ]; then
         mv .env.tmp .env
+    fi
+    
+    {{COMMAND}}
+    
+    # Clean up: if we created a backup for the .env file, copy it back, otherwise delete .env
+    if [ -f .env.tmp ]; then
+        if [ "$injection_success" = "true" ]; then
+            mv .env.tmp .env
+        fi
     else
-        rm .env
+        if [ "$injection_success" = "true" ]; then
+            rm .env
+        fi
     fi
 
-# Setup the environment and start the application
+# ========== QUICK START ==========
+
+# Quick development setup (build and start)
+dev:
+    @echo "⚡ Quick development setup"
+    @just build-dev
+    @just up-dev
+
+# Quick production test (build and start)
+prod:
+    @echo "⚡ Quick production test setup"
+    @just build-prod
+    @just up-prod
+
+# ========== ENVIRONMENTS ==========
+
+# Start development environment (default)
 up:
-    @echo "Starting SteadywellOS..."
-    @just _command_wrapper "./scripts/up.sh"
+    @echo "🔄 Updating Retell AI webhook for local development..."
+    @bash -c "source .venv/bin/activate 2>/dev/null || true && set -a && source .env && set +a && RUNTIME_ENV=local python3 scripts/update_retell_webhook.py" || echo "⚠️  Webhook update skipped (Python/script not available)"
+    @echo "🚀 Starting development environment"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml up -d"
+    @echo "✅ Dev environment started at http://localhost:8081"
 
-# Stop the application
+# Start development environment with logs
+up-dev:
+    @echo "🔄 Updating Retell AI webhook for local development..."
+    @bash -c "source .venv/bin/activate 2>/dev/null || true && set -a && source .env && set +a && RUNTIME_ENV=local python3 scripts/update_retell_webhook.py" || echo "⚠️  Webhook update skipped (Python/script not available)"
+    @echo "🚀 Starting development environment"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml up -d"
+    @echo "✅ Dev environment started at http://localhost:8080"
+    @echo "📋 View logs: just logs"
+
+# Start production test environment
+up-prod:
+    @echo "🚀 Starting production test environment"
+    @just _command_wrapper "docker-compose -f docker-compose-prod.yml up -d"
+    @echo "✅ Prod test environment started at http://localhost:8081"
+
+# Stop all containers
 down:
-    @echo "Stopping SteadywellOS..."
-    @just _command_wrapper "./scripts/down.sh"
+    @echo "🛑 Stopping all containers"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml down || true"
+    @just _command_wrapper "docker-compose -f docker-compose-prod.yml down || true"
+    @echo "🛑 Stopping ngrok if running..."
+    @pkill -f "ngrok http 8080" || true
+    @echo "✅ All containers and ngrok stopped"
 
-# Rebuild and restart the application
-restart: down up
-    @echo "SteadywellOS has been restarted"
+# ========== BUILD ==========
 
-# Initialize the database (delete, initialize, then seed)
-db-init:
-    @echo "Deleting, initializing, and seeding database..."
-    @just _command_wrapper "./scripts/db_reset.sh --force"
+# Build development containers
+build-dev:
+    @echo "🔨 Building development containers"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml build --no-cache"
 
-# Initialize protocols only
-protocols-init:
-    @echo "Initializing protocols..."
-    @just _command_wrapper "./scripts/init_protocols.sh"
+# Build production containers
+build-prod:
+    @echo "🔨 Building production containers"
+    @just _command_wrapper "docker-compose -f docker-compose-prod.yml build --no-cache"
 
-# Seed the database with sample data
-db-seed:
-    @echo "Seeding database with sample data..."
-    @just _command_wrapper "./scripts/db_seed.sh"
+# Build both environments
+build-all:
+    @just build-dev
+    @just build-prod
 
-# Reset the database (wipe and reinitialize)
+# ========== DATABASE ==========
+
+# Connect to PostgreSQL database
+db:
+    @echo "🗄️ Connecting to PostgreSQL database"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml exec db psql -U ${POSTGRES_LOCAL_USER} -d ${POSTGRES_LOCAL_DB}"
+
+# Reset database (development)
 db-reset:
-    @echo "Resetting database..."
-    @just _command_wrapper "./scripts/db_reset.sh"
+    @echo "🗄️ Resetting database"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml down -v"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml up -d"
+    @echo "✅ Database reset successfully"
 
-# Reset the database (wipe and reinitialize) without confirmation
-db-reset-force:
-    @echo "Force resetting database without confirmation..."
-    @just _command_wrapper "./scripts/db_reset.sh --force"
+# ========== UTILITIES ==========
 
-# Reset the database (wipe and restore from backup)
-db-reset-from-backup:
-    @echo "Resetting database from backup..."
-    @just _command_wrapper "./scripts/db_reset_from_backup.sh"
-
-# Reset the database (wipe and restore from backup) without confirmation
-db-reset-from-backup-force:
-    @echo "Force resetting database from backup without confirmation..."
-    @just _command_wrapper "./scripts/db_reset_from_backup.sh --force"
-
-# Backup the database
-db-backup:
-    @echo "Backing up database..."
-    @just _command_wrapper "./scripts/db_backup.sh"
-
-# Show protocols in the database
-protocols:
-    @echo "Showing protocols..."
-    @just _command_wrapper "./scripts/show_protocols.sh"
-
-# View application logs
+# View logs
 logs:
-    @echo "Viewing application logs..."
-    @just _command_wrapper "docker-compose logs -f"
+    @echo "📋 Showing container logs"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml logs -f"
 
-# Install dependencies
-install:
-    @echo "Installing dependencies..."
-    @just _command_wrapper "./scripts/install.sh"
+# Show container status
+ps:
+    @echo "📊 Container Status"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml ps"
 
-# Run tests (optionally with specific markers)
-test *args="":
-    @echo "Running tests..."
-    @just _command_wrapper "docker-compose exec web python -m pytest {{args}}"
-
-# Simple test to verify the application is running (no dependencies)
-check-app:
-    @echo "Checking if the application is up and running..."
-    @just _command_wrapper "python tests/simple_test.py"
-
-# Run HTTP-based tests (no browser dependencies)
-test-http:
-    @echo "Running HTTP-based tests..."
-    @just _command_wrapper "python tests/http_test.py"
-
-# Run UI tests without Selenium (more reliable)
-test-ui:
-    @echo "Running UI tests..."
-    @just _command_wrapper "python tests/ui_test.py"
-
-# Run all tests in sequence
-test-all:
-    @echo "Running all tests..."
-    @just _command_wrapper "python tests/simple_test.py && \
-    python tests/http_test.py && \
-    python tests/ui_test.py && \
-    python tests/test_autologout.py && \
-    docker-compose exec web python tests/date_test.py"
-
-# Run tests for date handling
-test-dates:
-    @echo "Running date handling tests..."
-    @just _command_wrapper "docker-compose exec web python tests/date_test.py"
-
-# Run auto-logout tests
-test-autologout:
-    @echo "Running auto-logout tests..."
-    @just _command_wrapper "python tests/test_autologout.py"
-
-# Show application status
+# Show deployment status
 status:
-    @echo "Application status:"
-    @just _command_wrapper "docker-compose ps"
+    @echo "📊 Deployment Status"
+    @echo "Local: http://localhost:8081"
+    @echo "Quome: ${CLOUD_APP_NAME:-Not deployed}"
 
-# Build the Docker container
-build:
-    @echo "Building Docker container..."
-    @just _command_wrapper "docker-compose build"
+# Start shell in web container
+shell:
+    @echo "🐚 Starting shell in web container"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml exec web bash"
 
-# Docker command wrappers
-ps: (_command_wrapper "docker-compose ps")
-list-services: (_command_wrapper "docker-compose config --services")
-run SERVICE *COMMAND:
-    @just _command_wrapper "docker-compose exec {{SERVICE}} {{COMMAND}}"
-terminal SERVICE:
-    @just _command_wrapper "docker-compose exec {{SERVICE}} bash"
+# Clean all Docker resources
+clean:
+    @echo "🧹 Cleaning all Docker resources"
+    @just _command_wrapper "docker-compose -f docker-compose-dev.yml down -v || true"
+    @just _command_wrapper "docker-compose -f docker-compose-prod.yml down -v || true"
+    @just _command_wrapper "docker system prune -af --volumes"
+    @echo "✅ Docker resources cleaned"
 
-# Build and push the Docker container to DockerHub
-push-to-dockerhub:
-    @echo "Building and pushing Docker container to DockerHub..."
+# ========== TESTING ==========
+
+# Test API endpoints
+test-api:
+    @echo "🧪 Testing API endpoints"
+    @echo "Health endpoint:"
+    curl -s http://localhost:8081/health | jq '.' || curl -s http://localhost:8081/health
+    @echo "Status endpoint:"
+    curl -s http://localhost:8081/api/status | jq '.' || curl -s http://localhost:8081/api/status
+
+# Test webhook endpoint
+test-webhook:
+    @echo "🧪 Testing webhook endpoint"
+    curl -X POST -H "Content-Type: application/json" \
+      -d '{"call_id":"test-call-id","call_status":"completed","to_number":"+1234567890"}' \
+      http://localhost:8081/webhook
+    @echo "✅ Webhook test completed"
+
+# ========== DEPLOYMENT ==========
+
+# Deploy to Quome Cloud
+deploy:
+    @echo "🚀 Deploying to Quome Cloud"
     @just _command_wrapper "./scripts/push_to_dockerhub.sh"
-
-# Pull the Docker container and push to Quome
-push-to-quome:
-    @echo "Pulling Docker container and pushing to Quome..."
+    @echo "🔄 Updating Retell AI webhook for production..."
+    @python3 scripts/update_retell_webhook.py || echo "⚠️  Webhook update skipped (Python/script not available)"
     @just _command_wrapper "./scripts/push_to_quome.sh"
+    @echo "✅ Deployment complete!"
 
-# Upgrade Anthropic library
-upgrade-anthropic:
-    @echo "Upgrading Anthropic library..."
-    @just _command_wrapper "./scripts/upgrade_anthropic.sh"
+# Check Quome Cloud logs
+logs-quome:
+    @echo "📋 Fetching Quome Cloud logs"
+    curl -H "Authorization: Bearer ${QUOME_KEY}" \
+      "https://demo.quome.cloud/api/v1/orgs/${CLOUD_ORG_ID}/apps/${CLOUD_APP_ID}/logs"
+
+# ========== HELP ==========
+
+# Show help information
+help:
+    @echo "Palliative Care Platform"
+    @echo "========================"
+    @echo ""
+    @echo "🚀 QUICK START:"
+    @echo "  just dev     # Build and start development"
+    @echo "  just up      # Start development environment"
+    @echo "  just logs    # View logs"
+    @echo "  just down    # Stop all containers"
+    @echo ""
+    @echo "🔨 BUILD:"
+    @echo "  just build-dev   # Build development containers"
+    @echo "  just build-prod  # Build production containers"
+    @echo ""
+    @echo "🗄️ DATABASE:"
+    @echo "  just db          # Connect to database"
+    @echo "  just db-reset    # Reset database"
+    @echo ""
+    @echo "🧪 TESTING:"
+    @echo "  just test-api      # Test API endpoints"
+    @echo "  just test-webhook  # Test webhook"
+    @echo ""
+    @echo "🚀 DEPLOYMENT:"
+    @echo "  just deploy        # Deploy to Quome Cloud"
+    @echo "  just logs-quome    # View Quome logs"

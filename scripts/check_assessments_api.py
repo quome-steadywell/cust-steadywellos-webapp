@@ -10,15 +10,15 @@ from pathlib import Path
 import requests
 from flask import jsonify
 
-# Add the parent directory to the path so we can import app
+# Add the parent directory to the path so we can import src
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
-from app import create_app, db
-from app.models.assessment import Assessment
-from app.schemas.assessment import AssessmentSchema
-from app.models.patient import Patient
-from app.models.protocol import Protocol
+from src import create_app, db
+from src.models.assessment import Assessment
+from src.schemas.assessment import AssessmentSchema
+from src.models.patient import Patient
+from src.models.protocol import Protocol
 
 def check_assessment_api(assessment_id):
     """Check assessment API for a specific ID"""
@@ -61,7 +61,7 @@ def check_assessment_api(assessment_id):
                 print(f"conducted_by field populated correctly: {serialized_assessment['conducted_by']['full_name']}")
                 
             # Check permissions for nurse1
-            from app.models.user import User, UserRole
+            from src.models.user import User, UserRole
             nurse1 = User.query.filter_by(username="nurse1").first()
             if nurse1:
                 # Get patient
@@ -71,7 +71,7 @@ def check_assessment_api(assessment_id):
                     print(f"Nurse1 has permission to view this assessment: {has_permission}")
                     
                     # Now try to directly call the API endpoint function
-                    from app.api.assessments import get_assessment
+                    from src.api.assessments import get_assessment
                     from flask import jsonify, Response
                     import types
                     
@@ -142,8 +142,8 @@ def check_multiple_assessments():
             print(f"Call ID: {assessment.call_id}")
             
             # Check protocol relationship
-            from app.models.protocol import Protocol
-            from app.models.patient import Patient
+            from src.models.protocol import Protocol
+            from src.models.patient import Patient
             
             protocol = None
             if assessment.protocol_id:

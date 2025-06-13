@@ -1,58 +1,67 @@
-# Git
-.git
-.gitignore
+# .dockerignore
+# Exclude files and folders from Docker build context
+# This helps reduce image size and prevent leaking sensitive data
 
-# Python
+# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+.env
+.venv/
 venv/
 ENV/
-.env
-.env.bak
-.env.example
 
-# IDE
+# Credentials and sensitive files
+.env
+.env.*
+!.env.example
+credentials/
+client_secrets.json
+oauth_token.pickle
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+secrets.*
+*.secret
+*.secrets
+*.enc
+*.vault
+.aws/
+.gcloud/
+
+# Logs and runtime data
+logs/
+*.log
+
+# Unit test and coverage reports
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE/editor files
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# OS-specific files
 .DS_Store
+Thumbs.db
 
-# Logs
-logs/
-*.log
+# Git, CI/CD
+.git/
+.github/
+.gitlab-ci.yml
 
-# Testing
-.coverage
-htmlcov/
-.pytest_cache/
-tests/
-
-# Documentation
-docs/
-README.md
-LICENSE
-
-# Local development
-.local/
+# Docker build files and metadata
+.docker/
