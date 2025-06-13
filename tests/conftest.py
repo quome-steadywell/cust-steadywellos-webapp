@@ -10,7 +10,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-from app import create_app, db
+from src import create_app, db
 
 # Ensure logs directory exists for tests
 os.makedirs('logs', exist_ok=True)

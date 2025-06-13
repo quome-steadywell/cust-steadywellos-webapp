@@ -1,7 +1,7 @@
 import os
 import unittest
 from flask import current_app
-from app import create_app, db
+from src import create_app, db
 from flask_testing import TestCase
 
 class AutoLogoutTestCase(TestCase):
