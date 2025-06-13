@@ -50,6 +50,7 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     from src.api.assessments import assessments_bp
     from src.api.calls import calls_bp
     from src.api.dashboard import dashboard_bp
+    from src.api.webhooks import webhook_bp
 
     # Register API blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
@@ -59,6 +60,7 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     app.register_blueprint(assessments_bp, url_prefix='/api/v1/assessments')
     app.register_blueprint(calls_bp, url_prefix='/api/v1/calls')
     app.register_blueprint(dashboard_bp, url_prefix='/api/v1/dashboard')
+    app.register_blueprint(webhook_bp)  # Register webhook blueprint
 
     # Web routes
     from src.api.routes import web_bp
