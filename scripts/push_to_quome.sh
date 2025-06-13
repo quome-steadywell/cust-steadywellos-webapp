@@ -347,40 +347,8 @@ fi
 IMAGE_NAME="$DOCKER_USERNAME/$REPOSITORY:$TAG"
 echo -e "${BLUE}🚀 Preparing to deploy image: $IMAGE_NAME${NC}"
 
-# Build the image using production Docker Compose configuration
-echo -e "${BLUE}🔨 Building Docker image with production configuration...${NC}"
-
-# Get project directory
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-cd "$PROJECT_DIR"
-
-# Ensure we're in production mode for the build
-export DEV_STATE=PROD
-export FLASK_ENV=production
-export DEBUG=false
-
-PLATFORM="linux/amd64" # Intel architecture for Quome Cloud
-echo "Building for platform: $PLATFORM"
-
-# Make sure buildx is available
-docker buildx inspect multiarch-builder >/dev/null 2>&1 || docker buildx create --name multiarch-builder --use
-docker buildx use multiarch-builder
-
-# Build using production Dockerfile with production configuration
-echo "Building production image: $IMAGE_NAME"
-
-# Build and push directly with buildx using production configuration
-docker buildx build \
-    --platform $PLATFORM \
-    --build-arg IMAGE_VERSION=$TAG \
-    --build-arg DEV_STATE=PROD \
-    --build-arg FLASK_ENV=production \
-    --build-arg DEBUG=false \
-    -t $IMAGE_NAME \
-    --push \
-    -f Dockerfile .
-
-echo -e "${GREEN}✅ Docker build completed successfully${NC}"
+# Skip building - image should already be built and pushed by push_to_dockerhub.sh
+echo -e "${BLUE}📦 Using pre-built image from Docker Hub...${NC}"
 
 # Verify image existence
 echo -e "${BLUE}🔍 Verifying image exists on Docker Hub...${NC}"
