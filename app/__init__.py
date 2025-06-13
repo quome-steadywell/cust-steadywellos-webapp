@@ -25,6 +25,10 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     else:
         app.config.from_mapping(config_object)
 
+    # Set up database configuration following postgress-demo pattern
+    from app.utils.database import configure_database
+    configure_database(app)
+
     # Initialize extensions with app
     db.init_app(app)
     migrate.init_app(app, db)
@@ -66,6 +70,21 @@ def create_app(config_object="config.config.DevelopmentConfig"):
 
     # Setup application logging (stdout/stderr only)
     setup_logger(app)
+
+    # Initialize database following postgress-demo pattern
+    try:
+        from app.utils.database import check_database_connection, create_tables, seed_database_if_empty
+        
+        if check_database_connection(app, db):
+            create_tables(app, db)
+            seed_database_if_empty(app, db)
+            app.logger.info("✅ Database initialization complete")
+        else:
+            app.logger.error("❌ Database connection failed")
+    except Exception as e:
+        app.logger.error(f"❌ Error initializing database: {e}")
+        # Don't raise the exception to allow the app to start even if DB is unavailable
+        app.logger.warning("⚠️ Application starting without database initialization")
 
     # Shell context
     @app.shell_context_processor
