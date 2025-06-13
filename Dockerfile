@@ -1,10 +1,23 @@
 # Use Python 3.10 as the base image
 FROM python:3.10-slim
 
+# Build arguments
+ARG IMAGE_VERSION=unknown
+ARG DEV_STATE=PROD
+ARG FLASK_ENV=production
+ARG DEBUG=false
+
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV FLASK_APP=run.py
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    FLASK_ENV=${FLASK_ENV} \
+    DEV_STATE=${DEV_STATE} \
+    DEBUG=${DEBUG} \
+    IMAGE_VERSION=${IMAGE_VERSION} \
+    FLASK_APP=run.py \
+    PORT=5000
 
 # Set working directory
 WORKDIR /app
@@ -27,9 +40,9 @@ RUN pip install --upgrade pip \
 # Copy project
 COPY . .
 
-# Add startup script 
-COPY scripts/docker_startup.sh /app/docker_startup.sh
-RUN chmod +x /app/docker_startup.sh
+# Add entrypoint script 
+COPY scripts/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Create a non-root user and switch to it
 RUN addgroup --system appgroup && \
@@ -39,5 +52,8 @@ RUN addgroup --system appgroup && \
 # Switch to non-root user
 USER appuser
 
-# Use the startup script when DEV_STATE=TEST, otherwise use gunicorn directly
-CMD ["/bin/bash", "-c", "if [ \"$DEV_STATE\" = \"TEST\" ]; then /app/docker_startup.sh; else gunicorn --bind 0.0.0.0:5000 --workers 4 run:app; fi"]
+# Expose port for Flask app
+EXPOSE 5000
+
+# Run the application through entrypoint script
+CMD ["bash", "/app/scripts/entrypoint.sh"]
