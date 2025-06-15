@@ -23,6 +23,7 @@ marshmallow==3.20.1
 Flask-Marshmallow==0.15.0
 marshmallow-sqlalchemy==0.29.0
 fhir.resources==7.0.2
+requests==2.31.0
 
 # RAG Model Integration
 langchain==0.0.329

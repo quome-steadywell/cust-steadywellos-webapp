@@ -33,9 +33,10 @@
 
 2. **`config/config.py`**
    - Added Retell AI configuration variables:
-     - `RETELL_API_KEY`
-     - `PALLIATIVE_DEMO_AGENT_ID` 
-     - `RETELL_PHONE_NUMBER`
+     - `RETELLAI_API_KEY`
+     - `RETELLAI_LOCAL_AGENT_ID` 
+     - `RETELLAI_REMOTE_AGENT_ID`
+     - `RETELLAI_PHONE_NUMBER`
      - `CLOUD_APP_NAME`
    - Added webhook URL configuration with environment detection
    - Added `_get_webhook_url()` method for dynamic webhook URL generation
@@ -51,16 +52,15 @@ The following environment variables should be set for full functionality:
 
 ```bash
 # Retell AI API Configuration
-RETELL_API_KEY=your_retell_api_key
-PALLIATIVE_DEMO_AGENT_ID=your_agent_id
-RETELL_PHONE_NUMBER=your_retell_phone_number
+RETELLAI_API_KEY=your_retell_api_key
+RETELLAI_LOCAL_AGENT_ID=your_local_agent_id  # for development
+RETELLAI_REMOTE_AGENT_ID=your_remote_agent_id  # for production
+RETELLAI_PHONE_NUMBER=your_retell_phone_number
 
 # Webhook Configuration
 RUNTIME_ENV=local  # or leave unset for production
-RETELL_LOCAL_WEBHOOK=https://your-ngrok-url.ngrok.io  # for local development
+RETELLAI_LOCAL_WEBHOOK=https://your-ngrok-url.ngrok.io  # for local development
 CLOUD_APP_NAME=https://your-app.quome.io  # for production
-# OR
-WEBHOOK_URL=https://your-webhook-url.com/webhook  # direct webhook URL
 ```
 
 ## Integration Points

@@ -4,6 +4,19 @@ set dotenv-load := true
 # Default help command
 default:
     @just --list
+    @just _check-venv
+
+# ========== QUICK START ==========
+
+# Check if virtual environment is activated (for Python commands)
+_check-venv:
+    #!/usr/bin/env bash
+    if [ -z "${VIRTUAL_ENV:-}" ]; then
+        echo "❌ Error: Virtual environment not activated."
+        echo "💡 Please run: source .venv/bin/activate"
+        exit 1
+    fi
+    echo "✅ Virtual environment active: $VIRTUAL_ENV"
 
 # Command to check if 1Password cli is installed
 op_cli_installed := if `command -v op` =~ "" { "true" } else { "false" }
@@ -17,13 +30,13 @@ _command_wrapper COMMAND:
         {{COMMAND}}
         exit $?
     fi
-    
+
     # If there's already a .env file back it up temporarily
     # that way we don't accidentally clobber the .env file 
     if [ -f .env ]; then
         mv .env .env.tmp
     fi
-    
+
     # Try to inject secrets with 1Password CLI
     injection_success=false
     if {{op_cli_installed}}; then
@@ -41,14 +54,14 @@ _command_wrapper COMMAND:
             echo "⚠️  Failed to copy .env.secrets, falling back to original .env file"
         fi
     fi
-    
+
     # If injection failed, restore the original .env file
     if [ "$injection_success" = "false" ] && [ -f .env.tmp ]; then
         mv .env.tmp .env
     fi
-    
+
     {{COMMAND}}
-    
+
     # Clean up: if we created a backup for the .env file, copy it back, otherwise delete .env
     if [ -f .env.tmp ]; then
         if [ "$injection_success" = "true" ]; then
@@ -61,6 +74,18 @@ _command_wrapper COMMAND:
     fi
 
 # ========== QUICK START ==========
+
+# Install dependencies using uv
+install:
+    @echo "🔧 Installing dependencies using uv"
+    @echo "1️⃣ Installing uv (if not already installed)"
+    pip install uv || true
+    @echo "2️⃣ Creating virtual environment at .venv"
+    uv venv .venv
+    @echo "3️⃣ Installing dependencies"
+    @echo "💡 Activate the virtual environment with: source .venv/bin/activate"
+    uv pip install -r requirements.txt
+    @echo "✅ Dependencies installed successfully"
 
 # Quick development setup (build and start)
 dev:
@@ -79,7 +104,7 @@ prod:
 # Start development environment (default)
 up:
     @echo "🔄 Updating Retell AI webhook for local development..."
-    @bash -c "source .venv/bin/activate 2>/dev/null || true && set -a && source .env && set +a && RUNTIME_ENV=local python3 scripts/update_retell_webhook.py" || echo "⚠️  Webhook update skipped (Python/script not available)"
+    @bash -c "cd $(pwd) && set -a && source .env && set +a && RUNTIME_ENV=local uv run python scripts/update_retell_webhook.py" || echo "⚠️  Webhook update skipped (Python/script not available)"
     @echo "🚀 Starting development environment"
     @just _command_wrapper "docker-compose -f docker-compose-dev.yml up -d"
     @echo "✅ Dev environment started at http://localhost:8081"
@@ -87,7 +112,7 @@ up:
 # Start development environment with logs
 up-dev:
     @echo "🔄 Updating Retell AI webhook for local development..."
-    @bash -c "source .venv/bin/activate 2>/dev/null || true && set -a && source .env && set +a && RUNTIME_ENV=local python3 scripts/update_retell_webhook.py" || echo "⚠️  Webhook update skipped (Python/script not available)"
+    @bash -c "set -a && source .env && set +a && RUNTIME_ENV=local uv run python scripts/update_retell_webhook.py" || echo "⚠️  Webhook update skipped (Python/script not available)"
     @echo "🚀 Starting development environment"
     @just _command_wrapper "docker-compose -f docker-compose-dev.yml up -d"
     @echo "✅ Dev environment started at http://localhost:8080"
@@ -105,7 +130,7 @@ down:
     @just _command_wrapper "docker-compose -f docker-compose-dev.yml down || true"
     @just _command_wrapper "docker-compose -f docker-compose-prod.yml down || true"
     @echo "🛑 Stopping ngrok if running..."
-    @pkill -f "ngrok http 8080" || true
+    @pkill -f "ngrok http ${PORT}" || true
     @echo "✅ All containers and ngrok stopped"
 
 # ========== BUILD ==========
@@ -195,7 +220,7 @@ deploy:
     @echo "🚀 Deploying to Quome Cloud"
     @just _command_wrapper "./scripts/push_to_dockerhub.sh"
     @echo "🔄 Updating Retell AI webhook for production..."
-    @python3 scripts/update_retell_webhook.py || echo "⚠️  Webhook update skipped (Python/script not available)"
+    @uv run python scripts/update_retell_webhook.py || echo "⚠️  Webhook update skipped (Python/script not available)"
     @just _command_wrapper "./scripts/push_to_quome.sh"
     @echo "✅ Deployment complete!"
 

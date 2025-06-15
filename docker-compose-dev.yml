@@ -25,10 +25,13 @@ services:
       - CONTAINER_MODE=true
       - PORT=5000
       - DEV_STATE=TEST
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${DATABASE_LOCAL_URL}
       # Runtime environment detection - set to 'local' for Docker development
       - RUNTIME_ENV=local
-      - RETELL_LOCAL_WEBHOOK=${RETELL_LOCAL_WEBHOOK}
+      - RETELLAI_LOCAL_WEBHOOK=${RETELLAI_LOCAL_WEBHOOK}
+      - RETELLAI_LOCAL_AGENT_ID=${RETELLAI_LOCAL_AGENT_ID}
+      - RETELLAI_API_KEY=${RETELLAI_API_KEY}
+      - RETELLAI_PHONE_NUMBER=${RETELLAI_PHONE_NUMBER}
       - LOG_DIR=  # Disable file logging for containers
     depends_on:
       db:
