@@ -10,6 +10,7 @@ setOutputColours
 RECREATE_SECRETS=false
 INTERACTIVE=false
 RESEED_DATABASE=false
+RECREATE_DATABASE=false
 HELP=false
 
 while [[ $# -gt 0 ]]; do
@@ -24,6 +25,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --reseed)
             RESEED_DATABASE=true
+            shift
+            ;;
+        --recreate-db)
+            RECREATE_DATABASE=true
             shift
             ;;
         -h|--help)
@@ -48,6 +53,7 @@ if [ "$HELP" = true ]; then
     echo "  --recreate-secrets    Delete and recreate all Quome Cloud secrets"
     echo "  --interactive, --int  Run in interactive mode (prompts for input)"
     echo "  --reseed             Force database reseed with fresh sample data"
+    echo "  --recreate-db        Drop and recreate database schema + reseed data"
     echo "  -h, --help           Show this help message"
     echo ""
     echo "Default behavior (no options): Non-interactive mode using .env file values"
@@ -57,6 +63,7 @@ if [ "$HELP" = true ]; then
     echo "  $0 --interactive      # Interactive mode with prompts"
     echo "  $0 --recreate-secrets # Delete and recreate all secrets"
     echo "  $0 --reseed          # Force reseed database with fresh data"
+    echo "  $0 --recreate-db     # Drop/recreate schema + reseed data"
     echo "  $0 --int --recreate-secrets # Interactive mode with secret recreation"
     exit 0
 fi
@@ -72,7 +79,9 @@ if [ "$RECREATE_SECRETS" = true ]; then
 else
     echo -e "${GREEN}ℹ️  Mode: UPDATE SECRETS (update existing, create new)${NC}"
 fi
-if [ "$RESEED_DATABASE" = true ]; then
+if [ "$RECREATE_DATABASE" = true ]; then
+    echo -e "${RED}🗑️  Mode: RECREATE DATABASE SCHEMA + RESEED (drops all tables)${NC}"
+elif [ "$RESEED_DATABASE" = true ]; then
     echo -e "${YELLOW}🌱 Mode: FORCE DATABASE RESEED (overwrite existing data)${NC}"
 else
     echo -e "${GREEN}🌱 Mode: PRESERVE EXISTING DATABASE DATA${NC}"
@@ -108,7 +117,7 @@ CURL_SSL_OPTION="-k"
 # format is ("ENV_VAR_NAME" ...)
 # i.e. ("API_KEY" "DB_URL")
 # will create secrets $APPLICATION_NAME-api-key and $APPLICATION_NAME-db-url
-declare -a secret_env_vars=("SECRET_KEY" "ANTHROPIC_API_KEY" "RETELL_API_KEY" "POSTGRES_REMOTE_USER" "POSTGRES_REMOTE_PASSWORD" "POSTGRES_REMOTE_HOST")
+declare -a secret_env_vars=("SECRET_KEY" "ANTHROPIC_API_KEY" "RETELLAI_API_KEY" "POSTGRES_REMOTE_USER" "POSTGRES_REMOTE_PASSWORD" "POSTGRES_REMOTE_HOST")
 
 # List of all environment variables required for the app,
 # to provide a default value add =some default value
@@ -268,11 +277,14 @@ payload_env_vars=$(
 			elif [ "$var_name" = "FLASK_APP" ]; then
 				echo "run.py"
 			elif [ "$var_name" = "SEED_DATABASE" ]; then
-				if [ "$RESEED_DATABASE" = true ]; then
+				if [ "$RECREATE_DATABASE" = true ] || [ "$RESEED_DATABASE" = true ]; then
 					echo "true"
 				else
 					echo "${!var_name:-true}"
 				fi
+			elif [ "$var_name" = "PORT" ]; then
+				# Always use port 5000 internally for the Flask app
+				echo "5000"
 			else
 				echo "${!var_name:-}"
 			fi
@@ -280,7 +292,15 @@ payload_env_vars=$(
 		
 		# Add FORCE_RESEED separately (controlled by --reseed flag)
 		echo "FORCE_RESEED"
-		if [ "$RESEED_DATABASE" = true ]; then
+		if [ "$RECREATE_DATABASE" = true ] || [ "$RESEED_DATABASE" = true ]; then
+			echo "true"
+		else
+			echo "false"
+		fi
+		
+		# Add RECREATE_SCHEMA separately (controlled by --recreate-db flag)
+		echo "RECREATE_SCHEMA"
+		if [ "$RECREATE_DATABASE" = true ]; then
 			echo "true"
 		else
 			echo "false"

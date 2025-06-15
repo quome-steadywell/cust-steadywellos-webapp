@@ -161,19 +161,44 @@ cp .env.secrets .env
 
 #### Step 2: Install dependencies
 
-```bash
-# Using Just (recommended)
-just install
+**Option 1: Using Just (recommended)**
 
-# Or using the script directly
-./scripts/install.sh
+```bash
+# Install dependencies using the just command
+just install
+```
+
+**Option 2: Manual installation**
+
+```bash
+# Install uv (if not already installed)
+pip install uv
+
+# Create a virtual environment using uv
+uv venv .venv
+
+# Activate the virtual environment
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
+
+# Install dependencies using uv
+uv pip install -r requirements.txt
 ```
 
 This will:
 
-- Check prerequisites (Docker, Docker Compose)
-- Set up necessary environment files
-- Configure required permissions
+- Set up a Python virtual environment in the .venv directory
+- Install all required dependencies using uv
+- Prepare the environment for running the application
+
+**Option 3: PyCharm Setup**
+
+If you're using PyCharm as your IDE, you can configure it to use the local `.venv` virtual environment:
+
+1. See the detailed instructions in [docs/pycharm_setup.md](docs/pycharm_setup.md)
+2. This will ensure PyCharm uses the correct Python interpreter and dependencies
 
 #### Step 3: Start the application
 

@@ -14,6 +14,7 @@ class ProtocolType(enum.Enum):
     CANCER = "cancer"
     HEART_FAILURE = "heart_failure"
     COPD = "copd"
+    FIT = "fit"
     GENERAL = "general"
 
 class Patient(db.Model):

@@ -95,7 +95,10 @@ echo "Database initialization will be handled by the Flask application"
 echo "Starting Flask application..."
 if [ "${DEV_STATE:-TEST}" = "PROD" ]; then
     echo "Production mode: Starting with Gunicorn"
-    exec gunicorn --bind 0.0.0.0:5000 --workers 4 --access-logfile="-" --error-logfile="-" run:app
+    # Use PORT environment variable, fallback to 5000 if not set
+    APP_PORT=${PORT:-5000}
+    echo "Starting Gunicorn on port: $APP_PORT"
+    exec gunicorn --bind 0.0.0.0:$APP_PORT --workers 4 --access-logfile="-" --error-logfile="-" run:app
 else
     echo "Development mode: This should not run in development (Flask dev server is used instead)"
     echo "If you see this, run with: docker-compose -f docker-compose-dev.yml up"

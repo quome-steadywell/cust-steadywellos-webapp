@@ -1,12 +1,12 @@
 """Database initialization and utility functions."""
 
 import os
-import logging
 from datetime import datetime, timezone
 from flask import Flask
 from sqlalchemy import text
+from src.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 def configure_database(app: Flask):
     """Configure database URL following postgress-demo pattern."""
@@ -159,7 +159,28 @@ def create_tables(app: Flask, db):
     """Create all database tables."""
     with app.app_context():
         try:
-            # Check if we need to recreate tables due to schema changes
+            # Check if we should force schema recreation
+            recreate_schema_env = os.getenv("RECREATE_SCHEMA", "false")
+            recreate_schema = recreate_schema_env.lower() == "true"
+            logger.info(f"🔍 RECREATE_SCHEMA environment variable: '{recreate_schema_env}' -> {recreate_schema}")
+            
+            if recreate_schema:
+                logger.info("🗑️  RECREATE_SCHEMA=true: Dropping and recreating all database tables...")
+                
+                # Drop all tables first
+                try:
+                    db.drop_all()
+                    logger.info("✅ All database tables dropped successfully")
+                except Exception as drop_error:
+                    logger.warning(f"⚠️ Warning during table drop (may be expected): {drop_error}")
+                
+                # Create fresh tables
+                logger.info("🔄 Creating fresh database tables with current schema...")
+                db.create_all()
+                logger.info("✅ Database tables recreated successfully")
+                return
+
+            # Standard logic: check if tables exist
             needs_recreation = False
 
             # Try to query a table to see if it exists
@@ -190,30 +211,48 @@ def seed_database_if_empty(app: Flask, db):
     """Seed the database with initial data if it's empty."""
     with app.app_context():
         try:
+            logger.info("🔍 Checking if database seeding is needed...")
+            
+            # Check environment variables for seeding configuration
+            force_reseed_env = os.getenv("FORCE_RESEED", "false")
+            seed_database_env = os.getenv("SEED_DATABASE", "true")
+            
+            logger.info(f"Environment variables - FORCE_RESEED: '{force_reseed_env}', SEED_DATABASE: '{seed_database_env}'")
+            
             # Check if force reseed is requested
-            force_reseed = os.getenv("FORCE_RESEED", "false").lower() == "true"
+            force_reseed = force_reseed_env.lower() == "true"
+            should_seed = seed_database_env.lower() == "true"
+            
+            logger.info(f"Parsed flags - force_reseed: {force_reseed}, should_seed: {should_seed}")
+            
+            if not should_seed and not force_reseed:
+                logger.info("❌ SEED_DATABASE=false and FORCE_RESEED=false, skipping database seeding")
+                return
             
             # Check if data already exists by looking for users
             from src.models.user import User
             existing_count = User.query.count()
+            logger.info(f"Found {existing_count} existing users in database")
             
             if existing_count > 0 and not force_reseed:
-                logger.info("Database already contains user data, skipping seed")
+                logger.info("✅ Database already contains user data, skipping seed (use FORCE_RESEED=true to override)")
                 return
             elif existing_count > 0 and force_reseed:
-                logger.info(f"FORCE_RESEED=true: Clearing {existing_count} existing users and reseeding with fresh data")
-                # This would need more careful handling to clear all related data
-                logger.warning("⚠️ FORCE_RESEED not fully implemented - manual database reset recommended")
-                return
+                logger.info(f"🔄 FORCE_RESEED=true: Clearing {existing_count} existing users and reseeding with fresh data")
+                # The seed_database function handles clearing all data properly
+                logger.info("🧹 Starting force reseed process...")
             else:
-                logger.info("Database is empty, seeding with fresh data")
+                logger.info("📊 Database is empty, proceeding with initial seeding")
 
             # Seed the database using the existing seeder
+            logger.info("🌱 Calling db_seeder.seed_database()...")
             from src.utils.db_seeder import seed_database
             seed_database()
-            logger.info("✅ Database seeded successfully")
+            logger.info("✅ Database seeded successfully! 🎉")
 
         except Exception as e:
             logger.error(f"❌ Error seeding database: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             # Don't raise the exception - allow the app to continue without seeding
             logger.warning("⚠️ Application starting without database seeding")
