@@ -9,6 +9,10 @@ from src.models.call import Call, CallStatus
 from src.models.assessment import Assessment, FollowUpPriority
 from src.models.medication import Medication, MedicationRoute, MedicationFrequency
 from src.models.audit_log import AuditLog
+from src.utils.logger import get_logger
+
+# Set up logging
+logger = get_logger()
 
 def seed_database(test_scenario=None):
     """
@@ -18,21 +22,50 @@ def seed_database(test_scenario=None):
         test_scenario (str, optional): Specific test scenario to generate data for
             Valid values: None, 'date_check'
     """
+    logger.info("🌱 Starting database seeding process...")
+    logger.info(f"Test scenario: {test_scenario if test_scenario else 'None'}")
+    
     # Clear existing data in the correct order to handle foreign key constraints
+    logger.info("🧹 Clearing existing data to reseed database...")
+    
+    # Count existing records before deletion for logging
+    assessments_count = db.session.query(Assessment).count()
+    calls_count = db.session.query(Call).count()
+    medications_count = db.session.query(Medication).count()
+    patients_count = db.session.query(Patient).count()
+    audit_logs_count = db.session.query(AuditLog).count()
+    users_count = db.session.query(User).count()
+    
+    logger.info(f"Found existing records - Users: {users_count}, Patients: {patients_count}, Calls: {calls_count}, Assessments: {assessments_count}, Medications: {medications_count}, Audit Logs: {audit_logs_count}")
+    
+    # Delete records
     db.session.query(Assessment).delete()
+    logger.info(f"Deleted {assessments_count} assessments")
+    
     db.session.query(Call).delete()
+    logger.info(f"Deleted {calls_count} calls")
+    
     db.session.query(Medication).delete()
+    logger.info(f"Deleted {medications_count} medications")
+    
     db.session.query(Patient).delete()
+    logger.info(f"Deleted {patients_count} patients")
     
     # We don't delete protocols anymore - they should be created before this runs
     # db.session.query(Protocol).delete()
     
     # Delete audit logs before users to avoid foreign key constraint issues
     db.session.query(AuditLog).delete()
+    logger.info(f"Deleted {audit_logs_count} audit logs")
+    
     db.session.query(User).delete()
+    logger.info(f"Deleted {users_count} users")
+    
     db.session.commit()
+    logger.info("✅ Successfully cleared existing data")
     
     # Create users
+    logger.info("👥 Creating seed users...")
     admin = User(
         username="admin",
         email="admin@example.com",
@@ -82,14 +115,19 @@ def seed_database(test_scenario=None):
     
     db.session.add_all([admin, nurse1, nurse2, physician])
     db.session.commit()
+    logger.info("✅ Created 4 seed users (admin, nurse1, nurse2, physician)")
     
     # Get or create protocols
+    logger.info("📋 Checking for existing protocols...")
     cancer_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.CANCER).first()
     heart_failure_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
     copd_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.COPD).first()
+    fit_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.FIT).first()
+    
+    logger.info(f"Found protocols - Cancer: {'✅' if cancer_protocol else '❌'}, Heart Failure: {'✅' if heart_failure_protocol else '❌'}, COPD: {'✅' if copd_protocol else '❌'}, FIT: {'✅' if fit_protocol else '❌'}")
     
     # Forces creation of default protocols since we're skipping the protocol_ingest step
-    print("Creating default protocols in the database...")
+    logger.info("📝 Creating default protocols in the database...")
     # Create protocols
     if not cancer_protocol:
         cancer_protocol = Protocol(
@@ -407,6 +445,114 @@ def seed_database(test_scenario=None):
             is_active=True
         )
         
+        if not fit_protocol:
+            fit_protocol = Protocol(
+                name="FIT Protocol - Wellness Monitoring",
+                description="Protocol for monitoring very fit individuals with wellness and fitness assessments",
+                protocol_type=ProtocolType.FIT,
+                version="1.0",
+            questions=[
+                {
+                    "id": "mile_time",
+                    "text": "What is your recent 1-mile run time in minutes?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "fitness",
+                    "min_value": 5,
+                    "max_value": 20
+                },
+                {
+                    "id": "plank_time",
+                    "text": "How long can you hold a plank in minutes?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "strength",
+                    "min_value": 0,
+                    "max_value": 10
+                },
+                {
+                    "id": "row_5k_time",
+                    "text": "What is your 5K rowing time in minutes?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "endurance",
+                    "min_value": 15,
+                    "max_value": 45
+                },
+                {
+                    "id": "pushups_per_minute",
+                    "text": "How many push-ups can you do in one minute?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "strength",
+                    "min_value": 0,
+                    "max_value": 100
+                },
+                {
+                    "id": "swim_mile_time",
+                    "text": "What is your 1-mile swim time in minutes?",
+                    "type": "numeric",
+                    "required": True,
+                    "symptom_type": "endurance",
+                    "min_value": 20,
+                    "max_value": 60
+                }
+            ],
+            decision_tree=[
+                {
+                    "id": "excellent_fitness",
+                    "symptom_type": "fitness",
+                    "condition": "<=10",
+                    "intervention_ids": ["maintain_fitness"]
+                },
+                {
+                    "id": "good_plank",
+                    "symptom_type": "strength",
+                    "condition": ">=5",
+                    "intervention_ids": ["maintain_strength"]
+                },
+                {
+                    "id": "excellent_rowing",
+                    "symptom_type": "endurance",
+                    "condition": "<=25",
+                    "intervention_ids": ["maintain_endurance"]
+                },
+                {
+                    "id": "excellent_pushups",
+                    "symptom_type": "strength",
+                    "condition": ">=60",
+                    "intervention_ids": ["maintain_strength"]
+                },
+                {
+                    "id": "excellent_swimming",
+                    "symptom_type": "endurance",
+                    "condition": "<=30",
+                    "intervention_ids": ["maintain_endurance"]
+                }
+            ],
+            interventions=[
+                {
+                    "id": "maintain_fitness",
+                    "title": "Maintain Excellent Fitness",
+                    "description": "Continue current fitness routine. Excellent cardiovascular health.",
+                    "symptom_type": "fitness"
+                },
+                {
+                    "id": "maintain_strength",
+                    "title": "Maintain Strength Training",
+                    "description": "Continue strength training program. Excellent muscular endurance.",
+                    "symptom_type": "strength"
+                },
+                {
+                    "id": "maintain_endurance",
+                    "title": "Maintain Endurance Training",
+                    "description": "Continue endurance training. Excellent cardiovascular capacity.",
+                    "symptom_type": "endurance"
+                }
+            ],
+            is_active=True
+        )
+        
     # Add any newly created protocols
     protocols_to_add = []
     if cancer_protocol and not cancer_protocol.id:
@@ -415,44 +561,49 @@ def seed_database(test_scenario=None):
         protocols_to_add.append(heart_failure_protocol)
     if copd_protocol and not copd_protocol.id:
         protocols_to_add.append(copd_protocol)
+    if fit_protocol and not fit_protocol.id:
+        protocols_to_add.append(fit_protocol)
         
     if protocols_to_add:
         db.session.add_all(protocols_to_add)
         db.session.commit()
-        print(f"Added {len(protocols_to_add)} new protocols to the database.")
+        logger.info(f"✅ Added {len(protocols_to_add)} new protocols to the database.")
+    else:
+        logger.info("✅ All required protocols already exist")
     
     # Create patients
+    logger.info("🏥 Creating seed patients...")
     patient1 = Patient(
         mrn="MRN12345",
-        first_name="John",
-        last_name="Doe",
+        first_name="Josh",
+        last_name="Kerm",
         date_of_birth=date(1950, 5, 15),
         gender=Gender.MALE,
-        phone_number="555-111-2222",
-        email="john.doe@example.com",
+        phone_number="17205560774",
+        email="josh.kerm@steadywell.com",
         address="123 Main St, Anytown, USA",
         primary_diagnosis="Stage IV Lung Cancer",
         secondary_diagnoses="COPD, Hypertension",
         protocol_type=ProtocolType.CANCER,
         primary_nurse_id=nurse1.id,
-        emergency_contact_name="Jane Doe",
+        emergency_contact_name="Jane Smith",
         emergency_contact_phone="555-222-3333",
         emergency_contact_relationship="Spouse",
         advance_directive=True,
         dnr_status=True,
-        allergies="Penicillin",
+        allergies="None",
         notes="Patient prefers morning calls",
         is_active=True
     )
     
     patient2 = Patient(
         mrn="MRN67890",
-        first_name="Mary",
-        last_name="Johnson",
+        first_name="Tim",
+        last_name="Raderstorf",
         date_of_birth=date(1945, 9, 20),
-        gender=Gender.FEMALE,
-        phone_number="555-333-4444",
-        email="mary.johnson@example.com",
+        gender=Gender.MALE,
+        phone_number="16142103049",
+        email="tim.raderstorf@steadywell.com",
         address="456 Oak Ave, Somewhere, USA",
         primary_diagnosis="Heart Failure NYHA Class IV",
         secondary_diagnoses="Diabetes, Chronic Kidney Disease",
@@ -463,25 +614,25 @@ def seed_database(test_scenario=None):
         emergency_contact_relationship="Son",
         advance_directive=True,
         dnr_status=True,
-        allergies="Sulfa drugs",
+        allergies="None",
         notes="Hard of hearing, speak clearly and loudly",
         is_active=True
     )
     
     patient3 = Patient(
         mrn="MRN24680",
-        first_name="James",
-        last_name="Wilson",
+        first_name="Frederic",
+        last_name="Sauve-Hoover",
         date_of_birth=date(1953, 3, 10),
         gender=Gender.MALE,
-        phone_number="555-555-6666",
-        email="james.wilson@example.com",
+        phone_number="17809568114",
+        email="sauvehoover@gmail.com",
         address="789 Pine St, Elsewhere, USA",
         primary_diagnosis="End-stage COPD, GOLD Stage IV",
         secondary_diagnoses="Cor Pulmonale, Osteoporosis",
         protocol_type=ProtocolType.COPD,
         primary_nurse_id=nurse1.id,
-        emergency_contact_name="Sarah Wilson",
+        emergency_contact_name="Jane Smith",
         emergency_contact_phone="555-666-7777",
         emergency_contact_relationship="Daughter",
         advance_directive=True,
@@ -491,10 +642,36 @@ def seed_database(test_scenario=None):
         is_active=True
     )
     
-    db.session.add_all([patient1, patient2, patient3])
+    # Add Pete Jarvis as new patient with FIT Protocol
+    patient4 = Patient(
+        mrn="MRN13579",
+        first_name="Pete",
+        last_name="Jarvis",
+        date_of_birth=date(1975, 8, 12),
+        gender=Gender.MALE,
+        phone_number="12066968474",
+        email="pkjarvis01@gmail.com",
+        address="321 Fitness Ave, Athletic City, USA",
+        primary_diagnosis="Very Fit Individual - Wellness Monitoring",
+        secondary_diagnoses="None",
+        protocol_type=ProtocolType.FIT,
+        primary_nurse_id=nurse1.id,
+        emergency_contact_name="Sarah Jarvis",
+        emergency_contact_phone="555-777-8888",
+        emergency_contact_relationship="Spouse",
+        advance_directive=False,
+        dnr_status=False,
+        allergies="None known",
+        notes="Very active individual, monitors wellness and fitness metrics",
+        is_active=True
+    )
+    
+    db.session.add_all([patient1, patient2, patient3, patient4])
     db.session.commit()
+    logger.info("✅ Created 4 seed patients (Josh Kerm, Tim Raderstorf, Frederic Sauve-Hoover, Pete Jarvis)")
     
     # Create medications
+    logger.info("💊 Creating seed medications...")
     med1 = Medication(
         patient_id=patient1.id,
         name="Morphine Sulfate",
@@ -553,8 +730,10 @@ def seed_database(test_scenario=None):
     
     db.session.add_all([med1, med2, med3, med4])
     db.session.commit()
+    logger.info("✅ Created 4 seed medications")
     
     # Create calls
+    logger.info("📞 Creating seed calls...")
     today = datetime.now()
     yesterday = today - timedelta(days=1)
     tomorrow = today + timedelta(days=1)
@@ -607,8 +786,10 @@ def seed_database(test_scenario=None):
     
     db.session.add_all([call1, call2, call3, call4])
     db.session.commit()
+    logger.info("✅ Created 4 seed calls")
     
     # Create assessments
+    logger.info("📊 Creating seed assessments...")
     assessment1 = Assessment(
         patient_id=patient1.id,
         protocol_id=cancer_protocol.id,
@@ -678,18 +859,22 @@ def seed_database(test_scenario=None):
     
     db.session.add_all([assessment1, assessment2])
     db.session.commit()
+    logger.info("✅ Created 2 initial assessments")
     
     # Add date-specific test data if requested
     if test_scenario == 'date_check':
+        logger.info("📅 Adding date-specific test data...")
         seed_date_check_data()
     
     # Add recent assessment history for patient details view
-    seed_patient_history(patient1, patient2, patient3, cancer_protocol, heart_failure_protocol, copd_protocol, nurse1, nurse2)
+    logger.info("📈 Adding patient assessment history...")
+    seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol, heart_failure_protocol, copd_protocol, fit_protocol, nurse1, nurse2)
         
-    print("Database seeded successfully!")
+    logger.info("✅ Database seeded successfully! 🎉")
     
 def seed_date_check_data():
     """Add test data specifically for date handling test cases"""
+    logger.info("📅 Starting date check data seeding...")
     # Get reference to main entities
     patient = Patient.query.filter_by(first_name="Mary").first()
     nurse = User.query.filter_by(first_name="Robert").first()
@@ -697,7 +882,7 @@ def seed_date_check_data():
     protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
     
     if not protocol:
-        print("Error: Heart Failure protocol not found in database. Date test data will not be added.")
+        logger.error("❌ Error: Heart Failure protocol not found in database. Date test data will not be added.")
         return
     
     # Get date references
@@ -794,12 +979,12 @@ def seed_date_check_data():
     db.session.add_all([assessment1, assessment2, assessment3, assessment4, assessment5, assessment6])
     db.session.commit()
     
-    print("Date check test data added successfully")
+    logger.info("✅ Date check test data added successfully")
 
-def seed_patient_history(patient1, patient2, patient3, cancer_protocol, heart_failure_protocol, copd_protocol, nurse1, nurse2):
+def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol, heart_failure_protocol, copd_protocol, fit_protocol, nurse1, nurse2):
     """Add assessment history for patients to populate patient details pages"""
     
-    print("Adding patient assessment history...")
+    logger.info("📈 Starting patient assessment history creation...")
     today = datetime.now()
     
     # Add urgent follow-up assessment for Mary Johnson (patient2) on 3/25/2025
@@ -1433,10 +1618,97 @@ def seed_patient_history(patient1, patient2, patient3, cancer_protocol, heart_fa
     )
     patient3_assessments.append(assessment4)
     
+    # Create assessment history for patient4 (FIT patient - Pete Jarvis)
+    patient4_assessments = []
+    
+    # 2 weeks ago - excellent performance
+    date_2w_ago = today - timedelta(days=14)
+    assessment1 = Assessment(
+        patient_id=patient4.id,
+        protocol_id=fit_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_2w_ago.replace(hour=10, minute=0),
+        responses={
+            "mile_time": {"value": 6.5},
+            "plank_time": {"value": 7},
+            "row_5k_time": {"value": 22},
+            "pushups_per_minute": {"value": 75},
+            "swim_mile_time": {"value": 28}
+        },
+        symptoms={
+            "fitness": 6.5,
+            "strength": 7,
+            "endurance": 22
+        },
+        interventions=[
+            {
+                "id": "maintain_fitness",
+                "title": "Maintain Excellent Fitness",
+                "description": "Continue current fitness routine. Excellent cardiovascular health."
+            },
+            {
+                "id": "maintain_strength",
+                "title": "Maintain Strength Training",
+                "description": "Continue strength training program. Excellent muscular endurance."
+            },
+            {
+                "id": "maintain_endurance",
+                "title": "Maintain Endurance Training",
+                "description": "Continue endurance training. Excellent cardiovascular capacity."
+            }
+        ],
+        notes="All fitness metrics at excellent levels. Continue current training regimen",
+        follow_up_needed=False
+    )
+    patient4_assessments.append(assessment1)
+    
+    # 1 week ago - continued excellence
+    date_1w_ago = today - timedelta(days=7)
+    assessment2 = Assessment(
+        patient_id=patient4.id,
+        protocol_id=fit_protocol.id,
+        conducted_by_id=nurse1.id,
+        assessment_date=date_1w_ago.replace(hour=9, minute=30),
+        responses={
+            "mile_time": {"value": 6.2},
+            "plank_time": {"value": 6.8},
+            "row_5k_time": {"value": 21.5},
+            "pushups_per_minute": {"value": 78},
+            "swim_mile_time": {"value": 27}
+        },
+        symptoms={
+            "fitness": 6.2,
+            "strength": 6.8,
+            "endurance": 21.5
+        },
+        interventions=[
+            {
+                "id": "maintain_fitness",
+                "title": "Maintain Excellent Fitness",
+                "description": "Continue current fitness routine. Excellent cardiovascular health."
+            },
+            {
+                "id": "maintain_strength",
+                "title": "Maintain Strength Training",
+                "description": "Continue strength training program. Excellent muscular endurance."
+            },
+            {
+                "id": "maintain_endurance",
+                "title": "Maintain Endurance Training",
+                "description": "Continue endurance training. Excellent cardiovascular capacity."
+            }
+        ],
+        notes="Slight improvement in all metrics. Fitness level remains exceptional",
+        follow_up_needed=False
+    )
+    patient4_assessments.append(assessment2)
+    
     # Add all assessments to the database
     db.session.add_all(patient1_assessments)
     db.session.add_all(patient2_assessments)
     db.session.add_all(patient3_assessments)
+    db.session.add_all(patient4_assessments)
     db.session.commit()
     
-    print("Patient assessment history added successfully")
+    total_assessments = len(patient1_assessments) + len(patient2_assessments) + len(patient3_assessments) + len(patient4_assessments)
+    logger.info(f"✅ Patient assessment history added successfully ({total_assessments} total assessments created)")

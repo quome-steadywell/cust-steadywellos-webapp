@@ -21,17 +21,20 @@ cd steadwellos
 ### Python Virtual Environment
 
 ```bash
-# Create a virtual environment
-python -m venv venv
+# Install uv (if not already installed)
+pip install uv
+
+# Create a virtual environment using uv
+uv venv .venv
 
 # Activate the virtual environment
 # On Windows:
-venv\Scripts\activate
+.venv\Scripts\activate
 # On macOS/Linux:
-source venv/bin/activate
+source .venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies using uv
+uv pip install -r requirements.txt
 ```
 
 ### Environment Configuration
@@ -217,7 +220,7 @@ git pull origin main
 2. Install any new dependencies:
 
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 3. Apply database migrations if any:

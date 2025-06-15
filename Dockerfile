@@ -17,7 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DEBUG=${DEBUG} \
     IMAGE_VERSION=${IMAGE_VERSION} \
     FLASK_APP=run.py \
-    PORT=5000
+    PORT=${PORT:-5000}
 
 # Set working directory
 WORKDIR /app

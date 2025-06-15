@@ -51,10 +51,11 @@ class Config:
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-    # Retell AI Configuration
-    RETELL_API_KEY = os.getenv('RETELL_API_KEY')
-    PALLIATIVE_DEMO_AGENT_ID = os.getenv('PALLIATIVE_DEMO_AGENT_ID')
-    RETELL_PHONE_NUMBER = os.getenv('RETELL_PHONE_NUMBER')
+    # Retell AI Configuration - aligned with postgres-demo naming
+    RETELLAI_API_KEY = os.getenv('RETELLAI_API_KEY')
+    RETELLAI_LOCAL_AGENT_ID = os.getenv('RETELLAI_LOCAL_AGENT_ID')
+    RETELLAI_REMOTE_AGENT_ID = os.getenv('RETELLAI_REMOTE_AGENT_ID')
+    RETELLAI_PHONE_NUMBER = os.getenv('RETELLAI_PHONE_NUMBER')
     
     # Webhook settings - derived from CLOUD_APP_NAME
     CLOUD_APP_NAME = os.getenv('CLOUD_APP_NAME', '')
@@ -64,30 +65,26 @@ class Config:
         """Get webhook URL for a specific endpoint.
         
         Runtime environment detection:
-        - RUNTIME_ENV=local: Uses RETELL_LOCAL_WEBHOOK (ngrok URL for local development)
+        - RUNTIME_ENV=local: Uses RETELLAI_LOCAL_WEBHOOK (ngrok URL for local development)
         - RUNTIME_ENV unset/other: Uses CLOUD_APP_NAME (Quome cloud URL for production)
         """
         runtime_env = os.getenv('RUNTIME_ENV', '')
         
         # Determine base URL based on runtime environment
         if runtime_env == 'local':
-            # Local development mode - use RETELL_LOCAL_WEBHOOK (ngrok URL)
-            base_url = os.getenv('RETELL_LOCAL_WEBHOOK', '')
+            # Local development mode - use RETELLAI_LOCAL_WEBHOOK (ngrok URL)
+            base_url = os.getenv('RETELLAI_LOCAL_WEBHOOK', '')
         else:
             # Production mode (Quome cloud) - use CLOUD_APP_NAME (Quome URL)
             base_url = os.getenv('CLOUD_APP_NAME', '')
         
-        if base_url:
-            # Remove trailing slash if present to avoid double slashes
-            base_url = base_url.rstrip('/')
-            return f'{base_url}/{endpoint}'
+        if not base_url:
+            raise ValueError(f"No base URL configured for {runtime_env} environment. "
+                           f"Set RETELLAI_LOCAL_WEBHOOK (local) or CLOUD_APP_NAME (production)")
         
-        # Fallback to individual environment variables if no base URL
-        env_var_map = {
-            'webhook': 'WEBHOOK_URL',
-        }
-        env_var = env_var_map.get(endpoint, f'{endpoint.upper().replace("-", "_")}_URL')
-        return os.getenv(env_var, '')
+        # Remove trailing slash if present to avoid double slashes
+        base_url = base_url.rstrip('/')
+        return f'{base_url}/{endpoint}'
     
     @property
     def WEBHOOK_URL(self) -> str:
