@@ -200,6 +200,14 @@ If you're using PyCharm as your IDE, you can configure it to use the local `.ven
 1. See the detailed instructions in [docs/pycharm_setup.md](docs/pycharm_setup.md)
 2. This will ensure PyCharm uses the correct Python interpreter and dependencies
 
+**Database Connection in PyCharm**
+
+To connect PyCharm to the Docker PostgreSQL database:
+
+1. Start the Docker containers using `just up` or `docker-compose -f docker-compose-dev.yml up`
+2. Follow the instructions in [pycharm_db_connection.md](pycharm_db_connection.md) to configure the database connection
+3. You can use the provided test script to verify the connection: `python test_db_connection.py`
+
 #### Step 3: Start the application
 
 ```bash
