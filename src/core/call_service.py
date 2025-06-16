@@ -72,7 +72,9 @@ def _make_real_retell_call(patient: Dict[str, Any]) -> Optional[str]:
         # Build webhook URL from CLOUD_APP_NAME for production
         cloud_app_name = os.environ.get("CLOUD_APP_NAME", "")
         if cloud_app_name:
-            webhook_url = f"https://{cloud_app_name}.demo.quome.cloud/webhook"
+            # Remove trailing slash if present to avoid double slashes
+            base_url = cloud_app_name.rstrip('/')
+            webhook_url = f"{base_url}/webhook"
         else:
             webhook_url = None
         mode = "REMOTE"
