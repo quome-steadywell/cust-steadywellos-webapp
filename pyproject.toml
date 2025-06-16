@@ -1,6 +1,6 @@
 [project]
 name = "cust-steadywellos-webapp"
-version = "0.1.0"
+version = "1.2.0"
 description = "Palliative Care Platform - Steadwell Wellness Webapp"
 requires-python = ">=3.12"
 dependencies = [
