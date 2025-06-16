@@ -1,6 +1,6 @@
 [project]
 name = "cust-steadywellos-webapp"
-version = "0.1.0"
+version = "1.2.0"
 description = "Palliative Care Platform - Steadwell Wellness Webapp"
 requires-python = ">=3.12"
 dependencies = [
@@ -32,9 +32,6 @@ dependencies = [
     "tiktoken>=0.5.2",
     "faiss-cpu>=1.7.4",
     "anthropic>=0.18.1",
-    "twilio>=8.10.2",
-    "SpeechRecognition>=3.10.0",
-    "pyttsx3>=2.90",
     "boto3>=1.29.3",
     "flask-monitoringdashboard>=3.1.2",
     "structlog>=23.2.0",

@@ -35,9 +35,10 @@ faiss-cpu==1.7.4
 anthropic==0.18.1
 
 # Telephony Integration
-twilio==8.10.2
-SpeechRecognition==3.10.0
-pyttsx3==2.90
+# Removed Twilio dependencies - using Retell.ai instead
+# twilio==8.10.2
+# SpeechRecognition==3.10.0  
+# pyttsx3==2.90
 
 # AWS Integration
 boto3==1.29.3

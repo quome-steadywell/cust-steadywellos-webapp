@@ -124,7 +124,7 @@ declare -a secret_env_vars=("SECRET_KEY" "ANTHROPIC_API_KEY" "RETELLAI_API_KEY" 
 # i.e. ("DEFAULT_ENV_VAR=default_value" "REQUIRED_ENV_VAR2")
 # WARNING: DO NOT PUT ANY SECRETS IN THESE VARS, THEY MAY END UP EXPOSED
 # Updated for Flask application deployment to Quome Cloud
-declare -a env_vars=("FLASK_APP=run.py" "FLASK_ENV=production" "FLASK_DEBUG=false" "DEBUG=false" "DEV_STATE=PROD" "LOG_LEVEL" "PORT" "SEED_DATABASE" "POSTGRES_REMOTE_DB" "POSTGRES_REMOTE_PORT")
+declare -a env_vars=("FLASK_APP=run.py" "FLASK_ENV=production" "FLASK_DEBUG=false" "DEBUG=false" "DEV_STATE=PROD" "LOG_LEVEL" "PORT" "SEED_DATABASE" "POSTGRES_REMOTE_DB" "POSTGRES_REMOTE_PORT" "RETELLAI_REMOTE_AGENT_ID" "RETELLAI_PHONE_NUMBER" "CLOUD_APP_NAME")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # END OF APP CONFIG

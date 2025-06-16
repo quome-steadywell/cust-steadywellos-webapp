@@ -5,6 +5,48 @@ All notable changes to the SteadyWell Palliative Care Platform will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-06-16
+
+### Added
+- **Ring Now Button**: Third action button on patients page for immediate call initiation
+  - Yellow warning-style button with phone-volume icon
+  - Confirmation dialog with patient name and phone number
+  - Loading state with spinner during call initiation
+  - Real-time call status feedback
+
+- **Call Mode Toggle**: Simulation vs Real Call Mode switching
+  - Visual toggle button (blue for simulation, red for real)
+  - Warning confirmation when switching to real call mode
+  - Persistent mode setting across sessions
+  - Backend API endpoint for mode management
+
+- **Retell.ai Integration**: Complete calling service integration
+  - Environment-aware configuration (local vs production)
+  - Support for local and remote agent IDs
+  - Dynamic webhook URL construction
+  - Phone number normalization to E.164 format
+  - Mock call simulation for testing
+
+### Changed
+- Enhanced patient schema with phone_number field
+- Improved call service with environment detection
+- Updated patients page UI with three-button action layout
+
+### Removed
+- Twilio dependencies and unused packages
+- Legacy Twilio-related imports and code
+
+### Fixed
+- Production deployment environment variable configuration
+- Webhook URL construction for full domain format
+- API endpoint URL paths for call management
+- Role authorization for call features
+
+### Security
+- Enhanced role-based access control for call management
+- Nurses restricted to assigned patients only
+- Comprehensive audit logging for call actions
+
 ## [1.1.0] - 2025-06-15
 
 ### Added
@@ -67,6 +109,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Release Notes
 
+### Version 1.2.0 Highlights
+
+This release introduces immediate call capabilities and advanced call management features:
+
+**📞 Ring Now Feature**: Added immediate call functionality with a third action button on the patients page, enabling instant communication with patients through Retell.ai integration.
+
+**🔄 Call Mode Management**: Implemented sophisticated call mode toggle between simulation and real call modes, with safety confirmations and persistent settings.
+
+**🤖 Enhanced AI Integration**: Complete Retell.ai integration with environment-aware configuration, supporting both local development and production deployment scenarios.
+
+**🔐 Security Improvements**: Enhanced role-based access control with comprehensive audit logging for all call-related actions.
+
+**🗑️ Code Cleanup**: Removed legacy Twilio dependencies and code, streamlining the codebase for better maintainability.
+
 ### Version 1.1.0 Highlights
 
 This release focuses on resolving critical deployment issues and improving the development experience:
@@ -80,5 +136,3 @@ This release focuses on resolving critical deployment issues and improving the d
 **📊 FIT Protocol**: New protocol type for monitoring very fit individuals, expanding the platform's capabilities beyond traditional palliative care.
 
 **🔍 Better Logging**: Centralized logging implementation provides consistent, structured logging across all components for easier debugging and monitoring.
-
-This release ensures smooth deployment to Quome Cloud and provides a much better developer experience for future enhancements.

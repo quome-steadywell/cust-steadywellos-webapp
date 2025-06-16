@@ -64,6 +64,7 @@ class PatientListSchema(Schema):
     age = fields.Int()
     primary_diagnosis = fields.Str()
     protocol_type = fields.Str()
+    phone_number = fields.Str()
     primary_nurse = fields.Nested('UserSchema', only=['id', 'full_name'], dump_only=True)
     last_assessment_date = fields.DateTime(dump_only=True)
     is_active = fields.Bool()
