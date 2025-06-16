@@ -2,8 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 from datetime import datetime, timedelta
-from twilio.rest import Client
-from twilio.twiml.voice_response import VoiceResponse
+import os
 
 from src import db
 from src.models.user import User, UserRole
@@ -12,8 +11,8 @@ from src.models.call import Call, CallStatus
 from src.schemas.call import CallSchema, CallListSchema, CallUpdateSchema, CallTranscriptSchema
 from src.utils.decorators import roles_required, audit_action
 from src.models.audit_log import AuditLog
-from src.core.twilio_service import initiate_call, generate_call_twiml, process_call_recording
 from src.core.rag_service import generate_call_script
+from src.core.call_service import make_retell_call
 
 calls_bp = Blueprint('calls', __name__)
 
@@ -473,3 +472,132 @@ def get_today_calls():
     calls = query.order_by(Call.scheduled_time).all()
     
     return jsonify(CallListSchema(many=True).dump(calls)), 200
+
+@calls_bp.route('/ring-now', methods=['POST'])
+@jwt_required()
+@roles_required(UserRole.ADMIN, UserRole.NURSE, UserRole.PHYSICIAN)
+@audit_action('ring_now', 'call')
+def ring_now():
+    """Initiate immediate call using Retell.ai"""
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+    
+    data = request.get_json()
+    
+    # Validate required fields
+    if not data or not data.get('patient_id'):
+        return jsonify({"error": "patient_id is required"}), 400
+    
+    patient_id = data.get('patient_id')
+    patient = Patient.query.get(patient_id)
+    
+    if not patient:
+        return jsonify({"error": "Patient not found"}), 404
+    
+    # Check authorization - nurses can only call their own patients
+    if current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user_id:
+        return jsonify({"error": "Unauthorized to call this patient"}), 403
+    
+    # Validate phone number
+    if not patient.phone_number:
+        return jsonify({"error": "Patient has no phone number on file", "success": False}), 400
+    
+    try:
+        # Prepare patient data for Retell.ai call
+        patient_data = {
+            'id': patient.id,
+            'first_name': patient.first_name,
+            'last_name': patient.last_name,
+            'phone_number': patient.phone_number,
+            'email_address': patient.email
+        }
+        
+        # Initiate the call using Retell.ai
+        call_id = make_retell_call(patient_data)
+        
+        if call_id:
+            # Create a call record in the database
+            call = Call(
+                patient_id=patient_id,
+                conducted_by_id=current_user_id,
+                call_type='ring_now',
+                status=CallStatus.IN_PROGRESS,
+                scheduled_time=datetime.utcnow(),
+                start_time=datetime.utcnow(),
+                twilio_call_sid=call_id,
+                notes=f"Ring Now call initiated by {current_user.full_name}"
+            )
+            
+            db.session.add(call)
+            db.session.commit()
+            
+            # Log the action
+            current_app.logger.info(f"Ring Now call initiated for patient {patient.full_name} (ID: {patient_id}) by user {current_user.full_name} (ID: {current_user_id})")
+            
+            return jsonify({
+                "success": True,
+                "message": f"Call initiated successfully to {patient.full_name}",
+                "call_id": call.id,
+                "external_call_id": call_id
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "message": "Failed to initiate call"
+            }), 500
+            
+    except ValueError as e:
+        current_app.logger.error(f"Ring Now call validation error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 400
+        
+    except Exception as e:
+        current_app.logger.error(f"Ring Now call error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "An error occurred while initiating the call"
+        }), 500
+
+@calls_bp.route('/call-setting', methods=['GET', 'POST'])
+@jwt_required()
+@roles_required(UserRole.ADMIN, UserRole.NURSE, UserRole.PHYSICIAN)
+def call_setting():
+    """Get or update call mode setting (simulation vs real calls)"""
+    
+    if request.method == 'GET':
+        # Get current MAKE_REAL_CALL setting
+        make_real_call_str = os.environ.get("MAKE_REAL_CALL", "false").lower()
+        make_real_call = make_real_call_str in ("true", "t", "1", "yes")
+        
+        current_app.logger.info(f"Call setting GET request - current value: {make_real_call}")
+        
+        return jsonify({
+            "make_real_call": make_real_call
+        }), 200
+    
+    elif request.method == 'POST':
+        current_user_id = get_jwt_identity()
+        current_user = User.query.get(current_user_id)
+        
+        data = request.get_json()
+        
+        if not data or 'make_real_call' not in data:
+            return jsonify({"error": "make_real_call field is required"}), 400
+        
+        make_real_call = data.get("make_real_call", False)
+        
+        # Update environment variable
+        env_value = "true" if make_real_call else "false"
+        os.environ["MAKE_REAL_CALL"] = env_value
+        
+        # Log the action
+        mode = "Real Call Mode" if make_real_call else "Simulation Mode"
+        current_app.logger.info(f"Call mode updated to {mode} by user {current_user.full_name} (ID: {current_user_id})")
+        
+        return jsonify({
+            "success": True,
+            "make_real_call": make_real_call,
+            "message": f"Call mode updated to {mode}"
+        }), 200
