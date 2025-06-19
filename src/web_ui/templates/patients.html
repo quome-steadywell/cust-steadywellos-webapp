@@ -252,11 +252,7 @@
         if (protocolType) url += '&protocol_type=' + protocolType;
         if (searchTerm) url += '&search=' + encodeURIComponent(searchTerm);
         
-        fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        })
+        authFetch(url)
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById('patientTableBody');
@@ -348,11 +344,7 @@
     
     // View patient details
     function viewPatient(patientId) {
-        fetch(`/api/v1/patients/${patientId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        })
+        authFetch(`/api/v1/patients/${patientId}`)
         .then(response => response.json())
         .then(patient => {
             const detailsBody = document.getElementById('patientDetailsBody');
@@ -422,7 +414,7 @@
             modal.show();
             
             // Fetch recent assessments
-            fetch(`/api/v1/assessments/?patient_id=${patient.id}&limit=3`)
+            authFetch(`/api/v1/assessments/?patient_id=${patient.id}&limit=3`)
             .then(response => response.json())
             .then(assessments => {
                 const assessmentsContainer = document.getElementById('recentAssessments');
@@ -471,7 +463,7 @@
     
     // Fetch and populate nurses dropdown
     function loadNurses() {
-        fetch('/api/v1/users/?role=nurse')
+        authFetch('/api/v1/users/?role=nurse')
         .then(response => response.json())
         .then(nurses => {
             const nurseSelect = document.getElementById('primaryNurseId');
@@ -498,7 +490,7 @@
         bootstrap.Modal.getInstance(document.getElementById('patientDetailsModal')).hide();
         
         // Fetch patient data
-        fetch(`/api/v1/patients/${patientId}`)
+        authFetch(`/api/v1/patients/${patientId}`)
         .then(response => response.json())
         .then(patient => {
             // Update modal title
@@ -553,23 +545,19 @@
         const patientData = {};
         
         formData.forEach((value, key) => {
-            // Handle checkboxes
-            if (key === 'advance_directive' || key === 'dnr_status') {
-                patientData[key] = document.getElementById(key.replace('_', '')).checked;
-            } else {
-                patientData[key] = value;
-            }
+            patientData[key] = value;
         });
+        
+        // Handle checkboxes separately (they won't be in FormData if unchecked)
+        patientData['advance_directive'] = document.getElementById('advanceDirective').checked;
+        patientData['dnr_status'] = document.getElementById('dnrStatus').checked;
         
         // Make API request (POST for new, PUT for update)
         const url = isUpdate ? `/api/v1/patients/${patientId}` : '/api/v1/patients/';
         const method = isUpdate ? 'PUT' : 'POST';
         
-        fetch(url, {
+        authFetch(url, {
             method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify(patientData)
         })
         .then(response => {
@@ -614,12 +602,8 @@
         button.disabled = true;
         
         // Make API call to initiate the call
-        fetch('/api/v1/calls/ring-now', {
+        authFetch('/api/v1/calls/ring-now', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            },
             body: JSON.stringify({
                 patient_id: patientId,
                 patient_name: patientName,
@@ -652,11 +636,7 @@
     async function initializeCallMode() {
         console.log('Initializing call mode...');
         try {
-            const response = await fetch('/api/v1/calls/call-setting', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                }
-            });
+            const response = await authFetch('/api/v1/calls/call-setting');
             console.log('Init response status:', response.status);
             
             if (!response.ok) {
@@ -724,12 +704,8 @@
         
         try {
             console.log('Sending call mode toggle request...');
-            const response = await fetch('/api/v1/calls/call-setting', {
+            const response = await authFetch('/api/v1/calls/call-setting', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                },
                 body: JSON.stringify({ make_real_call: !isRealCallMode })
             });
             
