@@ -56,13 +56,20 @@ SECRET_KEY=generate_a_secure_random_key
 # Database Configuration
 DATABASE_URL=postgresql://username:password@localhost:5432/palliative_care_db
 
-# Twilio Configuration (for telephony features)
-TWILIO_ACCOUNT_SID=your_twilio_sid
-TWILIO_AUTH_TOKEN=your_twilio_token
-TWILIO_PHONE_NUMBER=your_twilio_phone_number
+# Retell.ai Configuration (for telephony features)
+RETELLAI_API_KEY=your_retellai_api_key
+RETELLAI_LOCAL_AGENT_ID=your_local_agent_id
+RETELLAI_REMOTE_AGENT_ID=your_remote_agent_id
+RETELLAI_PHONE_NUMBER=your_retellai_phone_number
 
 # RAG Model Configuration
 ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# Sentry Error Tracking (optional)
+SENTRY_DSN=your_sentry_dsn_url
+SENTRY_TRACES_SAMPLE_RATE=0.1
+ENVIRONMENT=development
+APP_VERSION=1.0.0
 ```
 
 ### Database Setup
@@ -83,17 +90,37 @@ GRANT ALL PRIVILEGES ON DATABASE palliative_care_db TO palliative_user;
 2. Initialize the database:
 
 ```bash
-flask create_db
+# Using Just commands (recommended)
+just db-reset
+
+# Or using run.py directly
+python run.py db create_tables
 ```
 
 3. (Optional) Seed the database with initial data:
 
 ```bash
-flask seed_db
+# Using Just
+just db-seed
+
+# Or using run.py
+python run.py db seed
 ```
 
 ### Running the Development Server
 
+Using Docker (recommended):
+```bash
+# Using Just
+just up
+
+# Or using docker-compose directly
+docker-compose -f docker-compose-dev.yml up -d
+```
+
+The application will be available at http://localhost:8081
+
+Or run locally:
 ```bash
 flask run --debug
 ```

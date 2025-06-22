@@ -5,6 +5,33 @@ All notable changes to the SteadyWell Palliative Care Platform will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Sentry Error Tracking Integration**
+  - Comprehensive error monitoring for production environments
+  - Automatic exception capture with stack traces
+  - Performance monitoring with transaction traces
+  - Privacy-aware configuration (no PII by default)
+  - Environment-specific error filtering
+  - Custom context and tags for better categorization
+
+- **Enhanced Documentation**
+  - Updated README with Retell.ai integration details
+  - Added Sentry configuration documentation
+  - Updated available Just commands
+  - Improved environment variable documentation
+
+### Changed
+- Migrated from Twilio to Retell.ai in documentation
+- Updated architecture diagram to reflect current integrations
+- Improved Justfile with new development commands
+- Enhanced build process with proper dependency installation
+
+### Fixed
+- Fixed missing sentry_sdk module causing application crash
+- Corrected environment variable references in documentation
+
 ## [1.2.0] - 2025-06-16
 
 ### Added
