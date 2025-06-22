@@ -13,9 +13,9 @@ classDiagram
         +SECRET_KEY
         +JWT_SECRET_KEY
         +DATABASE_URL
-        +TWILIO_ACCOUNT_SID
-        +TWILIO_AUTH_TOKEN
+        +RETELLAI_API_KEY
         +ANTHROPIC_API_KEY
+        +SENTRY_DSN
     }
 
     %% Database Models
@@ -92,7 +92,7 @@ classDiagram
         +duration: Float
         +status: CallStatus
         +call_type: String
-        +twilio_call_sid: String
+        +retell_call_id: String
         +recording_url: String
         +transcript: Text
         +is_overdue()
@@ -105,11 +105,11 @@ classDiagram
         +get_anthropic_client(api_key)
     }
 
-    class TwilioService {
-        +get_twilio_client()
+    class RetellService {
+        +get_retell_client()
         +initiate_call(to_number, from_number, call_id, call_type)
-        +generate_call_twiml(call)
-        +process_call_recording(recording_sid, recording_url, call)
+        +end_call(retell_call_id)
+        +update_webhook_url(agent_id, webhook_url)
     }
 
     class RAGService {
@@ -131,6 +131,7 @@ classDiagram
     Assessment "0..1" -- "0..1" Call : associated_with
 
     RAGService --> AnthropicClient : uses
+    Call --> RetellService : uses
 ```
 
 ## 🚀 Quick Start
@@ -222,7 +223,7 @@ This will:
 
 - Build and start all necessary containers
 - Configure the application environment
-- Make the application available at http://localhost:8080
+- Make the application available at http://localhost:8081
 
 #### Step 3: Initialize and seed the database
 
@@ -238,7 +239,7 @@ just db-seed   # Seed with sample data
 ./scripts/db_seed.sh
 ```
 
-After completing these steps, the platform will be available at http://localhost:8080
+After completing these steps, the platform will be available at http://localhost:8081
 
 ## 🔑 Default Login Credentials
 
@@ -303,25 +304,28 @@ The following commands are available through the Just command runner:
 
 | Command                  | Description                                                      |
 | ------------------------ | ---------------------------------------------------------------- |
-| `just up`                | Start the application                                            |
-| `just down`              | Stop the application                                             |
-| `just restart`           | Restart the application                                          |
+| `just install`           | Install dependencies using uv                                    |
+| `just dev`               | Quick development setup (build and start)                        |
+| `just prod`              | Quick production test setup                                      |
+| `just up`                | Start the development environment                                |
+| `just up-dev`            | Start development environment with logs                          |
+| `just up-prod`           | Start production test environment                                |
+| `just down`              | Stop all containers                                              |
 | `just logs`              | View application logs                                            |
-| `just db-init`           | Initialize the database (delete, initialize, then seed)          |
-| `just db-seed`           | Seed the database with sample data                               |
-| `just db-reset`          | Reset the database (drop, create, seed)                          |
-| `just protocols [type]`  | Initialize protocols (type: cancer, heart_failure, copd, or all) |
-| `just status`            | Check application status                                         |
-| `just test`              | Run tests                                                        |
-| `just test-http`         | Run HTTP-based tests (no browser dependencies)                   |
-| `just test-ui`           | Run UI tests without Selenium                                    |
-| `just test-dates`        | Run tests for date handling                                      |
-| `just test-autologout`   | Run auto-logout tests                                            |
-| `just test-all`          | Run all tests in sequence                                        |
-| `just build`             | Build the Docker container                                       |
-| `just push-to-dockerhub` | Build and push the Docker container to DockerHub                 |
-| `just push-to-quome`     | Pull the Docker container and push to Quome                      |
-| `just install`           | Install dependencies                                             |
+| `just ps`                | Show container status                                            |
+| `just shell`             | Start shell in web container                                     |
+| `just db`                | Connect to PostgreSQL database                                   |
+| `just db-reset`          | Reset database (development)                                     |
+| `just status`            | Show deployment status                                           |
+| `just test-api`          | Test API endpoints                                               |
+| `just test-webhook`      | Test webhook endpoint                                            |
+| `just build-dev`         | Build development containers                                      |
+| `just build-prod`        | Build production containers                                       |
+| `just build-all`         | Build both environments                                          |
+| `just deploy`            | Deploy to Quome Cloud                                            |
+| `just logs-quome`        | Check Quome Cloud logs                                           |
+| `just clean`             | Clean all Docker resources                                       |
+| `just help`              | Show help information                                            |
 
 ### Protocol Initialization
 
@@ -345,12 +349,14 @@ Each protocol includes:
 
 ## ✨ Features
 
-- **Secure Authentication**: Role-based access control with secure login for healthcare providers
+- **Secure Authentication**: Role-based access control with secure login and auto-logout for healthcare providers
 - **Protocol-Based Care**: Specialized protocols for cancer, heart failure, and COPD patients
-- **Telephony Integration**: Automated calls, voice assessments, and transcription via Twilio
+- **Telephony Integration**: Automated calls, voice assessments, and transcription via Retell.ai
 - **AI-Powered Guidance**: Uses RAG models to analyze patient information and suggest interventions
 - **HIPAA-Compliant**: Secure handling of sensitive patient data with audit logging
 - **Comprehensive Dashboard**: Real-time overview of patient status and upcoming tasks
+- **Error Tracking**: Production error monitoring with Sentry integration
+- **Auto-Webhook Configuration**: Automatic webhook URL updates for local/production environments
 
 ## 🔧 Technology Stack
 
@@ -359,21 +365,32 @@ Each protocol includes:
 - **Frontend**: HTML/CSS/JavaScript with Bootstrap 5
 - **API**: RESTful API with JWT authentication
 - **AI Integration**: Anthropic Claude for protocol guidance
-- **Telephony**: Twilio API for voice calls and transcription
-- **Deployment**: Docker containerization
+- **Telephony**: Retell.ai for voice calls and transcription
+- **Error Tracking**: Sentry for production monitoring
+- **Deployment**: Docker containerization with Quome Cloud support
 
 ## 🔐 Environment Variables
 
 Key environment variables to configure:
 
+### Core Application
 - `FLASK_APP`: Set to `run.py`
 - `FLASK_ENV`: Set to `development` or `production`
 - `SECRET_KEY`: Application secret key for security
 - `DATABASE_URL`: PostgreSQL connection string
+
+### Integrations
 - `ANTHROPIC_API_KEY`: API key for Claude AI integration
-- `TWILIO_ACCOUNT_SID`: Twilio account SID for telephony
-- `TWILIO_AUTH_TOKEN`: Twilio authentication token
-- `TWILIO_PHONE_NUMBER`: Twilio phone number for outgoing calls
+- `RETELLAI_API_KEY`: API key for Retell.ai telephony
+- `RETELLAI_LOCAL_AGENT_ID`: Agent ID for local development
+- `RETELLAI_REMOTE_AGENT_ID`: Agent ID for production
+- `RETELLAI_PHONE_NUMBER`: Phone number for outgoing calls
+
+### Error Tracking (Optional)
+- `SENTRY_DSN`: Sentry DSN for error tracking
+- `SENTRY_TRACES_SAMPLE_RATE`: Performance monitoring sample rate (0.0-1.0)
+- `ENVIRONMENT`: Current environment (development/staging/production)
+- `APP_VERSION`: Application version for tracking releases
 
 ## 📡 API Documentation
 
