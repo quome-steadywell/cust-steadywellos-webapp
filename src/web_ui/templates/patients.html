@@ -204,21 +204,45 @@
                             <label for="emergencyContactRelationship" class="form-label">Relationship</label>
                             <input type="text" id="emergencyContactRelationship" name="emergency_contact_relationship" class="form-control">
                         </div>
-                        
-                        <!-- Advance Directives -->
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="advanceDirective" name="advance_directive">
-                                <label class="form-check-label" for="advanceDirective">
-                                    Advance Directive on File
+                        <div class="col-md-12">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="emergencyContactCanShareMedicalInfo" name="emergency_contact_can_share_medical_info">
+                                <label class="form-check-label" for="emergencyContactCanShareMedicalInfo">
+                                    Allow sharing medical information with emergency contact
                                 </label>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-check">
+                        
+                        <!-- Advance Directives -->
+                        <div class="col-12 mt-3">
+                            <h5>Advance Directives</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="advanceDirectiveStatus" class="form-label">Advance Directive Status</label>
+                            <select id="advanceDirectiveStatus" name="advance_directive_status" class="form-select">
+                                <option value="not_started">Not Started</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="complete">Complete</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mt-4">
+                                <!-- Spacer for alignment -->
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check mt-4">
                                 <input class="form-check-input" type="checkbox" id="dnrStatus" name="dnr_status">
                                 <label class="form-check-label" for="dnrStatus">
                                     DNR Status
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="advanceDirective" name="advance_directive">
+                                <label class="form-check-label" for="advanceDirective">
+                                    Advance Directive on File
                                 </label>
                             </div>
                         </div>
@@ -370,7 +394,8 @@
                         <p><strong>Protocol:</strong> <span class="badge bg-info">${protocolDisplay}</span></p>
                         <p><strong>Primary Nurse:</strong> ${patient.primary_nurse ? patient.primary_nurse.full_name : 'Unassigned'}</p>
                         <p><strong>Allergies:</strong> ${patient.allergies || 'None'}</p>
-                        <p><strong>Advance Directive:</strong> ${patient.advance_directive ? 'Yes' : 'No'}</p>
+                        <p><strong>Advance Directive Status:</strong> ${patient.advance_directive_status ? patient.advance_directive_status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not Started'}</p>
+                        <p><strong>Advance Directive on File:</strong> ${patient.advance_directive ? 'Yes' : 'No'}</p>
                         <p><strong>DNR Status:</strong> ${patient.dnr_status ? 'Yes' : 'No'}</p>
                     </div>
                 </div>
@@ -382,6 +407,7 @@
                             <p><strong>Name:</strong> ${patient.emergency_contact_name}</p>
                             <p><strong>Phone:</strong> ${patient.emergency_contact_phone || 'Not provided'}</p>
                             <p><strong>Relationship:</strong> ${patient.emergency_contact_relationship || 'Not specified'}</p>
+                            <p><strong>Can Share Medical Info:</strong> ${patient.emergency_contact_can_share_medical_info ? 'Yes' : 'No'}</p>
                         ` : '<p>No emergency contact information provided</p>'}
                     </div>
                 </div>
@@ -514,6 +540,8 @@
             document.getElementById('emergencyContactName').value = patient.emergency_contact_name || '';
             document.getElementById('emergencyContactPhone').value = patient.emergency_contact_phone || '';
             document.getElementById('emergencyContactRelationship').value = patient.emergency_contact_relationship || '';
+            document.getElementById('emergencyContactCanShareMedicalInfo').checked = patient.emergency_contact_can_share_medical_info;
+            document.getElementById('advanceDirectiveStatus').value = patient.advance_directive_status || 'not_started';
             document.getElementById('advanceDirective').checked = patient.advance_directive;
             document.getElementById('dnrStatus').checked = patient.dnr_status;
             document.getElementById('notes').value = patient.notes || '';
@@ -551,6 +579,7 @@
         // Handle checkboxes separately (they won't be in FormData if unchecked)
         patientData['advance_directive'] = document.getElementById('advanceDirective').checked;
         patientData['dnr_status'] = document.getElementById('dnrStatus').checked;
+        patientData['emergency_contact_can_share_medical_info'] = document.getElementById('emergencyContactCanShareMedicalInfo').checked;
         
         // Make API request (POST for new, PUT for update)
         const url = isUpdate ? `/api/v1/patients/${patientId}` : '/api/v1/patients/';

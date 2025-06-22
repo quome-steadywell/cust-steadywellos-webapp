@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from src import db
 from src.models.user import User, UserRole
-from src.models.patient import Patient, Gender, ProtocolType
+from src.models.patient import Patient, Gender, ProtocolType, AdvanceDirectiveStatus
 from src.schemas.patient import PatientSchema, PatientListSchema, PatientUpdateSchema
 from src.utils.decorators import roles_required, audit_action
 from src.models.audit_log import AuditLog
@@ -111,7 +111,9 @@ def create_patient():
         emergency_contact_name=patient_data.get('emergency_contact_name'),
         emergency_contact_phone=patient_data.get('emergency_contact_phone'),
         emergency_contact_relationship=patient_data.get('emergency_contact_relationship'),
+        emergency_contact_can_share_medical_info=patient_data.get('emergency_contact_can_share_medical_info', False),
         advance_directive=patient_data.get('advance_directive', False),
+        advance_directive_status=AdvanceDirectiveStatus(patient_data.get('advance_directive_status', 'not_started')),
         dnr_status=patient_data.get('dnr_status', False),
         allergies=patient_data.get('allergies'),
         notes=patient_data.get('notes'),
@@ -178,8 +180,12 @@ def update_patient(id):
         patient.emergency_contact_phone = patient_data.get('emergency_contact_phone')
     if 'emergency_contact_relationship' in patient_data:
         patient.emergency_contact_relationship = patient_data.get('emergency_contact_relationship')
+    if 'emergency_contact_can_share_medical_info' in patient_data:
+        patient.emergency_contact_can_share_medical_info = patient_data.get('emergency_contact_can_share_medical_info', False)
     if 'advance_directive' in patient_data:
         patient.advance_directive = patient_data.get('advance_directive', False)
+    if 'advance_directive_status' in patient_data:
+        patient.advance_directive_status = AdvanceDirectiveStatus(patient_data.get('advance_directive_status', 'not_started'))
     if 'dnr_status' in patient_data:
         patient.dnr_status = patient_data.get('dnr_status', False)
     if 'allergies' in patient_data:

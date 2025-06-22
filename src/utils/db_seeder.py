@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, date
 from src import db
 from src.models.user import User, UserRole
-from src.models.patient import Patient, Gender, ProtocolType
+from src.models.patient import Patient, Gender, ProtocolType, AdvanceDirectiveStatus
 from src.models.protocol import Protocol
 from src.models.call import Call, CallStatus
 from src.models.assessment import Assessment, FollowUpPriority
@@ -589,7 +589,9 @@ def seed_database(test_scenario=None):
         emergency_contact_name="Jane Smith",
         emergency_contact_phone="555-222-3333",
         emergency_contact_relationship="Spouse",
+        emergency_contact_can_share_medical_info=True,
         advance_directive=True,
+        advance_directive_status=AdvanceDirectiveStatus.COMPLETE,
         dnr_status=True,
         allergies="None",
         notes="Patient prefers morning calls",
@@ -612,7 +614,9 @@ def seed_database(test_scenario=None):
         emergency_contact_name="Robert Johnson",
         emergency_contact_phone="555-444-5555",
         emergency_contact_relationship="Son",
+        emergency_contact_can_share_medical_info=True,
         advance_directive=True,
+        advance_directive_status=AdvanceDirectiveStatus.IN_PROGRESS,
         dnr_status=True,
         allergies="None",
         notes="Hard of hearing, speak clearly and loudly",
@@ -635,7 +639,9 @@ def seed_database(test_scenario=None):
         emergency_contact_name="Jane Smith",
         emergency_contact_phone="555-666-7777",
         emergency_contact_relationship="Daughter",
+        emergency_contact_can_share_medical_info=False,
         advance_directive=True,
+        advance_directive_status=AdvanceDirectiveStatus.COMPLETE,
         dnr_status=True,
         allergies="None known",
         notes="Uses oxygen 24/7, 2L via nasal cannula",
@@ -659,7 +665,9 @@ def seed_database(test_scenario=None):
         emergency_contact_name="Sarah Jarvis",
         emergency_contact_phone="555-777-8888",
         emergency_contact_relationship="Spouse",
+        emergency_contact_can_share_medical_info=True,
         advance_directive=False,
+        advance_directive_status=AdvanceDirectiveStatus.NOT_STARTED,
         dnr_status=False,
         allergies="None known",
         notes="Very active individual, monitors wellness and fitness metrics",

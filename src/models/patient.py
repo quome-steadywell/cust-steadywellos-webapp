@@ -17,6 +17,11 @@ class ProtocolType(enum.Enum):
     FIT = "fit"
     GENERAL = "general"
 
+class AdvanceDirectiveStatus(enum.Enum):
+    NOT_STARTED = "not_started"
+    IN_PROGRESS = "in_progress"
+    COMPLETE = "complete"
+
 class Patient(db.Model):
     """Patient model for storing patient related details"""
     __tablename__ = "patients"
@@ -37,7 +42,9 @@ class Patient(db.Model):
     emergency_contact_name = Column(String(200), nullable=True)
     emergency_contact_phone = Column(String(20), nullable=True)
     emergency_contact_relationship = Column(String(50), nullable=True)
+    emergency_contact_can_share_medical_info = Column(Boolean, default=False)
     advance_directive = Column(Boolean, default=False)
+    advance_directive_status = Column(Enum(AdvanceDirectiveStatus), default=AdvanceDirectiveStatus.NOT_STARTED)
     dnr_status = Column(Boolean, default=False)
     allergies = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)

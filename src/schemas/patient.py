@@ -1,5 +1,5 @@
 from marshmallow import Schema, fields, validate, validates, ValidationError, post_load
-from src.models.patient import Gender, ProtocolType
+from src.models.patient import Gender, ProtocolType, AdvanceDirectiveStatus
 
 class PatientSchema(Schema):
     """Schema for serializing and deserializing Patient model instances"""
@@ -19,7 +19,9 @@ class PatientSchema(Schema):
     emergency_contact_name = fields.Str()
     emergency_contact_phone = fields.Str()
     emergency_contact_relationship = fields.Str()
+    emergency_contact_can_share_medical_info = fields.Bool()
     advance_directive = fields.Bool()
+    advance_directive_status = fields.Str(validate=validate.OneOf([status.value for status in AdvanceDirectiveStatus]))
     dnr_status = fields.Bool()
     allergies = fields.Str()
     notes = fields.Str()
