@@ -115,7 +115,7 @@ up-dev:
     @bash -c "set -a && source .env && set +a && RUNTIME_ENV=local uv run python scripts/update_retell_webhook.py" || echo "⚠️  Webhook update skipped (Python/script not available)"
     @echo "🚀 Starting development environment"
     @just _command_wrapper "docker-compose -f docker-compose-dev.yml up -d"
-    @echo "✅ Dev environment started at http://localhost:8080"
+    @echo "✅ Dev environment started at http://localhost:8081"
     @echo "📋 View logs: just logs"
 
 # Start production test environment
