@@ -66,9 +66,14 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     from src.api.routes import web_bp
     app.register_blueprint(web_bp)
 
-    # Register error handlers
+    # Initialize Sentry error tracking (must be done early)
+    from src.utils.sentry_integration import init_sentry, register_sentry_error_handlers
+    init_sentry(app)
+
+    # Register error handlers (Sentry-enhanced)
     from src.utils.error_handlers import register_error_handlers
     register_error_handlers(app)
+    register_sentry_error_handlers(app)
 
     # Setup application logging (stdout/stderr only)
     setup_logger(app)
