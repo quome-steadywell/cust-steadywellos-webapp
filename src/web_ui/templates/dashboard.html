@@ -13,9 +13,9 @@
             <button type="button" class="btn btn-outline-primary" id="refresh-dashboard">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
-            <a href="/patients/new" class="btn btn-primary">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPatientModal">
                 <i class="fas fa-user-plus"></i> New Patient
-            </a>
+            </button>
         </div>
     </div>
 </div>
@@ -167,6 +167,165 @@
                 <div class="list-group list-group-flush" id="urgent-followups-list">
                     <div class="list-group-item text-center py-4">Loading...</div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Patient Modal -->
+<div class="modal fade" id="addPatientModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="patientModalTitle">Add New Patient</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="patientForm">
+                    <input type="hidden" id="patientId">
+                    <div class="row g-3">
+                        <!-- Basic Information -->
+                        <div class="col-md-4">
+                            <label for="mrn" class="form-label">MRN*</label>
+                            <input type="text" id="mrn" name="mrn" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="firstName" class="form-label">First Name*</label>
+                            <input type="text" id="firstName" name="first_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="lastName" class="form-label">Last Name*</label>
+                            <input type="text" id="lastName" name="last_name" class="form-control" required>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="dob" class="form-label">Date of Birth*</label>
+                            <input type="date" id="dob" name="date_of_birth" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="gender" class="form-label">Gender*</label>
+                            <select id="gender" name="gender" class="form-select" required>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="phoneNumber" class="form-label">Phone Number*</label>
+                            <input type="tel" id="phoneNumber" name="phone_number" class="form-control" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" id="address" name="address" class="form-control">
+                        </div>
+                        
+                        <!-- Clinical Information -->
+                        <div class="col-md-6">
+                            <label for="primaryDiagnosis" class="form-label">Primary Diagnosis*</label>
+                            <input type="text" id="primaryDiagnosis" name="primary_diagnosis" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="secondaryDiagnoses" class="form-label">Secondary Diagnoses</label>
+                            <input type="text" id="secondaryDiagnoses" name="secondary_diagnoses" class="form-control">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="protocolType" class="form-label">Protocol Type*</label>
+                            <select id="protocolType" name="protocol_type" class="form-select" required>
+                                <option value="cancer">Cancer</option>
+                                <option value="heart_failure">Heart Failure</option>
+                                <option value="copd">COPD</option>
+                                <option value="general">General</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="primaryNurseId" class="form-label">Primary Nurse*</label>
+                            <select id="primaryNurseId" name="primary_nurse_id" class="form-select" required>
+                                <!-- Will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label for="allergies" class="form-label">Allergies</label>
+                            <input type="text" id="allergies" name="allergies" class="form-control">
+                        </div>
+                        
+                        <!-- Emergency Contact -->
+                        <div class="col-12 mt-3">
+                            <h5>Emergency Contact</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="emergencyContactName" class="form-label">Name</label>
+                            <input type="text" id="emergencyContactName" name="emergency_contact_name" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="emergencyContactPhone" class="form-label">Phone</label>
+                            <input type="tel" id="emergencyContactPhone" name="emergency_contact_phone" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="emergencyContactRelationship" class="form-label">Relationship</label>
+                            <input type="text" id="emergencyContactRelationship" name="emergency_contact_relationship" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="emergencyContactCanShareMedicalInfo" name="emergency_contact_can_share_medical_info">
+                                <label class="form-check-label" for="emergencyContactCanShareMedicalInfo">
+                                    Allow sharing medical information with emergency contact
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Advance Directives -->
+                        <div class="col-12 mt-3">
+                            <h5>Advance Directives</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="advanceDirectiveStatus" class="form-label">Advance Directive Status</label>
+                            <select id="advanceDirectiveStatus" name="advance_directive_status" class="form-select">
+                                <option value="not_started">Not Started</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="complete">Complete</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mt-4">
+                                <!-- Spacer for alignment -->
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="dnrStatus" name="dnr_status">
+                                <label class="form-check-label" for="dnrStatus">
+                                    DNR Status
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="advanceDirective" name="advance_directive">
+                                <label class="form-check-label" for="advanceDirective">
+                                    Advance Directive on File
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes -->
+                        <div class="col-12">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="savePatientBtn">Save</button>
             </div>
         </div>
     </div>
@@ -453,12 +612,90 @@
         }
     }
     
+    // Fetch and populate nurses dropdown
+    function loadNurses() {
+        authFetch('/api/v1/users/?role=nurse')
+        .then(response => response.json())
+        .then(nurses => {
+            const nurseSelect = document.getElementById('primaryNurseId');
+            nurseSelect.innerHTML = '<option value="">Select a nurse</option>';
+            
+            nurses.forEach(nurse => {
+                const option = document.createElement('option');
+                option.value = nurse.id;
+                option.textContent = nurse.full_name;
+                nurseSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching nurses:', error);
+            alert('Failed to load nurse list');
+        });
+    }
+    
+    // Save patient (create only, no update on dashboard)
+    function savePatient() {
+        // Collect form data
+        const formData = new FormData(document.getElementById('patientForm'));
+        const patientData = {};
+        
+        formData.forEach((value, key) => {
+            patientData[key] = value;
+        });
+        
+        // Handle checkboxes separately (they won't be in FormData if unchecked)
+        patientData['advance_directive'] = document.getElementById('advanceDirective').checked;
+        patientData['dnr_status'] = document.getElementById('dnrStatus').checked;
+        patientData['emergency_contact_can_share_medical_info'] = document.getElementById('emergencyContactCanShareMedicalInfo').checked;
+        
+        // Make API request (POST for new patient)
+        authFetch('/api/v1/patients/', {
+            method: 'POST',
+            body: JSON.stringify(patientData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(result => {
+            // Close modal and refresh dashboard
+            bootstrap.Modal.getInstance(document.getElementById('addPatientModal')).hide();
+            loadDashboardData(); // Refresh dashboard data
+            alert('Patient added successfully!');
+            
+            // Reset form for next use
+            document.getElementById('patientForm').reset();
+        })
+        .catch(error => {
+            console.error('Error saving patient:', error);
+            let errorMessage = 'Failed to save patient data.';
+            
+            if (error.messages) {
+                errorMessage += ' ' + Object.values(error.messages).flat().join(', ');
+            }
+            
+            alert(errorMessage);
+        });
+    }
+
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
         loadDashboardData();
+        loadNurses(); // Load nurses for the modal
         
         // Refresh button handler
         document.getElementById('refresh-dashboard').addEventListener('click', loadDashboardData);
+        
+        // Save patient button handler
+        document.getElementById('savePatientBtn').addEventListener('click', savePatient);
+        
+        // Reset form when modal is opened
+        document.getElementById('addPatientModal').addEventListener('show.bs.modal', function() {
+            document.getElementById('patientForm').reset();
+            document.getElementById('patientModalTitle').textContent = 'Add New Patient';
+        });
     });
 </script>
 {% endblock %}
