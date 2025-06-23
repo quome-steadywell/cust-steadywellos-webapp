@@ -5,9 +5,27 @@ All notable changes to the SteadyWell Palliative Care Platform will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2025-06-23
 
 ### Added
+- **Advance Directive Management Enhancement**
+  - New advance directive status dropdown with options: "Not Started", "In Progress", "Complete"
+  - Enhanced patient form layout with restructured advance directive section
+  - Maintains existing advance directive on file checkbox for backward compatibility
+  - Database schema updated with AdvanceDirectiveStatus enum type
+
+- **Emergency Contact Medical Information Sharing**
+  - New checkbox to control medical information sharing with emergency contacts
+  - Updated patient model and API to handle emergency contact permissions
+  - Enhanced patient details view to display sharing preferences
+  - Database seeder updated with appropriate default values
+
+- **Dashboard Patient Creation Modal**
+  - Added complete patient creation modal functionality to dashboard
+  - "+New Patient" button now opens full patient form modal
+  - Identical functionality to patients page "Add Patient" feature
+  - Streamlined workflow for patient management from dashboard
+
 - **Sentry Error Tracking Integration**
   - Comprehensive error monitoring for production environments
   - Automatic exception capture with stack traces
@@ -21,8 +39,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Sentry configuration documentation
   - Updated available Just commands
   - Improved environment variable documentation
+  - Added comprehensive schema documentation
 
 ### Changed
+- **Patient Form Restructuring**
+  - Reorganized advance directive section layout for better usability
+  - Improved form flow with logical grouping of related fields
+  - Enhanced visual hierarchy with proper spacing and alignment
+
+- **Database Schema Enhancements**
+  - Added emergency_contact_can_share_medical_info boolean field
+  - Added advance_directive_status enum field with NOT_STARTED default
+  - Updated all seed data to include new field values
+  - Maintained backward compatibility with existing data
+
+- **API Improvements**
+  - Enhanced patient creation and update endpoints
+  - Added validation for new advance directive status field
+  - Updated patient schemas to handle new fields
+  - Improved error handling and validation messages
+
 - Migrated from Twilio to Retell.ai in documentation
 - Updated architecture diagram to reflect current integrations
 - Improved Justfile with new development commands
@@ -31,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed missing sentry_sdk module causing application crash
 - Corrected environment variable references in documentation
+- Resolved form handling for checkbox states in patient creation
+- Fixed modal form reset functionality on dashboard
 
 ## [1.2.0] - 2025-06-16
 
