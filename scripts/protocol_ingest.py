@@ -26,6 +26,7 @@ from src.services.anthropic_client import get_anthropic_client
 from src import create_app, db
 from src.models.protocol import Protocol
 from src.models.patient import ProtocolType
+
 # Import functions from rag_service instead of non-existent RAGService class
 from src.services.rag_service import get_anthropic_client
 
@@ -48,21 +49,23 @@ PROTOCOL_DEFINITIONS = {
         "description": "Protocol for patients with advanced COPD, focusing on respiratory symptoms, oxygen use, breathlessness, and breathing techniques.",
         "protocol_type": ProtocolType.COPD,
         "version": "1.0.0",
-    }
+    },
 }
+
 
 def extract_text_from_pdf(pdf_path):
     """Extract text from a PDF file."""
     print(f"Extracting text from {pdf_path}...")
-    
+
     loader = PyPDFLoader(pdf_path)
     pages = loader.load()
-    
+
     text_content = ""
     for page in pages:
         text_content += page.page_content + "\n\n"
-    
+
     return text_content
+
 
 def chunk_text(text):
     """Split text into manageable chunks."""
@@ -73,9 +76,10 @@ def chunk_text(text):
     )
     return text_splitter.split_text(text)
 
+
 def create_questions_for_protocol(protocol_type, client):
     """Create standardized questions for a protocol type."""
-    
+
     system_prompt = """
     You are a specialized palliative care protocol designer. Your task is to create a structured set of assessment questions for a telephone triage protocol.
     
@@ -103,7 +107,7 @@ def create_questions_for_protocol(protocol_type, client):
     
     Include approximately 15-20 questions that cover the most important aspects of assessment.
     """
-    
+
     if protocol_type == ProtocolType.CANCER:
         user_prompt = """
         Create a set of telephone triage assessment questions for palliative care patients with advanced cancer. 
@@ -121,7 +125,7 @@ def create_questions_for_protocol(protocol_type, client):
         Each question should help assess if the patient needs immediate intervention, a change in care plan, or reassurance.
         Format the output as described in the system prompt.
         """
-    
+
     elif protocol_type == ProtocolType.HEART_FAILURE:
         user_prompt = """
         Create a set of telephone triage assessment questions for palliative care patients with advanced heart failure.
@@ -140,7 +144,7 @@ def create_questions_for_protocol(protocol_type, client):
         Each question should help assess if the patient needs immediate intervention, a change in care plan, or reassurance.
         Format the output as described in the system prompt.
         """
-    
+
     elif protocol_type == ProtocolType.COPD:
         user_prompt = """
         Create a set of telephone triage assessment questions for palliative care patients with advanced COPD.
@@ -159,24 +163,22 @@ def create_questions_for_protocol(protocol_type, client):
         Each question should help assess if the patient needs immediate intervention, a change in care plan, or reassurance.
         Format the output as described in the system prompt.
         """
-    
+
     print(f"Generating questions for {protocol_type.value} protocol...")
-    
+
     # Get response using our custom wrapper
     content = client.call_model(
         model="claude-3-sonnet-20240229",  # More widely available model
         system=system_prompt,
         max_tokens=4000,
-        messages=[
-            {"role": "user", "content": user_prompt}
-        ]
+        messages=[{"role": "user", "content": user_prompt}],
     )
-    
+
     # Extract JSON from the response
     try:
         # Find JSON array in content - sometimes Claude adds explanatory text
-        json_start = content.find('[')
-        json_end = content.rfind(']') + 1
+        json_start = content.find("[")
+        json_end = content.rfind("]") + 1
         if json_start >= 0 and json_end > json_start:
             json_content = content[json_start:json_end]
             questions = json.loads(json_content)
@@ -190,9 +192,10 @@ def create_questions_for_protocol(protocol_type, client):
         print(content)
         return []
 
+
 def create_interventions_for_protocol(protocol_type, client):
     """Create standardized interventions for a protocol type."""
-    
+
     system_prompt = """
     You are a specialized palliative care protocol designer. Your task is to create a structured set of interventions for a palliative care protocol.
     
@@ -218,7 +221,7 @@ def create_interventions_for_protocol(protocol_type, client):
     
     Include approximately 15-20 interventions covering the most important aspects of care.
     """
-    
+
     if protocol_type == ProtocolType.CANCER:
         user_prompt = """
         Create a set of interventions for palliative care patients with advanced cancer.
@@ -236,7 +239,7 @@ def create_interventions_for_protocol(protocol_type, client):
         Include interventions with varying priorities from routine management to urgent intervention.
         Format the output as described in the system prompt.
         """
-    
+
     elif protocol_type == ProtocolType.HEART_FAILURE:
         user_prompt = """
         Create a set of interventions for palliative care patients with advanced heart failure.
@@ -254,7 +257,7 @@ def create_interventions_for_protocol(protocol_type, client):
         Include interventions with varying priorities from routine management to urgent intervention.
         Format the output as described in the system prompt.
         """
-    
+
     elif protocol_type == ProtocolType.COPD:
         user_prompt = """
         Create a set of interventions for palliative care patients with advanced COPD.
@@ -273,24 +276,22 @@ def create_interventions_for_protocol(protocol_type, client):
         Include interventions with varying priorities from routine management to urgent intervention.
         Format the output as described in the system prompt.
         """
-    
+
     print(f"Generating interventions for {protocol_type.value} protocol...")
-    
+
     # Get response using our custom wrapper
     content = client.call_model(
         model="claude-3-sonnet-20240229",  # More widely available model
         system=system_prompt,
         max_tokens=4000,
-        messages=[
-            {"role": "user", "content": user_prompt}
-        ]
+        messages=[{"role": "user", "content": user_prompt}],
     )
-    
+
     # Extract JSON from the response
     try:
         # Find JSON array in content
-        json_start = content.find('[')
-        json_end = content.rfind(']') + 1
+        json_start = content.find("[")
+        json_end = content.rfind("]") + 1
         if json_start >= 0 and json_end > json_start:
             json_content = content[json_start:json_end]
             interventions = json.loads(json_content)
@@ -304,9 +305,10 @@ def create_interventions_for_protocol(protocol_type, client):
         print(content)
         return []
 
+
 def create_decision_tree(protocol_type, questions, interventions, client):
     """Create a decision tree based on questions and interventions."""
-    
+
     system_prompt = """
     You are a specialized palliative care protocol designer. Your task is to create a decision tree that connects assessment questions to appropriate interventions.
     
@@ -330,11 +332,11 @@ def create_decision_tree(protocol_type, questions, interventions, client):
     
     Create approximately 15-20 decision nodes that cover the most important symptom pathways.
     """
-    
+
     # Prepare context with questions and interventions
     questions_json = json.dumps(questions, indent=2)
     interventions_json = json.dumps(interventions, indent=2)
-    
+
     user_prompt = f"""
     Create a decision tree for the {protocol_type.value} protocol that connects these assessment questions to appropriate interventions.
     
@@ -358,24 +360,22 @@ def create_decision_tree(protocol_type, questions, interventions, client):
     
     Format the output as described in the system prompt.
     """
-    
+
     print(f"Generating decision tree for {protocol_type.value} protocol...")
-    
+
     # Get response using our custom wrapper
     content = client.call_model(
         model="claude-3-sonnet-20240229",  # More widely available model
         system=system_prompt,
         max_tokens=4000,
-        messages=[
-            {"role": "user", "content": user_prompt}
-        ]
+        messages=[{"role": "user", "content": user_prompt}],
     )
-    
+
     # Extract JSON from the response
     try:
         # Find JSON array in content
-        json_start = content.find('[')
-        json_end = content.rfind(']') + 1
+        json_start = content.find("[")
+        json_end = content.rfind("]") + 1
         if json_start >= 0 and json_end > json_start:
             json_content = content[json_start:json_end]
             decision_tree = json.loads(json_content)
@@ -389,34 +389,43 @@ def create_decision_tree(protocol_type, questions, interventions, client):
         print(content)
         return []
 
+
 def create_protocol(protocol_type, anthropic_client):
     """Create a full protocol entry of the specified type."""
-    
-    protocol_def = next((p for p in PROTOCOL_DEFINITIONS.values() 
-                         if p["protocol_type"] == protocol_type), None)
-    
+
+    protocol_def = next(
+        (
+            p
+            for p in PROTOCOL_DEFINITIONS.values()
+            if p["protocol_type"] == protocol_type
+        ),
+        None,
+    )
+
     if not protocol_def:
         print(f"No protocol definition found for {protocol_type}")
         return None
-    
+
     print(f"Creating {protocol_type.value} protocol...")
-    
+
     # Create protocol components
     questions = create_questions_for_protocol(protocol_type, anthropic_client)
     if not questions:
         print(f"Failed to create questions for {protocol_type.value}")
         return None
-    
+
     interventions = create_interventions_for_protocol(protocol_type, anthropic_client)
     if not interventions:
         print(f"Failed to create interventions for {protocol_type.value}")
         return None
-    
-    decision_tree = create_decision_tree(protocol_type, questions, interventions, anthropic_client)
+
+    decision_tree = create_decision_tree(
+        protocol_type, questions, interventions, anthropic_client
+    )
     if not decision_tree:
         print(f"Failed to create decision tree for {protocol_type.value}")
         return None
-    
+
     # Create protocol object
     protocol = Protocol(
         name=protocol_def["name"],
@@ -428,10 +437,11 @@ def create_protocol(protocol_type, anthropic_client):
         interventions=interventions,
         is_active=True,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
-    
+
     return protocol
+
 
 def save_protocol(protocol):
     """Save protocol to database."""
@@ -445,52 +455,71 @@ def save_protocol(protocol):
         print(f"Error saving protocol: {e}")
         return False
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Ingest protocol PDFs and create database entries')
-    parser.add_argument('--data-dir', type=str, default='../data',
-                        help='Directory containing protocol PDF files')
-    parser.add_argument('--protocol-type', type=str, choices=['cancer', 'heart_failure', 'copd', 'all'],
-                        default='all', help='Protocol type to create')
+    parser = argparse.ArgumentParser(
+        description="Ingest protocol PDFs and create database entries"
+    )
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        default="../data",
+        help="Directory containing protocol PDF files",
+    )
+    parser.add_argument(
+        "--protocol-type",
+        type=str,
+        choices=["cancer", "heart_failure", "copd", "all"],
+        default="all",
+        help="Protocol type to create",
+    )
     args = parser.parse_args()
-    
+
     # Initialize app context
     app = create_app()
     with app.app_context():
         # Get Anthropic API key from app config
-        anthropic_api_key = app.config.get('ANTHROPIC_API_KEY')
+        anthropic_api_key = app.config.get("ANTHROPIC_API_KEY")
         if not anthropic_api_key:
             print("ERROR: ANTHROPIC_API_KEY not found in app configuration")
             sys.exit(1)
-        
+
         # Initialize our custom Anthropic client wrapper
         try:
             client = get_anthropic_client(anthropic_api_key)
         except Exception as e:
             print(f"ERROR: Failed to initialize Anthropic client: {e}")
             sys.exit(1)
-        
-        if args.protocol_type == 'all':
-            protocol_types = [ProtocolType.CANCER, ProtocolType.HEART_FAILURE, ProtocolType.COPD]
+
+        if args.protocol_type == "all":
+            protocol_types = [
+                ProtocolType.CANCER,
+                ProtocolType.HEART_FAILURE,
+                ProtocolType.COPD,
+            ]
         else:
             protocol_types = [ProtocolType(args.protocol_type)]
-        
+
         for protocol_type in protocol_types:
             # Check if protocol already exists
             existing = Protocol.query.filter_by(
                 protocol_type=protocol_type,
-                version=PROTOCOL_DEFINITIONS[protocol_type.value]["version"]
+                version=PROTOCOL_DEFINITIONS[protocol_type.value]["version"],
             ).first()
-            
+
             if existing:
-                print(f"Protocol {protocol_type.value} v{existing.version} already exists (ID: {existing.id})")
+                print(
+                    f"Protocol {protocol_type.value} v{existing.version} already exists (ID: {existing.id})"
+                )
                 continue
-            
+
             # Create and save protocol
             protocol = create_protocol(protocol_type, client)
             if protocol:
                 save_protocol(protocol)
             else:
                 print(f"Failed to create {protocol_type.value} protocol")
+
 
 if __name__ == "__main__":
     main()

@@ -69,25 +69,41 @@ def handle_webhook():
         if webhook_data:
             logger.info("WEBHOOK PAYLOAD (Full JSON):")
             logger.info(json.dumps(webhook_data, indent=2))
-            
+
             # Log key fields for quick debugging
             logger.info("KEY WEBHOOK FIELDS:")
             logger.info(f"  - call_id: {webhook_data.get('call_id', 'NOT FOUND')}")
-            logger.info(f"  - call_status: {webhook_data.get('call_status', 'NOT FOUND')}")
+            logger.info(
+                f"  - call_status: {webhook_data.get('call_status', 'NOT FOUND')}"
+            )
             logger.info(f"  - to_number: {webhook_data.get('to_number', 'NOT FOUND')}")
-            logger.info(f"  - from_number: {webhook_data.get('from_number', 'NOT FOUND')}")
+            logger.info(
+                f"  - from_number: {webhook_data.get('from_number', 'NOT FOUND')}"
+            )
             logger.info(f"  - metadata: {webhook_data.get('metadata', {})}")
-            logger.info(f"  - recording_url: {webhook_data.get('recording_url', 'NOT FOUND')}")
-            logger.info(f"  - public_log_url: {webhook_data.get('public_log_url', 'NOT FOUND')}")
-            
+            logger.info(
+                f"  - recording_url: {webhook_data.get('recording_url', 'NOT FOUND')}"
+            )
+            logger.info(
+                f"  - public_log_url: {webhook_data.get('public_log_url', 'NOT FOUND')}"
+            )
+
             # Log call analysis if present
             if "call_analysis" in webhook_data:
                 call_analysis = webhook_data.get("call_analysis", {})
                 logger.info("CALL ANALYSIS DATA:")
-                logger.info(f"  - call_successful: {call_analysis.get('call_successful', 'NOT FOUND')}")
-                logger.info(f"  - user_sentiment: {call_analysis.get('user_sentiment', 'NOT FOUND')}")
-                logger.info(f"  - in_voicemail: {call_analysis.get('in_voicemail', 'NOT FOUND')}")
-                logger.info(f"  - custom_analysis_data: {call_analysis.get('custom_analysis_data', {})}")
+                logger.info(
+                    f"  - call_successful: {call_analysis.get('call_successful', 'NOT FOUND')}"
+                )
+                logger.info(
+                    f"  - user_sentiment: {call_analysis.get('user_sentiment', 'NOT FOUND')}"
+                )
+                logger.info(
+                    f"  - in_voicemail: {call_analysis.get('in_voicemail', 'NOT FOUND')}"
+                )
+                logger.info(
+                    f"  - custom_analysis_data: {call_analysis.get('custom_analysis_data', {})}"
+                )
 
             # Enhanced webhook logging
             log_webhook_payload(
