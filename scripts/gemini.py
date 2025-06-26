@@ -11,24 +11,106 @@ import shutil
 from pathlib import Path
 
 # Directories to exclude from traversal
-EXCLUDED_DIRS = ['.github', '.venv', 'legacy', '.git', '__pycache__', 'node_modules', 'dist', 'build', '.pytest_cache', '.mypy_cache', '.tox', 'venv', 'env', '.idea', 'gemini-archive', '.vscode', '.DS_Store']
+EXCLUDED_DIRS = [
+    ".github",
+    ".venv",
+    "legacy",
+    ".git",
+    "__pycache__",
+    "node_modules",
+    "dist",
+    "build",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".tox",
+    "venv",
+    "env",
+    ".idea",
+    "gemini-archive",
+    ".vscode",
+    ".DS_Store",
+]
 
 # File patterns to exclude (using basename)
-EXCLUDED_FILE_PATTERNS = ['gemini-', '.pyc', '.pyo', '.so', '.o', '.a', '.lib', '.dll', '.exe', '.bin', '.lock', '.DS_Store']
+EXCLUDED_FILE_PATTERNS = [
+    "gemini-",
+    ".pyc",
+    ".pyo",
+    ".so",
+    ".o",
+    ".a",
+    ".lib",
+    ".dll",
+    ".exe",
+    ".bin",
+    ".lock",
+    ".DS_Store",
+]
 
 # Binary file extensions to exclude
-BINARY_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico', '.pdf', '.zip', '.tar', '.gz', '.rar', '.7z', '.mp3', '.mp4', '.avi', '.mov', '.wmv', '.flv', '.woff', '.woff2', '.ttf', '.eot', '.otf', '.pyc', '.pyo', '.so', '.o', '.a', '.lib', '.dll', '.exe', '.bin', '.db', '.sqlite', '.pickle', '.pkl', '.npy', '.npz', '.excalidraw', '.xml']
+BINARY_EXTENSIONS = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".bmp",
+    ".ico",
+    ".pdf",
+    ".zip",
+    ".tar",
+    ".gz",
+    ".rar",
+    ".7z",
+    ".mp3",
+    ".mp4",
+    ".avi",
+    ".mov",
+    ".wmv",
+    ".flv",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".otf",
+    ".pyc",
+    ".pyo",
+    ".so",
+    ".o",
+    ".a",
+    ".lib",
+    ".dll",
+    ".exe",
+    ".bin",
+    ".db",
+    ".sqlite",
+    ".pickle",
+    ".pkl",
+    ".npy",
+    ".npz",
+    ".excalidraw",
+    ".xml",
+]
 
 # Maximum file size to process (in bytes) - 100KB to keep output small
 MAX_FILE_SIZE = 100 * 1024
 
 # Large text files to specifically exclude
-EXCLUDED_FILES = ['package-lock.json', 'yarn.lock', 'poetry.lock', 'Pipfile.lock', 'composer.lock', 'uv.lock', 'tags']
+EXCLUDED_FILES = [
+    "package-lock.json",
+    "yarn.lock",
+    "poetry.lock",
+    "Pipfile.lock",
+    "composer.lock",
+    "uv.lock",
+    "tags",
+]
+
 
 def should_include_dir(dir_path):
     """Check if directory should be included in traversal."""
     dir_name = os.path.basename(dir_path)
     return dir_name not in EXCLUDED_DIRS
+
 
 def should_include_file(file_path):
     """Check if file should be included in output."""
@@ -61,6 +143,7 @@ def should_include_file(file_path):
 
     # Include all files that aren't explicitly excluded
     return True
+
 
 def main():
     # Get the project root directory (assuming script is in scripts/ directory)
@@ -118,13 +201,13 @@ def main():
 
     print(f"Found {total_files} files to process")
 
-    with open(output_file, 'w', encoding='utf-8') as out_file:
+    with open(output_file, "w", encoding="utf-8") as out_file:
         for rel_path, abs_path in files_to_process:
             try:
                 # Try to detect if file is binary
                 is_binary = False
                 try:
-                    with open(abs_path, 'r', encoding='utf-8') as test_file:
+                    with open(abs_path, "r", encoding="utf-8") as test_file:
                         test_file.read(1024)  # Try to read a small chunk
                 except UnicodeDecodeError:
                     is_binary = True
@@ -134,7 +217,7 @@ def main():
                     skipped_files += 1
                     continue
 
-                with open(abs_path, 'r', encoding='utf-8') as in_file:
+                with open(abs_path, "r", encoding="utf-8") as in_file:
                     content = in_file.read()
 
                 # Write file separator with relative path
@@ -144,9 +227,9 @@ def main():
                 out_file.write(content)
 
                 # Add newlines for separation
-                if not content.endswith('\n'):
-                    out_file.write('\n')
-                out_file.write('\n')
+                if not content.endswith("\n"):
+                    out_file.write("\n")
+                out_file.write("\n")
 
                 processed_files += 1
                 if processed_files % 10 == 0:
@@ -156,16 +239,19 @@ def main():
                 print(f"Error processing {rel_path}: {e}")
                 skipped_files += 1
 
-    print(f"Completed! Processed {processed_files} files, skipped {skipped_files} files")
+    print(
+        f"Completed! Processed {processed_files} files, skipped {skipped_files} files"
+    )
     print(f"Output saved to {output_file} with timestamp {timestamp}")
-    
+
     # Show output file size
     output_size = os.path.getsize(output_file)
     print(f"Output file size: {output_size / (1024 * 1024):.2f} MB")
-    
+
     if output_size > 100 * 1024 * 1024:
         print(f"⚠️  WARNING: Output file exceeds 100 MB limit for Gemini!")
         print(f"Consider reducing MAX_FILE_SIZE or excluding more files.")
+
 
 if __name__ == "__main__":
     main()

@@ -10,7 +10,13 @@ from src.models.patient import Patient
 from src.models.protocol import Protocol
 from src.core.anthropic_client import get_anthropic_client
 
-def process_assessment(patient: Patient, protocol: Protocol, symptoms: Dict[str, float], responses: Dict[str, Any]) -> str:
+
+def process_assessment(
+    patient: Patient,
+    protocol: Protocol,
+    symptoms: Dict[str, float],
+    responses: Dict[str, Any],
+) -> str:
     """Generate AI guidance for a patient assessment using RAG"""
     try:
         # Build prompt context
@@ -22,24 +28,24 @@ def process_assessment(patient: Patient, protocol: Protocol, symptoms: Dict[str,
                 "gender": patient.gender.value,
                 "primary_diagnosis": patient.primary_diagnosis,
                 "secondary_diagnoses": patient.secondary_diagnoses,
-                "protocol_type": patient.protocol_type.value
+                "protocol_type": patient.protocol_type.value,
             },
             "protocol": {
                 "name": protocol.name,
                 "type": protocol.protocol_type.value,
-                "version": protocol.version
+                "version": protocol.version,
             },
             "symptoms": symptoms,
-            "responses": responses
+            "responses": responses,
         }
-        
+
         # Get protocol details as reference
         protocol_json = {
             "questions": protocol.questions,
             "decision_tree": protocol.decision_tree,
-            "interventions": protocol.interventions
+            "interventions": protocol.interventions,
         }
-        
+
         # Build the prompt
         prompt = f"""
         You are a palliative care specialist assistant. You are helping analyze a patient assessment for a patient with {patient.primary_diagnosis}.
@@ -70,20 +76,19 @@ def process_assessment(patient: Patient, protocol: Protocol, symptoms: Dict[str,
         
         Please be concise and focus on practical, evidence-based guidance. Your response should be in a clinical note format suitable for documentation.
         """
-        
+
         # Call Anthropic API using our custom wrapper
-        client = get_anthropic_client(current_app.config.get('ANTHROPIC_API_KEY'))
+        client = get_anthropic_client(current_app.config.get("ANTHROPIC_API_KEY"))
         return client.call_model(
             model="claude-3-sonnet-20240229",  # More widely available model
             max_tokens=1000,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            messages=[{"role": "user", "content": prompt}],
         )
-        
+
     except Exception as e:
         current_app.logger.error(f"Error in RAG service: {str(e)}")
         return f"Error generating guidance: {str(e)}"
+
 
 def generate_call_script(patient: Patient, protocol: Protocol, call_type: str) -> str:
     """Generate a call script for a scheduled call based on patient and protocol"""
@@ -95,16 +100,16 @@ def generate_call_script(patient: Patient, protocol: Protocol, call_type: str) -
                 "age": patient.age,
                 "gender": patient.gender.value,
                 "primary_diagnosis": patient.primary_diagnosis,
-                "protocol_type": patient.protocol_type.value
+                "protocol_type": patient.protocol_type.value,
             },
             "protocol": {
                 "name": protocol.name,
                 "type": protocol.protocol_type.value,
-                "questions": protocol.questions
+                "questions": protocol.questions,
             },
-            "call_type": call_type
+            "call_type": call_type,
         }
-        
+
         # Build the prompt
         prompt = f"""
         You are a palliative care nurse specialist. You're preparing a script for a telephone assessment call with a patient.
@@ -131,22 +136,23 @@ def generate_call_script(patient: Patient, protocol: Protocol, call_type: str) -
         
         The script should be empathetic, clear, and follow best practices for palliative care telephone assessment.
         """
-        
+
         # Call Anthropic API using our custom wrapper
-        client = get_anthropic_client(current_app.config.get('ANTHROPIC_API_KEY'))
+        client = get_anthropic_client(current_app.config.get("ANTHROPIC_API_KEY"))
         return client.call_model(
             model="claude-3-sonnet-20240229",  # More widely available model
             max_tokens=1500,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            messages=[{"role": "user", "content": prompt}],
         )
-        
+
     except Exception as e:
         current_app.logger.error(f"Error generating call script: {str(e)}")
         return f"Error generating call script: {str(e)}"
 
-def analyze_call_transcript(transcript: str, patient: Patient, protocol: Protocol) -> Dict[str, Any]:
+
+def analyze_call_transcript(
+    transcript: str, patient: Patient, protocol: Protocol
+) -> Dict[str, Any]:
     """Analyze a call transcript to extract symptoms, concerns, and suggested actions"""
     try:
         # Build the prompt
@@ -170,17 +176,15 @@ def analyze_call_transcript(transcript: str, patient: Patient, protocol: Protoco
         
         Format your response as a structured JSON object with these categories.
         """
-        
+
         # Call Anthropic API using our custom wrapper
-        client = get_anthropic_client(current_app.config.get('ANTHROPIC_API_KEY'))
+        client = get_anthropic_client(current_app.config.get("ANTHROPIC_API_KEY"))
         content = client.call_model(
             model="claude-3-sonnet-20240229",  # More widely available model
             max_tokens=1200,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            messages=[{"role": "user", "content": prompt}],
         )
-        
+
         # Try to parse response as JSON
         try:
             # Extract JSON from response if it's wrapped in markdown code block
@@ -190,14 +194,14 @@ def analyze_call_transcript(transcript: str, patient: Patient, protocol: Protoco
                 json_str = content.split("```", 1)[1].split("```", 1)[0].strip()
             else:
                 json_str = content
-                
+
             result = json.loads(json_str)
         except json.JSONDecodeError:
             # If not valid JSON, return the raw text
             result = {"analysis": content}
-        
+
         return result
-        
+
     except Exception as e:
         current_app.logger.error(f"Error analyzing transcript: {str(e)}")
         return {"error": f"Error analyzing transcript: {str(e)}"}

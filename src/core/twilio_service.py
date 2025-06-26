@@ -11,25 +11,35 @@ from src.models.patient import Patient
 from src.models.protocol import Protocol
 from src.core.rag_service import analyze_call_transcript
 
+
 def get_twilio_client() -> Client:
     """Get initialized Twilio client"""
-    account_sid = current_app.config.get('TWILIO_ACCOUNT_SID')
-    auth_token = current_app.config.get('TWILIO_AUTH_TOKEN')
+    account_sid = current_app.config.get("TWILIO_ACCOUNT_SID")
+    auth_token = current_app.config.get("TWILIO_AUTH_TOKEN")
 
     if not account_sid or not auth_token:
         raise ValueError("Twilio credentials not configured")
 
     return Client(account_sid, auth_token)
 
-def initiate_call(to_number: str, from_number: str, call_id: int, call_type: str, call_script: Optional[str] = None) -> Dict[str, Any]:
+
+def initiate_call(
+    to_number: str,
+    from_number: str,
+    call_id: int,
+    call_type: str,
+    call_script: Optional[str] = None,
+) -> Dict[str, Any]:
     """Initiate an outbound call using Twilio"""
     try:
         # Initialize Twilio client
         client = get_twilio_client()
 
         # Prepare webhook URLs
-        status_callback = url_for('calls.call_status_webhook', _external=True)
-        voice_url = url_for('calls.voice_webhook', _external=True, call_id=call_id, call_type=call_type)
+        status_callback = url_for("calls.call_status_webhook", _external=True)
+        voice_url = url_for(
+            "calls.voice_webhook", _external=True, call_id=call_id, call_type=call_type
+        )
 
         # Make the call
         call = client.calls.create(
@@ -37,19 +47,17 @@ def initiate_call(to_number: str, from_number: str, call_id: int, call_type: str
             from_=from_number,
             url=voice_url,
             status_callback=status_callback,
-            status_callback_event=['initiated', 'ringing', 'answered', 'completed'],
-            status_callback_method='POST',
-            record=True
+            status_callback_event=["initiated", "ringing", "answered", "completed"],
+            status_callback_method="POST",
+            record=True,
         )
 
-        return {
-            "call_sid": call.sid,
-            "status": call.status
-        }
+        return {"call_sid": call.sid, "status": call.status}
 
     except Exception as e:
         current_app.logger.error(f"Error initiating Twilio call: {str(e)}")
         raise
+
 
 def generate_call_twiml(call: Call) -> str:
     """Generate TwiML for a specific call"""
@@ -63,42 +71,57 @@ def generate_call_twiml(call: Call) -> str:
         return str(response)
 
     # Different TwiML based on call type
-    if call.call_type == 'assessment':
+    if call.call_type == "assessment":
         # Introduction
-        response.say(f"Hello, this is the palliative care coordination service calling for {patient.first_name} {patient.last_name}. ")
+        response.say(
+            f"Hello, this is the palliative care coordination service calling for {patient.first_name} {patient.last_name}. "
+        )
         response.pause(length=1)
 
         # Verify identity
         try:
-            action_url = url_for('calls.voice_webhook', _external=True, call_id=call.id, action='verify')
+            action_url = url_for(
+                "calls.voice_webhook", _external=True, call_id=call.id, action="verify"
+            )
         except Exception as e:
-            current_app.logger.warning(f"Could not build URL for voice webhook: {str(e)}")
+            current_app.logger.warning(
+                f"Could not build URL for voice webhook: {str(e)}"
+            )
             action_url = f"/api/v1/calls/voice?call_id={call.id}&action=verify"
 
-        gather = Gather(num_digits=1, action=action_url, method='POST')
-        gather.say(f"If you are {patient.first_name} {patient.last_name}, please press 1.")
+        gather = Gather(num_digits=1, action=action_url, method="POST")
+        gather.say(
+            f"If you are {patient.first_name} {patient.last_name}, please press 1."
+        )
         response.append(gather)
 
         # Timeout handling
         response.say("We didn't receive your response. We'll try again later.")
         response.hangup()
 
-    elif call.call_type == 'follow_up':
+    elif call.call_type == "follow_up":
         # Follow-up call TwiML
-        response.say(f"Hello, this is the palliative care coordination service calling to follow up with {patient.first_name} {patient.last_name}. ")
+        response.say(
+            f"Hello, this is the palliative care coordination service calling to follow up with {patient.first_name} {patient.last_name}. "
+        )
         response.pause(length=1)
 
         # Similar verification and questions...
 
     else:
         # Generic call
-        response.say(f"Hello, this is the palliative care coordination service calling for {patient.first_name} {patient.last_name}. ")
+        response.say(
+            f"Hello, this is the palliative care coordination service calling for {patient.first_name} {patient.last_name}. "
+        )
         response.pause(length=1)
         response.say("A care coordinator will be with you shortly.")
 
     return str(response)
 
-def process_call_recording(recording_sid: str, recording_url: str, call: Call) -> Dict[str, Any]:
+
+def process_call_recording(
+    recording_sid: str, recording_url: str, call: Call
+) -> Dict[str, Any]:
     """Process a call recording - download, transcribe, and analyze"""
     try:
         client = get_twilio_client()
@@ -124,10 +147,14 @@ def process_call_recording(recording_sid: str, recording_url: str, call: Call) -
             "recording_url": recording_url,
             "transcript": transcript,
             "duration": recording.duration,
-            "analysis": None
+            "analysis": None,
         }
 
-        if transcript and transcript != "[Transcription not available]" and call.patient_id:
+        if (
+            transcript
+            and transcript != "[Transcription not available]"
+            and call.patient_id
+        ):
             # Get patient and protocol for analysis
             patient = Patient.query.get(call.patient_id)
             if patient and patient.protocol_type:
@@ -144,5 +171,5 @@ def process_call_recording(recording_sid: str, recording_url: str, call: Call) -
         return {
             "recording_url": recording_url,
             "transcript": "[Error processing recording]",
-            "error": str(e)
+            "error": str(e),
         }

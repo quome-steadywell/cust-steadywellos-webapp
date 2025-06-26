@@ -15,6 +15,7 @@ sys.path.append(str(parent_dir))
 from src import create_app, db
 from src.models.protocol import Protocol
 
+
 def main():
     """Check the protocols in the database"""
     app = create_app()
@@ -22,7 +23,7 @@ def main():
         # Count protocols
         count = db.session.query(Protocol).count()
         print(f"Found {count} protocol entries")
-        
+
         if count > 0:
             protocols = db.session.query(Protocol).all()
             for protocol in protocols:
@@ -36,7 +37,10 @@ def main():
                 print()
         else:
             print("No protocols found in the database.")
-            print("You can use standard database seeding with 'just db-seed' to create sample protocols.")
+            print(
+                "You can use standard database seeding with 'just db-seed' to create sample protocols."
+            )
+
 
 if __name__ == "__main__":
     main()
