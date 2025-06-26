@@ -77,11 +77,7 @@ def get_patient(id):
         return jsonify({"error": "Patient not found"}), 404
 
     # Regular nurses can only view their assigned patients
-    if (
-        current_user
-        and current_user.role == UserRole.NURSE
-        and patient.primary_nurse_id != current_user.id
-    ):
+    if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
         return jsonify({"error": "Unauthorized to view this patient"}), 403
 
     # For demo purposes, don't log access
@@ -117,16 +113,10 @@ def create_patient():
         primary_nurse_id=patient_data["primary_nurse_id"],
         emergency_contact_name=patient_data.get("emergency_contact_name"),
         emergency_contact_phone=patient_data.get("emergency_contact_phone"),
-        emergency_contact_relationship=patient_data.get(
-            "emergency_contact_relationship"
-        ),
-        emergency_contact_can_share_medical_info=patient_data.get(
-            "emergency_contact_can_share_medical_info", False
-        ),
+        emergency_contact_relationship=patient_data.get("emergency_contact_relationship"),
+        emergency_contact_can_share_medical_info=patient_data.get("emergency_contact_can_share_medical_info", False),
         advance_directive=patient_data.get("advance_directive", False),
-        advance_directive_status=AdvanceDirectiveStatus(
-            patient_data.get("advance_directive_status", "not_started")
-        ),
+        advance_directive_status=AdvanceDirectiveStatus(patient_data.get("advance_directive_status", "not_started")),
         dnr_status=patient_data.get("dnr_status", False),
         allergies=patient_data.get("allergies"),
         notes=patient_data.get("notes"),
@@ -154,11 +144,7 @@ def update_patient(id):
         return jsonify({"error": "Patient not found"}), 404
 
     # Regular nurses can only update their assigned patients
-    if (
-        current_user
-        and current_user.role == UserRole.NURSE
-        and patient.primary_nurse_id != current_user.id
-    ):
+    if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
         return jsonify({"error": "Unauthorized to update this patient"}), 403
 
     try:
@@ -197,9 +183,7 @@ def update_patient(id):
     if "emergency_contact_phone" in patient_data:
         patient.emergency_contact_phone = patient_data.get("emergency_contact_phone")
     if "emergency_contact_relationship" in patient_data:
-        patient.emergency_contact_relationship = patient_data.get(
-            "emergency_contact_relationship"
-        )
+        patient.emergency_contact_relationship = patient_data.get("emergency_contact_relationship")
     if "emergency_contact_can_share_medical_info" in patient_data:
         patient.emergency_contact_can_share_medical_info = patient_data.get(
             "emergency_contact_can_share_medical_info", False
@@ -261,9 +245,7 @@ def search_patients():
     current_user = User.query.get(current_user_id)
 
     search_term = request.args.get("q", "")
-    if (
-        not search_term or len(search_term) < 2
-    ):  # Reduced to 2 characters for better usability
+    if not search_term or len(search_term) < 2:  # Reduced to 2 characters for better usability
         return jsonify({"error": "Search term must be at least 2 characters"}), 400
 
     search_pattern = f"%{search_term}%"

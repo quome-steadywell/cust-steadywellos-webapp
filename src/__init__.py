@@ -18,9 +18,7 @@ jwt = JWTManager()
 
 def create_app(config_object="config.config.DevelopmentConfig"):
     """Application factory pattern."""
-    app = Flask(
-        __name__, static_folder="web_ui/static", template_folder="web_ui/templates"
-    )
+    app = Flask(__name__, static_folder="web_ui/static", template_folder="web_ui/templates")
 
     # Load the configuration
     if isinstance(config_object, str):
@@ -41,9 +39,7 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     jwt.init_app(app)
 
     # Enable CORS
-    CORS(
-        app, resources={r"/api/*": {"origins": app.config.get("CORS_ORIGIN_WHITELIST")}}
-    )
+    CORS(app, resources={r"/api/*": {"origins": app.config.get("CORS_ORIGIN_WHITELIST")}})
 
     # Import models to ensure they are registered with SQLAlchemy
     from src.models import (

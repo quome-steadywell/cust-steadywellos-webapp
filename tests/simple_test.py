@@ -42,9 +42,7 @@ def check_app_running(base_url="http://0.0.0.0:8080"):
 
     # Check if the port is in use
     if not check_if_port_in_use(port):
-        print(
-            f"❌ Port {port} is not in use. Application doesn't appear to be running."
-        )
+        print(f"❌ Port {port} is not in use. Application doesn't appear to be running.")
         return False
 
     # Check if the application responds

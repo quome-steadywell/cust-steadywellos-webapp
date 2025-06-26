@@ -22,9 +22,9 @@ def drop_db():
 
     # Terminate all connections to the database before dropping
     sql = f"""
-    SELECT pg_terminate_backend(pid) 
-    FROM pg_stat_activity 
-    WHERE datname = '{db_name}' 
+    SELECT pg_terminate_backend(pid)
+    FROM pg_stat_activity
+    WHERE datname = '{db_name}'
     AND pid <> pg_backend_pid()
     """
     db.session.execute(sql)

@@ -74,9 +74,7 @@ def mock_protocol():
     }
 
     # Add get_latest_active_protocol as a class method
-    protocol.get_latest_active_protocol = classmethod(
-        lambda cls, protocol_type: protocol
-    )
+    protocol.get_latest_active_protocol = classmethod(lambda cls, protocol_type: protocol)
 
     return protocol
 
@@ -170,14 +168,10 @@ class TestRagService(unittest.TestCase):
         mock_get_client.return_value = mock_client
 
         # Execute
-        result = process_assessment(
-            self.patient, self.protocol, self.symptoms, self.responses
-        )
+        result = process_assessment(self.patient, self.protocol, self.symptoms, self.responses)
 
         # Verify
-        mock_get_client.assert_called_once_with(
-            current_app.config.get("ANTHROPIC_API_KEY")
-        )
+        mock_get_client.assert_called_once_with(current_app.config.get("ANTHROPIC_API_KEY"))
         mock_client.call_model.assert_called_once()
         self.assertEqual(result, "Test AI guidance response")
 
@@ -202,9 +196,7 @@ class TestRagService(unittest.TestCase):
         result = generate_call_script(self.patient, self.protocol, call_type)
 
         # Verify
-        mock_get_client.assert_called_once_with(
-            current_app.config.get("ANTHROPIC_API_KEY")
-        )
+        mock_get_client.assert_called_once_with(current_app.config.get("ANTHROPIC_API_KEY"))
         mock_client.call_model.assert_called_once()
         self.assertEqual(result, "Test call script response")
 
@@ -240,9 +232,7 @@ class TestRagService(unittest.TestCase):
         result = analyze_call_transcript(transcript, self.patient, self.protocol)
 
         # Verify
-        mock_get_client.assert_called_once_with(
-            current_app.config.get("ANTHROPIC_API_KEY")
-        )
+        mock_get_client.assert_called_once_with(current_app.config.get("ANTHROPIC_API_KEY"))
         mock_client.call_model.assert_called_once()
 
         # Check that result is parsed correctly
@@ -275,9 +265,7 @@ class TestRagService(unittest.TestCase):
         mock_get_client.side_effect = Exception("Test exception")
 
         # Execute
-        result = process_assessment(
-            self.patient, self.protocol, self.symptoms, self.responses
-        )
+        result = process_assessment(self.patient, self.protocol, self.symptoms, self.responses)
 
         # Verify
         self.assertIn("Error generating guidance", result)
@@ -293,9 +281,7 @@ class TestRagService(unittest.TestCase):
         ("Very long " + "transcript " * 100, ["analysis"]),  # Very long transcript
     ],
 )
-def test_analyze_call_transcript_edge_cases(
-    transcript, expected_keys, mock_patient, mock_protocol, app_context, app
-):
+def test_analyze_call_transcript_edge_cases(transcript, expected_keys, mock_patient, mock_protocol, app_context, app):
     """Test analyze_call_transcript with edge cases"""
     with patch("src.core.rag_service.get_anthropic_client") as mock_get_client:
         # Setup

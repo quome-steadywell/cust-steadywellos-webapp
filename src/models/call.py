@@ -30,17 +30,13 @@ class Call(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False)
-    conducted_by_id = Column(
-        Integer, ForeignKey("users.id"), nullable=True
-    )  # Can be null for automated calls
+    conducted_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Can be null for automated calls
     scheduled_time = Column(DateTime, nullable=False)
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
     duration = Column(Float, nullable=True)  # in seconds
     status = Column(Enum(CallStatus), default=CallStatus.SCHEDULED, nullable=False)
-    call_type = Column(
-        String(50), nullable=False
-    )  # E.g., 'assessment', 'follow-up', 'medication_check'
+    call_type = Column(String(50), nullable=False)  # E.g., 'assessment', 'follow-up', 'medication_check'
     twilio_call_sid = Column(String(50), nullable=True)
     recording_url = Column(String(255), nullable=True)
     transcript = Column(Text, nullable=True)
@@ -58,10 +54,7 @@ class Call(db.Model):
 
     @property
     def is_overdue(self):
-        return (
-            self.status == CallStatus.SCHEDULED
-            and self.scheduled_time < datetime.utcnow()
-        )
+        return self.status == CallStatus.SCHEDULED and self.scheduled_time < datetime.utcnow()
 
     def update_status(self, status):
         self.status = status

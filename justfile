@@ -32,7 +32,7 @@ _command_wrapper COMMAND:
     fi
 
     # If there's already a .env file back it up temporarily
-    # that way we don't accidentally clobber the .env file 
+    # that way we don't accidentally clobber the .env file
     if [ -f .env ]; then
         mv .env .env.tmp
     fi

@@ -42,12 +42,8 @@ def check_mary_johnson():
         # Find nurse1
         nurse1 = User.query.filter_by(username="nurse1").first()
         if nurse1:
-            print(
-                f"Nurse1 (ID: {nurse1.id}, Name: {nurse1.first_name} {nurse1.last_name})"
-            )
-            print(
-                f"Mary's primary nurse matches nurse1: {mary.primary_nurse_id == nurse1.id}"
-            )
+            print(f"Nurse1 (ID: {nurse1.id}, Name: {nurse1.first_name} {nurse1.last_name})")
+            print(f"Mary's primary nurse matches nurse1: {mary.primary_nurse_id == nurse1.id}")
         else:
             print("Nurse1 not found in the database!")
 

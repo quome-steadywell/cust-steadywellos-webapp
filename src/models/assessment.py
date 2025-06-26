@@ -32,13 +32,9 @@ class Assessment(db.Model):
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False)
     protocol_id = Column(Integer, ForeignKey("protocols.id"), nullable=False)
     conducted_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    call_id = Column(
-        Integer, ForeignKey("calls.id"), nullable=True
-    )  # Optional link to a call
+    call_id = Column(Integer, ForeignKey("calls.id"), nullable=True)  # Optional link to a call
     assessment_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    responses = Column(
-        JSON, nullable=False
-    )  # Structured responses to protocol questions
+    responses = Column(JSON, nullable=False)  # Structured responses to protocol questions
     symptoms = Column(JSON, nullable=False)  # Extracted symptoms with severity
     interventions = Column(JSON, nullable=True)  # Recommended interventions
     notes = Column(Text, nullable=True)  # Clinical notes

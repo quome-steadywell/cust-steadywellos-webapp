@@ -19,9 +19,7 @@ def test_assessment_creation_page_loads(authenticated_driver, base_url):
     driver.get(f"{base_url}/patients")
 
     # Wait for patient data to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "patientTableBody"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "patientTableBody")))
 
     # Get the first patient's ID from the view button
     view_button = driver.find_element(By.CLASS_NAME, "view-patient")
@@ -31,9 +29,7 @@ def test_assessment_creation_page_loads(authenticated_driver, base_url):
     driver.get(f"{base_url}/assessments/new?patient_id={patient_id}")
 
     # Check that the assessment form loads
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "assessmentForm"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "assessmentForm")))
 
     # Verify key components are present
     assert driver.find_element(By.ID, "patientInfo").is_displayed()
@@ -50,9 +46,7 @@ def test_assessment_question_interaction(authenticated_driver, base_url):
     driver.get(f"{base_url}/patients")
 
     # Wait for patient data to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "patientTableBody"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "patientTableBody")))
 
     # Get the first patient's ID from the view button
     view_button = driver.find_element(By.CLASS_NAME, "view-patient")
@@ -62,9 +56,7 @@ def test_assessment_question_interaction(authenticated_driver, base_url):
     driver.get(f"{base_url}/assessments/new?patient_id={patient_id}")
 
     # Wait for questions to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "questionContainer"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "questionContainer")))
 
     # Wait a bit for the dynamic question rendering
     time.sleep(3)
@@ -109,9 +101,7 @@ def test_assessment_ai_recommendations(authenticated_driver, base_url):
     driver.get(f"{base_url}/patients")
 
     # Wait for patient data to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "patientTableBody"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "patientTableBody")))
 
     # Get the first patient's ID from the view button
     view_button = driver.find_element(By.CLASS_NAME, "view-patient")
@@ -121,9 +111,7 @@ def test_assessment_ai_recommendations(authenticated_driver, base_url):
     driver.get(f"{base_url}/assessments/new?patient_id={patient_id}")
 
     # Wait for questions to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "questionContainer"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "questionContainer")))
 
     # Wait a bit for the dynamic question rendering
     time.sleep(3)
@@ -151,9 +139,7 @@ def test_assessment_ai_recommendations(authenticated_driver, base_url):
     generate_button.click()
 
     # Wait for AI recommendations to appear
-    WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.ID, "aiRecommendationsCard"))
-    )
+    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "aiRecommendationsCard")))
 
     # Verify AI content and interventions are shown
     assert driver.find_element(By.ID, "aiContent").is_displayed()

@@ -33,9 +33,7 @@ class MedicationSchema(Schema):
     is_expired = fields.Bool(dump_only=True)
 
     # Nested fields
-    patient = fields.Nested(
-        "PatientSchema", only=["id", "full_name", "mrn"], dump_only=True
-    )
+    patient = fields.Nested("PatientSchema", only=["id", "full_name", "mrn"], dump_only=True)
 
     @validates("patient_id")
     def validate_patient_id(self, value):
@@ -69,9 +67,5 @@ class MedicationUpdateSchema(MedicationSchema):
     name = fields.Str()
     dosage = fields.Str()
     dosage_unit = fields.Str()
-    route = fields.Str(
-        validate=validate.OneOf([route.value for route in MedicationRoute])
-    )
-    frequency = fields.Str(
-        validate=validate.OneOf([freq.value for freq in MedicationFrequency])
-    )
+    route = fields.Str(validate=validate.OneOf([route.value for route in MedicationRoute]))
+    frequency = fields.Str(validate=validate.OneOf([freq.value for freq in MedicationFrequency]))

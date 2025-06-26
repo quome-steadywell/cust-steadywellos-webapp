@@ -122,12 +122,8 @@ def seed_database(test_scenario=None):
 
     # Get or create protocols
     logger.info("📋 Checking for existing protocols...")
-    cancer_protocol = Protocol.query.filter_by(
-        protocol_type=ProtocolType.CANCER
-    ).first()
-    heart_failure_protocol = Protocol.query.filter_by(
-        protocol_type=ProtocolType.HEART_FAILURE
-    ).first()
+    cancer_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.CANCER).first()
+    heart_failure_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
     copd_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.COPD).first()
     fit_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.FIT).first()
 
@@ -685,9 +681,7 @@ def seed_database(test_scenario=None):
 
     db.session.add_all([patient1, patient2, patient3, patient4])
     db.session.commit()
-    logger.info(
-        "✅ Created 4 seed patients (Josh Kerm, Tim Raderstorf, Frederic Sauve-Hoover, Pete Jarvis)"
-    )
+    logger.info("✅ Created 4 seed patients (Josh Kerm, Tim Raderstorf, Frederic Sauve-Hoover, Pete Jarvis)")
 
     # Create medications
     logger.info("💊 Creating seed medications...")
@@ -905,14 +899,10 @@ def seed_date_check_data():
     patient = Patient.query.filter_by(first_name="Mary").first()
     nurse = User.query.filter_by(first_name="Robert").first()
     # Ensure we get the heart_failure_protocol from the database
-    protocol = Protocol.query.filter_by(
-        protocol_type=ProtocolType.HEART_FAILURE
-    ).first()
+    protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
 
     if not protocol:
-        logger.error(
-            "❌ Error: Heart Failure protocol not found in database. Date test data will not be added."
-        )
+        logger.error("❌ Error: Heart Failure protocol not found in database. Date test data will not be added.")
         return
 
     # Get date references
@@ -925,9 +915,7 @@ def seed_date_check_data():
     current_weekday = today.weekday()  # Monday=0, Sunday=6
     days_since_sunday = (current_weekday + 1) % 7  # Convert to Sunday=0 basis
     this_sunday = today - timedelta(days=days_since_sunday)
-    last_week_sunday = this_sunday - timedelta(
-        days=7
-    )  # Go back to previous week's Sunday
+    last_week_sunday = this_sunday - timedelta(days=7)  # Go back to previous week's Sunday
     assessment1 = Assessment(
         patient_id=patient.id,
         protocol_id=protocol.id,
@@ -940,9 +928,7 @@ def seed_date_check_data():
     )
 
     # 2. Last week (Wednesday)
-    last_week_wednesday = last_week_sunday + timedelta(
-        days=3
-    )  # Sunday + 3 days = Wednesday
+    last_week_wednesday = last_week_sunday + timedelta(days=3)  # Sunday + 3 days = Wednesday
     assessment2 = Assessment(
         patient_id=patient.id,
         protocol_id=protocol.id,
@@ -1010,9 +996,7 @@ def seed_date_check_data():
     )
 
     # Add all assessments
-    db.session.add_all(
-        [assessment1, assessment2, assessment3, assessment4, assessment5, assessment6]
-    )
+    db.session.add_all([assessment1, assessment2, assessment3, assessment4, assessment5, assessment6])
     db.session.commit()
 
     logger.info("✅ Date check test data added successfully")
@@ -1278,9 +1262,7 @@ def seed_patient_history(
         assessment_date=date_1w5d_ago.replace(hour=14, minute=0),
         responses={
             "pain_level": {"value": 5},
-            "pain_location": {
-                "value": "Lower back, right hip, and now radiating to leg"
-            },
+            "pain_location": {"value": "Lower back, right hip, and now radiating to leg"},
             "nausea": {"value": 2},
             "fatigue": {"value": 6},
             "appetite": {"value": 4},
@@ -1713,11 +1695,6 @@ def seed_patient_history(
     db.session.commit()
 
     total_assessments = (
-        len(patient1_assessments)
-        + len(patient2_assessments)
-        + len(patient3_assessments)
-        + len(patient4_assessments)
+        len(patient1_assessments) + len(patient2_assessments) + len(patient3_assessments) + len(patient4_assessments)
     )
-    logger.info(
-        f"✅ Patient assessment history added successfully ({total_assessments} total assessments created)"
-    )
+    logger.info(f"✅ Patient assessment history added successfully ({total_assessments} total assessments created)")

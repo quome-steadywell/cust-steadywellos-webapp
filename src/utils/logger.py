@@ -76,9 +76,7 @@ def setup_logger(app):
     if LOG_FORMAT == "json":
         formatter = JsonFormatter()
     else:
-        formatter = RequestFormatter(
-            "%(asctime)s - %(levelname)s - %(module)s - %(message)s"
-        )
+        formatter = RequestFormatter("%(asctime)s - %(levelname)s - %(module)s - %(message)s")
 
     console_handler.setFormatter(formatter)
 

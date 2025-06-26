@@ -7,9 +7,7 @@ class QuestionSchema(Schema):
 
     id = fields.Str(required=True)
     text = fields.Str(required=True)
-    type = fields.Str(
-        required=True, validate=validate.OneOf(["numeric", "text", "boolean", "choice"])
-    )
+    type = fields.Str(required=True, validate=validate.OneOf(["numeric", "text", "boolean", "choice"]))
     required = fields.Bool()
     symptom_type = fields.Str()
     min_value = fields.Float()
@@ -78,9 +76,7 @@ class ProtocolSchema(Schema):
                 )
 
                 if existing:
-                    raise ValidationError(
-                        f"Version {value} already exists for {protocol_type} protocol."
-                    )
+                    raise ValidationError(f"Version {value} already exists for {protocol_type} protocol.")
 
 
 class ProtocolUpdateSchema(ProtocolSchema):
@@ -88,9 +84,7 @@ class ProtocolUpdateSchema(ProtocolSchema):
 
     name = fields.Str()
     description = fields.Str()
-    protocol_type = fields.Str(
-        validate=validate.OneOf([protocol.value for protocol in ProtocolType])
-    )
+    protocol_type = fields.Str(validate=validate.OneOf([protocol.value for protocol in ProtocolType]))
     version = fields.Str()
     questions = fields.List(fields.Dict())
     decision_tree = fields.List(fields.Dict())

@@ -40,7 +40,7 @@ RUN pip install --upgrade pip \
 # Copy project
 COPY . .
 
-# Add entrypoint script 
+# Add entrypoint script
 COPY scripts/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 

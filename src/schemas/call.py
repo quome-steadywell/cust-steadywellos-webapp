@@ -12,9 +12,7 @@ class CallSchema(Schema):
     start_time = fields.DateTime(dump_only=True)
     end_time = fields.DateTime(dump_only=True)
     duration = fields.Float(dump_only=True)
-    status = fields.Str(
-        validate=validate.OneOf([status.value for status in CallStatus])
-    )
+    status = fields.Str(validate=validate.OneOf([status.value for status in CallStatus]))
     call_type = fields.Str(required=True)
     twilio_call_sid = fields.Str()
     recording_url = fields.Str()
@@ -27,9 +25,7 @@ class CallSchema(Schema):
     is_overdue = fields.Bool(dump_only=True)
 
     # Nested fields
-    patient = fields.Nested(
-        "PatientSchema", only=["id", "full_name", "mrn", "phone_number"], dump_only=True
-    )
+    patient = fields.Nested("PatientSchema", only=["id", "full_name", "mrn", "phone_number"], dump_only=True)
     conducted_by = fields.Nested("UserSchema", only=["id", "full_name"], dump_only=True)
     assessment = fields.Nested("AssessmentSchema", exclude=["call_id"], dump_only=True)
 
@@ -54,9 +50,7 @@ class CallSchema(Schema):
             if not user:
                 raise ValidationError("User not found.")
             if user.role not in [UserRole.NURSE, UserRole.PHYSICIAN]:
-                raise ValidationError(
-                    "Calls can only be conducted by a nurse or physician."
-                )
+                raise ValidationError("Calls can only be conducted by a nurse or physician.")
 
 
 class CallListSchema(Schema):
@@ -76,9 +70,7 @@ class CallUpdateSchema(Schema):
 
     conducted_by_id = fields.Int()
     scheduled_time = fields.DateTime()
-    status = fields.Str(
-        validate=validate.OneOf([status.value for status in CallStatus])
-    )
+    status = fields.Str(validate=validate.OneOf([status.value for status in CallStatus]))
     notes = fields.Str()
 
 

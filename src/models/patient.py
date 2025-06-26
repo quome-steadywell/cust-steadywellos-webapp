@@ -59,9 +59,7 @@ class Patient(db.Model):
     emergency_contact_relationship = Column(String(50), nullable=True)
     emergency_contact_can_share_medical_info = Column(Boolean, default=False)
     advance_directive = Column(Boolean, default=False)
-    advance_directive_status = Column(
-        Enum(AdvanceDirectiveStatus), default=AdvanceDirectiveStatus.NOT_STARTED
-    )
+    advance_directive_status = Column(Enum(AdvanceDirectiveStatus), default=AdvanceDirectiveStatus.NOT_STARTED)
     dnr_status = Column(Boolean, default=False)
     allergies = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
@@ -86,13 +84,9 @@ class Patient(db.Model):
     def age(self):
         today = datetime.today().date()
         born = self.date_of_birth
-        return (
-            today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-        )
+        return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
     def last_assessment(self):
         if not self.assessments:
             return None
-        return sorted(self.assessments, key=lambda a: a.assessment_date, reverse=True)[
-            0
-        ]
+        return sorted(self.assessments, key=lambda a: a.assessment_date, reverse=True)[0]

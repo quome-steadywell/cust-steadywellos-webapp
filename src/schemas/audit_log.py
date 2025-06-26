@@ -15,6 +15,4 @@ class AuditLogSchema(Schema):
     timestamp = fields.DateTime()
 
     # Nested fields
-    user = fields.Nested(
-        "UserSchema", only=["id", "username", "full_name"], dump_only=True
-    )
+    user = fields.Nested("UserSchema", only=["id", "username", "full_name"], dump_only=True)

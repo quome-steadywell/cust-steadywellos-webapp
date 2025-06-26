@@ -41,27 +41,17 @@ def get_all_protocols():
         # Get the latest version of each protocol type
         latest_protocols = []
         for p_type in ProtocolType:
-            latest = (
-                query.filter(Protocol.protocol_type == p_type)
-                .order_by(Protocol.version.desc())
-                .first()
-            )
+            latest = query.filter(Protocol.protocol_type == p_type).order_by(Protocol.version.desc()).first()
             if latest:
                 latest_protocols.append(latest)
         protocols = latest_protocols
     else:
-        protocols = query.order_by(
-            Protocol.protocol_type, Protocol.version.desc()
-        ).all()
+        protocols = query.order_by(Protocol.protocol_type, Protocol.version.desc()).all()
 
     # Debug output - Log the type of protocols returned
-    print(
-        f"Found {len(protocols)} protocols matching type={protocol_type}, active={is_active}"
-    )
+    print(f"Found {len(protocols)} protocols matching type={protocol_type}, active={is_active}")
     for protocol in protocols:
-        print(
-            f"Protocol: id={protocol.id}, name={protocol.name}, type={protocol.protocol_type}"
-        )
+        print(f"Protocol: id={protocol.id}, name={protocol.name}, type={protocol.protocol_type}")
 
     return jsonify(ProtocolListSchema(many=True).dump(protocols)), 200
 
@@ -89,9 +79,7 @@ def get_latest_protocol(protocol_type):
     # Convert to lowercase to match enum values
     normalized_type = normalized_type.lower()
 
-    print(
-        f"API: Getting protocol for type {protocol_type}, normalized to {normalized_type}"
-    )
+    print(f"API: Getting protocol for type {protocol_type}, normalized to {normalized_type}")
 
     try:
         # Find the matching enum value from the normalized type
@@ -105,18 +93,14 @@ def get_latest_protocol(protocol_type):
             return jsonify({"error": f"Invalid protocol type: {protocol_type}"}), 400
 
         protocol = (
-            Protocol.query.filter(
-                Protocol.protocol_type == matching_enum, Protocol.is_active == True
-            )
+            Protocol.query.filter(Protocol.protocol_type == matching_enum, Protocol.is_active == True)
             .order_by(Protocol.version.desc())
             .first()
         )
 
         if not protocol:
             return (
-                jsonify(
-                    {"error": f"No active protocol found for type: {protocol_type}"}
-                ),
+                jsonify({"error": f"No active protocol found for type: {protocol_type}"}),
                 404,
             )
 
@@ -241,11 +225,7 @@ def deactivate_protocol(id):
 
     if active_protocols_count <= 1:
         return (
-            jsonify(
-                {
-                    "error": f"Cannot deactivate the only active protocol of type {protocol.protocol_type.value}"
-                }
-            ),
+            jsonify({"error": f"Cannot deactivate the only active protocol of type {protocol.protocol_type.value}"}),
             400,
         )
 
@@ -253,8 +233,6 @@ def deactivate_protocol(id):
     db.session.commit()
 
     return (
-        jsonify(
-            {"message": f"Protocol {protocol.name} v{protocol.version} deactivated"}
-        ),
+        jsonify({"message": f"Protocol {protocol.name} v{protocol.version} deactivated"}),
         200,
     )

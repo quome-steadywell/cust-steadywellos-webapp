@@ -62,16 +62,13 @@ def configure_database(app: Flask):
                 f"Or provide DATABASE_{var_prefix}_URL directly"
             )
             logger.error(error_msg)
-            raise ValueError(
-                f"Missing required database environment variables: {', '.join(missing_vars)}"
-            )
+            raise ValueError(f"Missing required database environment variables: {', '.join(missing_vars)}")
 
         # Add SSL mode for remote/production environments
         ssl_suffix = "?sslmode=require" if var_prefix == "REMOTE" else ""
         database_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}{ssl_suffix}"
         logger.info(
-            f"✅ Built DATABASE_URL from {var_prefix} components"
-            + (" (with SSL required)" if ssl_suffix else "")
+            f"✅ Built DATABASE_URL from {var_prefix} components" + (" (with SSL required)" if ssl_suffix else "")
         )
 
     # Debug database configuration
@@ -89,13 +86,9 @@ def configure_database(app: Flask):
                 username = match.group(1)
                 password = match.group(2)
                 # Show first 4 characters + asterisks for username, first 5 chars + asterisks for password
-                safe_username = (
-                    username[:4] + "****" if len(username) > 4 else username + "****"
-                )
+                safe_username = username[:4] + "****" if len(username) > 4 else username + "****"
                 safe_password = (
-                    password[:5] + "*" * max(0, len(password) - 5)
-                    if len(password) > 5
-                    else password + "*****"
+                    password[:5] + "*" * max(0, len(password) - 5) if len(password) > 5 else password + "*****"
                 )
                 return f"://{safe_username}:{safe_password}@"
 
@@ -139,9 +132,7 @@ def check_database_connection(app: Flask, db):
                 try:
                     version_result = db.session.execute(text("SELECT version()"))
                     version = version_result.fetchone()[0]
-                    logger.info(
-                        f"Database version: {version.split(',')[0]}"
-                    )  # Just the first part
+                    logger.info(f"Database version: {version.split(',')[0]}")  # Just the first part
                 except Exception as ve:
                     logger.warning(f"Could not get database version: {ve}")
 
@@ -157,13 +148,9 @@ def check_database_connection(app: Flask, db):
             # Try to provide more specific error information
             error_msg = str(e).lower()
             if "connection refused" in error_msg:
-                logger.error(
-                    "➤ Connection refused - database server may not be running"
-                )
+                logger.error("➤ Connection refused - database server may not be running")
             elif "timeout" in error_msg:
-                logger.error(
-                    "➤ Connection timeout - database server may be unreachable"
-                )
+                logger.error("➤ Connection timeout - database server may be unreachable")
             elif "authentication" in error_msg or "password" in error_msg:
                 logger.error("➤ Authentication failed - check database credentials")
             elif "database" in error_msg and "does not exist" in error_msg:
@@ -181,23 +168,17 @@ def create_tables(app: Flask, db):
             # Check if we should force schema recreation
             recreate_schema_env = os.getenv("RECREATE_SCHEMA", "false")
             recreate_schema = recreate_schema_env.lower() == "true"
-            logger.info(
-                f"🔍 RECREATE_SCHEMA environment variable: '{recreate_schema_env}' -> {recreate_schema}"
-            )
+            logger.info(f"🔍 RECREATE_SCHEMA environment variable: '{recreate_schema_env}' -> {recreate_schema}")
 
             if recreate_schema:
-                logger.info(
-                    "🗑️  RECREATE_SCHEMA=true: Dropping and recreating all database tables..."
-                )
+                logger.info("🗑️  RECREATE_SCHEMA=true: Dropping and recreating all database tables...")
 
                 # Drop all tables first
                 try:
                     db.drop_all()
                     logger.info("✅ All database tables dropped successfully")
                 except Exception as drop_error:
-                    logger.warning(
-                        f"⚠️ Warning during table drop (may be expected): {drop_error}"
-                    )
+                    logger.warning(f"⚠️ Warning during table drop (may be expected): {drop_error}")
 
                 # Create fresh tables
                 logger.info("🔄 Creating fresh database tables with current schema...")
@@ -214,9 +195,7 @@ def create_tables(app: Flask, db):
                 logger.info("✅ Database tables exist")
             except Exception as schema_error:
                 if "does not exist" in str(schema_error).lower():
-                    logger.info(
-                        "ℹ️ Database tables don't exist yet - will create with current schema"
-                    )
+                    logger.info("ℹ️ Database tables don't exist yet - will create with current schema")
                     needs_recreation = True
                 else:
                     # Some other error, assume we need to create tables
@@ -253,14 +232,10 @@ def seed_database_if_empty(app: Flask, db):
             force_reseed = force_reseed_env.lower() == "true"
             should_seed = seed_database_env.lower() == "true"
 
-            logger.info(
-                f"Parsed flags - force_reseed: {force_reseed}, should_seed: {should_seed}"
-            )
+            logger.info(f"Parsed flags - force_reseed: {force_reseed}, should_seed: {should_seed}")
 
             if not should_seed and not force_reseed:
-                logger.info(
-                    "❌ SEED_DATABASE=false and FORCE_RESEED=false, skipping database seeding"
-                )
+                logger.info("❌ SEED_DATABASE=false and FORCE_RESEED=false, skipping database seeding")
                 return
 
             # Check if data already exists by looking for users
@@ -270,9 +245,7 @@ def seed_database_if_empty(app: Flask, db):
             logger.info(f"Found {existing_count} existing users in database")
 
             if existing_count > 0 and not force_reseed:
-                logger.info(
-                    "✅ Database already contains user data, skipping seed (use FORCE_RESEED=true to override)"
-                )
+                logger.info("✅ Database already contains user data, skipping seed (use FORCE_RESEED=true to override)")
                 return
             elif existing_count > 0 and force_reseed:
                 logger.info(

@@ -21,9 +21,7 @@ def test_patients_page_loads(authenticated_driver, base_url):
     assert "Patients" in driver.title
 
     # Wait for patient table to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "patientTableBody"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "patientTableBody")))
 
     # Verify that patient rows exist
     patient_rows = driver.find_elements(By.XPATH, "//table/tbody/tr")
@@ -41,14 +39,10 @@ def test_patient_filtering(authenticated_driver, base_url):
     driver.get(f"{base_url}/patients")
 
     # Wait for patient table to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "patientTableBody"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "patientTableBody")))
 
     # Get initial count of patients
-    initial_rows = driver.find_elements(
-        By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]"
-    )
+    initial_rows = driver.find_elements(By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]")
     initial_count = len(initial_rows)
 
     # Apply filter for COPD patients
@@ -64,9 +58,7 @@ def test_patient_filtering(authenticated_driver, base_url):
     time.sleep(2)
 
     # Check filtered results
-    filtered_rows = driver.find_elements(
-        By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]"
-    )
+    filtered_rows = driver.find_elements(By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]")
 
     # The test will pass if we either:
     # 1. Have fewer results than before (filtering worked)
@@ -86,14 +78,10 @@ def test_patient_search(authenticated_driver, base_url):
     driver.get(f"{base_url}/patients")
 
     # Wait for patient table to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "patientTableBody"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "patientTableBody")))
 
     # Get initial count of patients
-    initial_rows = driver.find_elements(
-        By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]"
-    )
+    initial_rows = driver.find_elements(By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]")
     initial_count = len(initial_rows)
 
     # Get first patient's name to search for
@@ -110,9 +98,7 @@ def test_patient_search(authenticated_driver, base_url):
         time.sleep(2)
 
         # Check search results
-        search_results = driver.find_elements(
-            By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]"
-        )
+        search_results = driver.find_elements(By.XPATH, "//table/tbody/tr[not(contains(@class, 'no-results'))]")
 
         # Should have at least one result
         assert len(search_results) > 0
@@ -129,18 +115,14 @@ def test_patient_details(authenticated_driver, base_url):
     driver.get(f"{base_url}/patients")
 
     # Wait for patient table to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "patientTableBody"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "patientTableBody")))
 
     # Click the first View button to open patient details
     view_button = driver.find_element(By.CLASS_NAME, "view-patient")
     view_button.click()
 
     # Wait for patient details modal to open
-    WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.ID, "patientDetailsModal"))
-    )
+    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "patientDetailsModal")))
 
     # Check for patient details sections
     modal_body = driver.find_element(By.ID, "patientDetailsBody")
@@ -159,6 +141,4 @@ def test_patient_details(authenticated_driver, base_url):
     close_button.click()
 
     # Wait for modal to close
-    WebDriverWait(driver, 10).until(
-        EC.invisibility_of_element_located((By.ID, "patientDetailsModal"))
-    )
+    WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, "patientDetailsModal")))

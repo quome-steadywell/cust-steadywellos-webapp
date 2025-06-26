@@ -27,9 +27,7 @@ class TestClient:
         print(f"📝 Logging in as {username}")
         login_data = {"username": username, "password": password}
 
-        success, response = self.post(
-            "/api/v1/auth/login", login_data, expected_status=200
-        )
+        success, response = self.post("/api/v1/auth/login", login_data, expected_status=200)
         if not success:
             print("❌ Login failed")
             return False
@@ -105,9 +103,7 @@ class TestClient:
         if self.access_token and not path.startswith("/api/v1/auth/login"):
             headers["Authorization"] = f"Bearer {self.access_token}"
 
-        req = urllib.request.Request(
-            url, data=data_bytes, headers=headers, method="POST"
-        )
+        req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
 
         # Add cookies if available
         if self.cookies:
@@ -203,9 +199,7 @@ def run_basic_tests(base_url="http://0.0.0.0:8080"):
     if len(protocols) > 0:
         protocol_id = protocols[0]["id"]
         print(f"\n🔍 Test 5: Get protocol details for ID {protocol_id}")
-        success, content = client.get(
-            f"/api/v1/protocols/{protocol_id}", expected_status=200
-        )
+        success, content = client.get(f"/api/v1/protocols/{protocol_id}", expected_status=200)
         if not success:
             print("❌ Failed to access protocol details")
             return False
@@ -257,18 +251,14 @@ def run_basic_tests(base_url="http://0.0.0.0:8080"):
     if len(patients) > 0:
         patient_id = patients[0]["id"]
         print(f"\n🔍 Test 8: Get patient details for ID {patient_id}")
-        success, content = client.get(
-            f"/api/v1/patients/{patient_id}", expected_status=200
-        )
+        success, content = client.get(f"/api/v1/patients/{patient_id}", expected_status=200)
         if not success:
             print("❌ Failed to access patient details")
             return False
 
         try:
             patient = json.loads(content)
-            print(
-                f"✅ Retrieved patient: {patient['first_name']} {patient['last_name']}"
-            )
+            print(f"✅ Retrieved patient: {patient['first_name']} {patient['last_name']}")
         except (json.JSONDecodeError, KeyError):
             print("❌ Patient details didn't return valid JSON or missing name fields")
             return False
@@ -313,26 +303,20 @@ def run_basic_tests(base_url="http://0.0.0.0:8080"):
     if len(patients) > 0 and assessments and len(assessments) > 0:
         assessment_id = assessments[0]["id"]
         print(f"\n🔍 Test 11: Get assessment details for ID {assessment_id}")
-        success, content = client.get(
-            f"/api/v1/assessments/{assessment_id}", expected_status=200
-        )
+        success, content = client.get(f"/api/v1/assessments/{assessment_id}", expected_status=200)
         if not success:
             print("❌ Failed to access assessment details")
             return False
 
         try:
             assessment = json.loads(content)
-            print(
-                f"✅ Retrieved assessment for patient: {assessment['patient']['full_name']}"
-            )
+            print(f"✅ Retrieved assessment for patient: {assessment['patient']['full_name']}")
 
             # Test that protocol data is accessible
             if "protocol_id" in assessment:
                 protocol_id = assessment["protocol_id"]
                 print(f"Checking protocol {protocol_id} is accessible...")
-                success, protocol_content = client.get(
-                    f"/api/v1/protocols/{protocol_id}", expected_status=200
-                )
+                success, protocol_content = client.get(f"/api/v1/protocols/{protocol_id}", expected_status=200)
                 if success:
                     print(f"✅ Associated protocol is accessible")
                 else:

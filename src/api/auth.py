@@ -48,9 +48,7 @@ def login():
 
     if user.is_account_locked():
         return (
-            jsonify(
-                {"error": "Account is locked due to too many failed login attempts"}
-            ),
+            jsonify({"error": "Account is locked due to too many failed login attempts"}),
             403,
         )
 
@@ -65,9 +63,7 @@ def login():
     # Generate tokens
     access_token = create_access_token(
         identity=user.id,
-        expires_delta=timedelta(
-            minutes=current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30)
-        ),
+        expires_delta=timedelta(minutes=current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30)),
     )
 
     refresh_token = create_refresh_token(identity=user.id)
@@ -86,8 +82,7 @@ def login():
     token_data = {
         "access_token": access_token,
         "token_type": "Bearer",
-        "expires_in": current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30)
-        * 60,
+        "expires_in": current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30) * 60,
         "refresh_token": refresh_token,
         "user": user,
     }
@@ -108,9 +103,7 @@ def refresh():
     # Generate new access token
     access_token = create_access_token(
         identity=current_user_id,
-        expires_delta=timedelta(
-            minutes=current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30)
-        ),
+        expires_delta=timedelta(minutes=current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30)),
     )
 
     # Log the token refresh
@@ -128,10 +121,7 @@ def refresh():
             {
                 "access_token": access_token,
                 "token_type": "Bearer",
-                "expires_in": current_app.config.get(
-                    "JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30
-                )
-                * 60,
+                "expires_in": current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 30) * 60,
             }
         ),
         200,
@@ -155,9 +145,7 @@ def password_reset_request():
     # Always return success even if email not found (security best practice)
     if not user:
         return (
-            jsonify(
-                {"message": "If the email exists, a password reset link will be sent"}
-            ),
+            jsonify({"message": "If the email exists, a password reset link will be sent"}),
             200,
         )
 
@@ -191,9 +179,7 @@ def password_reset():
 
     try:
         # Validate input
-        schema_data = PasswordResetSchema(
-            context={"password": data.get("password")}
-        ).load(data)
+        schema_data = PasswordResetSchema(context={"password": data.get("password")}).load(data)
     except ValidationError as err:
         return jsonify({"error": "Validation error", "messages": err.messages}), 400
 

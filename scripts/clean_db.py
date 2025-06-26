@@ -47,9 +47,7 @@ def clean_database():
 
                 # Update assessments to use the kept protocol
                 for delete_protocol in delete_protocols:
-                    assessments = Assessment.query.filter_by(
-                        protocol_id=delete_protocol.id
-                    ).all()
+                    assessments = Assessment.query.filter_by(protocol_id=delete_protocol.id).all()
                     print(
                         f"  Updating {len(assessments)} assessments from protocol {delete_protocol.id} to {keep_protocol.id}"
                     )
@@ -60,9 +58,7 @@ def clean_database():
                     # Delete the duplicate protocol
                     db.session.delete(delete_protocol)
             else:
-                print(
-                    f"Type {protocol_type}: Only one protocol exists (ID {protocol_list[0].id})"
-                )
+                print(f"Type {protocol_type}: Only one protocol exists (ID {protocol_list[0].id})")
 
         # Commit changes
         db.session.commit()

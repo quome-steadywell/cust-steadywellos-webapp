@@ -24,9 +24,7 @@ def check_app(base_url="http://0.0.0.0:8080"):
 
     try:
         # Initialize WebDriver
-        driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()), options=chrome_options
-        )
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
         # Set timeout
         driver.implicitly_wait(10)

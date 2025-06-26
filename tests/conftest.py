@@ -29,9 +29,7 @@ def driver():
     chrome_options.add_argument("--disable-dev-shm-usage")
 
     # Create a new instance of the Chrome driver
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()), options=chrome_options
-    )
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     # Set an implicit wait of 10 seconds
     driver.implicitly_wait(10)

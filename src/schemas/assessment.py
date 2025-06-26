@@ -17,20 +17,14 @@ class AssessmentSchema(Schema):
     notes = fields.Str()
     follow_up_needed = fields.Bool()
     follow_up_date = fields.DateTime()
-    follow_up_priority = fields.Str(
-        validate=validate.OneOf([priority.value for priority in FollowUpPriority])
-    )
+    follow_up_priority = fields.Str(validate=validate.OneOf([priority.value for priority in FollowUpPriority]))
     ai_guidance = fields.Str()
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
 
     # Nested fields
-    patient = fields.Nested(
-        "PatientSchema", only=["id", "full_name", "mrn"], dump_only=True
-    )
-    protocol = fields.Nested(
-        "ProtocolSchema", only=["id", "name", "protocol_type"], dump_only=True
-    )
+    patient = fields.Nested("PatientSchema", only=["id", "full_name", "mrn"], dump_only=True)
+    protocol = fields.Nested("ProtocolSchema", only=["id", "name", "protocol_type"], dump_only=True)
     conducted_by = fields.Nested("UserSchema", only=["id", "full_name"], dump_only=True)
 
     @validates("patient_id")
@@ -62,24 +56,18 @@ class AssessmentSchema(Schema):
         if not user:
             raise ValidationError("User not found.")
         if user.role not in [UserRole.NURSE, UserRole.PHYSICIAN]:
-            raise ValidationError(
-                "Assessment can only be conducted by a nurse or physician."
-            )
+            raise ValidationError("Assessment can only be conducted by a nurse or physician.")
 
 
 class AssessmentListSchema(Schema):
     """Schema for assessment list view with fewer fields"""
 
     id = fields.Int(dump_only=True)
-    patient = fields.Nested(
-        "PatientSchema", only=["id", "full_name", "mrn"], dump_only=True
-    )
+    patient = fields.Nested("PatientSchema", only=["id", "full_name", "mrn"], dump_only=True)
     assessment_date = fields.DateTime()
     follow_up_needed = fields.Bool()
     follow_up_priority = fields.Str()
-    protocol = fields.Nested(
-        "ProtocolSchema", only=["id", "name", "protocol_type"], dump_only=True
-    )
+    protocol = fields.Nested("ProtocolSchema", only=["id", "name", "protocol_type"], dump_only=True)
 
 
 class AssessmentUpdateSchema(Schema):
@@ -88,6 +76,4 @@ class AssessmentUpdateSchema(Schema):
     notes = fields.Str()
     follow_up_needed = fields.Bool()
     follow_up_date = fields.DateTime()
-    follow_up_priority = fields.Str(
-        validate=validate.OneOf([priority.value for priority in FollowUpPriority])
-    )
+    follow_up_priority = fields.Str(validate=validate.OneOf([priority.value for priority in FollowUpPriority]))

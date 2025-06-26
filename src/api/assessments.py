@@ -55,9 +55,7 @@ def get_all_assessments():
             patient = Patient.query.get(patient_id)
             if not patient or patient.primary_nurse_id != current_user.id:
                 return (
-                    jsonify(
-                        {"error": "Unauthorized to view this patient's assessments"}
-                    ),
+                    jsonify({"error": "Unauthorized to view this patient's assessments"}),
                     403,
                 )
     # If no patient is specified and user is a nurse, only show their patients
@@ -140,9 +138,7 @@ def get_assessment(id):
     if assessment.protocol_id:
         protocol = Protocol.query.get(assessment.protocol_id)
         if not protocol:
-            print(
-                f"Warning: Protocol with ID {assessment.protocol_id} not found, referenced by assessment {id}"
-            )
+            print(f"Warning: Protocol with ID {assessment.protocol_id} not found, referenced by assessment {id}")
         else:
             print(f"Protocol found: {protocol.name} ({protocol.protocol_type})")
     else:
@@ -179,11 +175,7 @@ def create_assessment():
         return jsonify({"error": "Patient not found"}), 404
 
     # Nurses can only create assessments for their assigned patients
-    if (
-        current_user
-        and current_user.role == UserRole.NURSE
-        and patient.primary_nurse_id != current_user.id
-    ):
+    if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
         return (
             jsonify({"error": "Unauthorized to create assessment for this patient"}),
             403,
@@ -235,11 +227,7 @@ def update_assessment(id):
         return jsonify({"error": "Assessment not found"}), 404
 
     # Verify permissions - only the creator or admins can update
-    if (
-        current_user
-        and current_user.role != UserRole.ADMIN
-        and assessment.conducted_by_id != current_user.id
-    ):
+    if current_user and current_user.role != UserRole.ADMIN and assessment.conducted_by_id != current_user.id:
         return jsonify({"error": "Unauthorized to update this assessment"}), 403
 
     # Check if changing patient and verify permissions
@@ -249,11 +237,7 @@ def update_assessment(id):
             return jsonify({"error": "Patient not found"}), 404
 
         # Nurses can only assign to their patients
-        if (
-            current_user
-            and current_user.role == UserRole.NURSE
-            and patient.primary_nurse_id != current_user.id
-        ):
+        if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
             return (
                 jsonify({"error": "Unauthorized to assign assessment to this patient"}),
                 403,
@@ -331,11 +315,7 @@ def complete_followup(id):
 
     # Verify permissions
     patient = Patient.query.get(assessment.patient_id)
-    if (
-        current_user
-        and current_user.role == UserRole.NURSE
-        and patient.primary_nurse_id != current_user.id
-    ):
+    if current_user and current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user.id:
         return jsonify({"error": "Unauthorized to update this assessment"}), 403
 
     # Mark follow-up as completed
@@ -357,9 +337,7 @@ def get_followups():
     date_filter = request.args.get("date")
     if date_filter:
         try:
-            filter_date = datetime.fromisoformat(
-                date_filter.replace("Z", "+00:00")
-            ).date()
+            filter_date = datetime.fromisoformat(date_filter.replace("Z", "+00:00")).date()
         except ValueError:
             return jsonify({"error": f"Invalid date format: {date_filter}"}), 400
     else:
@@ -383,9 +361,7 @@ def get_followups():
         query = query.join(Patient).filter(Patient.primary_nurse_id == current_user.id)
 
     # Order by priority (high to low) and date (soonest first)
-    query = query.order_by(
-        Assessment.follow_up_priority.desc(), Assessment.follow_up_date.asc()
-    )
+    query = query.order_by(Assessment.follow_up_priority.desc(), Assessment.follow_up_date.asc())
 
     # Execute query
     followups = query.all()

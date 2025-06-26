@@ -21,9 +21,7 @@ def setup_basic_logging():
 
     # Add a simple console handler
     console_handler = logging.StreamHandler()
-    console_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    )
+    console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(console_handler)
 
     return logger
@@ -55,26 +53,16 @@ def check_assessments_data():
             # Check if patients table exists before proceeding
             from sqlalchemy import text
 
-            db.session.execute(
-                text(
-                    "SELECT 1 FROM information_schema.tables WHERE table_name='patients'"
-                )
-            )
+            db.session.execute(text("SELECT 1 FROM information_schema.tables WHERE table_name='patients'"))
 
             # Get required objects
-            mary_johnson = Patient.query.filter_by(
-                first_name="Mary", last_name="Johnson"
-            ).first()
-            heart_failure_protocol = Protocol.query.filter_by(
-                protocol_type=ProtocolType.HEART_FAILURE
-            ).first()
+            mary_johnson = Patient.query.filter_by(first_name="Mary", last_name="Johnson").first()
+            heart_failure_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
             nurse = User.query.filter_by(role=UserRole.NURSE).first()
 
             # If Mary Johnson doesn't exist, check if we can create her
             if not mary_johnson:
-                print(
-                    "Warning: Mary Johnson patient record not found. Attempting to create it..."
-                )
+                print("Warning: Mary Johnson patient record not found. Attempting to create it...")
 
                 # Check if we have a nurse user
                 if not nurse:
@@ -154,9 +142,7 @@ def check_assessments_data():
                     patient_id=mary_johnson.id,
                     protocol_id=heart_failure_protocol.id,
                     conducted_by_id=nurse.id,
-                    assessment_date=datetime(
-                        2025, 3, 25, 9, 30
-                    ),  # March 25, 2025 9:30 AM
+                    assessment_date=datetime(2025, 3, 25, 9, 30),  # March 25, 2025 9:30 AM
                     responses={
                         "dyspnea": {"value": 8},
                         "edema": {"value": 9},
@@ -190,9 +176,7 @@ def check_assessments_data():
                     ],
                     notes="Patient reports severe increase in edema, dyspnea, and new onset chest pain. Needs immediate medical attention.",
                     follow_up_needed=True,
-                    follow_up_date=datetime(
-                        2025, 4, 2, 10, 0
-                    ),  # April 2, 2025 10:00 AM
+                    follow_up_date=datetime(2025, 4, 2, 10, 0),  # April 2, 2025 10:00 AM
                     follow_up_priority=FollowUpPriority.HIGH,
                     ai_guidance="Urgent review by physician recommended. Consider hospital evaluation for decompensated heart failure with possible acute coronary syndrome. Increase diuretic dose and monitor fluid status closely.",
                 )
@@ -202,9 +186,7 @@ def check_assessments_data():
                     patient_id=mary_johnson.id,
                     protocol_id=heart_failure_protocol.id,
                     conducted_by_id=nurse.id,
-                    assessment_date=datetime(
-                        2025, 3, 25, 14, 30
-                    ),  # March 25, 2025 2:30 PM
+                    assessment_date=datetime(2025, 3, 25, 14, 30),  # March 25, 2025 2:30 PM
                     responses={
                         "dyspnea": {"value": 9},
                         "edema": {"value": 10},
@@ -238,9 +220,7 @@ def check_assessments_data():
                     ],
                     notes="Follow-up check shows worsening symptoms. Patient sent to emergency department for evaluation.",
                     follow_up_needed=True,
-                    follow_up_date=datetime(
-                        2025, 3, 28, 10, 0
-                    ),  # March 28, 2025 10:00 AM
+                    follow_up_date=datetime(2025, 3, 28, 10, 0),  # March 28, 2025 10:00 AM
                     follow_up_priority=FollowUpPriority.HIGH,
                     ai_guidance="Urgent hospital evaluation recommended. Possible acute decompensated heart failure with cardiac ischemia.",
                 )
@@ -255,9 +235,7 @@ def check_assessments_data():
             assessment_count = Assessment.query.count()
 
             if assessment_count < 5 and patient_count >= 3:
-                print(
-                    f"Few assessments found ({assessment_count}). Adding patient history..."
-                )
+                print(f"Few assessments found ({assessment_count}). Adding patient history...")
 
                 # Get all patients
                 patients = Patient.query.all()
@@ -267,45 +245,25 @@ def check_assessments_data():
                 if len(patients) >= 3 and len(nurses) >= 1 and len(protocols) >= 3:
                     # Find the patients by name if possible
                     patient1 = next(
-                        (
-                            p
-                            for p in patients
-                            if p.first_name == "John" and p.last_name == "Doe"
-                        ),
+                        (p for p in patients if p.first_name == "John" and p.last_name == "Doe"),
                         patients[0],
                     )
                     patient2 = next(
-                        (
-                            p
-                            for p in patients
-                            if p.first_name == "Mary" and p.last_name == "Johnson"
-                        ),
+                        (p for p in patients if p.first_name == "Mary" and p.last_name == "Johnson"),
                         patients[1],
                     )
                     patient3 = next(
-                        (
-                            p
-                            for p in patients
-                            if p.first_name == "James" and p.last_name == "Wilson"
-                        ),
+                        (p for p in patients if p.first_name == "James" and p.last_name == "Wilson"),
                         patients[2],
                     )
 
                     # Find protocols by type
                     cancer_protocol = next(
-                        (
-                            p
-                            for p in protocols
-                            if p.protocol_type == ProtocolType.CANCER
-                        ),
+                        (p for p in protocols if p.protocol_type == ProtocolType.CANCER),
                         protocols[0],
                     )
                     heart_failure_protocol = next(
-                        (
-                            p
-                            for p in protocols
-                            if p.protocol_type == ProtocolType.HEART_FAILURE
-                        ),
+                        (p for p in protocols if p.protocol_type == ProtocolType.HEART_FAILURE),
                         protocols[1],
                     )
                     copd_protocol = next(
@@ -330,22 +288,16 @@ def check_assessments_data():
                     )
                     print("Patient assessment history added.")
                 else:
-                    print(
-                        "Not enough patient, nurse, or protocol records to add history."
-                    )
+                    print("Not enough patient, nurse, or protocol records to add history.")
             else:
-                print(
-                    f"Sufficient assessments found ({assessment_count}). No additional history needed."
-                )
+                print(f"Sufficient assessments found ({assessment_count}). No additional history needed.")
 
             return True
 
         except Exception as e:
             if "relation" in str(e) and "does not exist" in str(e):
                 print(f"Database tables not ready yet: {str(e)}")
-                print(
-                    "This is normal during initial setup. The script will be run again after tables are created."
-                )
+                print("This is normal during initial setup. The script will be run again after tables are created.")
                 # Return True to avoid error messages during startup
                 return True
             else:

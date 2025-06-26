@@ -42,8 +42,4 @@ class Protocol(db.Model):
     @classmethod
     def get_latest_active_protocol(cls, protocol_type):
         """Get the latest active protocol for a given type"""
-        return (
-            cls.query.filter_by(protocol_type=protocol_type, is_active=True)
-            .order_by(cls.version.desc())
-            .first()
-        )
+        return cls.query.filter_by(protocol_type=protocol_type, is_active=True).order_by(cls.version.desc()).first()

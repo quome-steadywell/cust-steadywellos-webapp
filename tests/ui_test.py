@@ -149,9 +149,7 @@ class UITestClient:
                 title = title_match.group(1) if title_match else ""
 
                 if expected_title and expected_title not in title:
-                    print(
-                        f"❌ Title '{title}' doesn't contain expected '{expected_title}'"
-                    )
+                    print(f"❌ Title '{title}' doesn't contain expected '{expected_title}'")
                     return False
 
                 if expected_title:
@@ -221,16 +219,12 @@ def test_protocols_page(base_url):
     """Test the protocols page"""
     print("\n🔍 Test: Protocols Page")
 
-    result, html, parser = fetch_page(
-        f"{base_url}/protocols", expected_title="Protocols"
-    )
+    result, html, parser = fetch_page(f"{base_url}/protocols", expected_title="Protocols")
     if not result:
         return False
 
     # Check for protocol filter elements
-    protocol_filter = re.search(
-        r'<select[^>]*id="protocolTypeFilter"[^>]*>', html, re.IGNORECASE
-    )
+    protocol_filter = re.search(r'<select[^>]*id="protocolTypeFilter"[^>]*>', html, re.IGNORECASE)
     if not protocol_filter:
         print("❌ Protocol filter not found")
         return False
@@ -300,9 +294,7 @@ def test_assessment_creation(base_url):
         return False
 
     # Check for assessment form elements
-    assessment_form = re.search(
-        r'<form[^>]*id="assessmentForm"[^>]*>', html, re.IGNORECASE
-    )
+    assessment_form = re.search(r'<form[^>]*id="assessmentForm"[^>]*>', html, re.IGNORECASE)
     if not assessment_form:
         print("❌ Assessment form not found")
         return False
@@ -310,12 +302,8 @@ def test_assessment_creation(base_url):
     print("✅ Assessment page contains form")
 
     # Check for question container and generate button
-    question_container = re.search(
-        r'<div[^>]*id="questionContainer"[^>]*>', html, re.IGNORECASE
-    )
-    generate_button = re.search(
-        r'<button[^>]*id="generateBtn"[^>]*>', html, re.IGNORECASE
-    )
+    question_container = re.search(r'<div[^>]*id="questionContainer"[^>]*>', html, re.IGNORECASE)
+    generate_button = re.search(r'<button[^>]*id="generateBtn"[^>]*>', html, re.IGNORECASE)
 
     if not question_container:
         print("❌ Question container not found")
@@ -348,22 +336,14 @@ def test_protocol_details(base_url):
         return False
 
     # Now test the protocol details page
-    result, html, parser = fetch_page(
-        f"{base_url}/protocols/{protocol_id}", expected_title="Protocol Details"
-    )
+    result, html, parser = fetch_page(f"{base_url}/protocols/{protocol_id}", expected_title="Protocol Details")
     if not result:
         return False
 
     # Check for protocol components
-    overview_section = re.search(
-        r'<div[^>]*id="protocolOverview"[^>]*>', html, re.IGNORECASE
-    )
-    questions_section = re.search(
-        r'<div[^>]*id="questionsContainer"[^>]*>', html, re.IGNORECASE
-    )
-    interventions_section = re.search(
-        r'<div[^>]*id="interventionsContainer"[^>]*>', html, re.IGNORECASE
-    )
+    overview_section = re.search(r'<div[^>]*id="protocolOverview"[^>]*>', html, re.IGNORECASE)
+    questions_section = re.search(r'<div[^>]*id="questionsContainer"[^>]*>', html, re.IGNORECASE)
+    interventions_section = re.search(r'<div[^>]*id="interventionsContainer"[^>]*>', html, re.IGNORECASE)
 
     if not overview_section:
         print("❌ Protocol overview section not found")
@@ -398,9 +378,7 @@ def test_calls_page(base_url):
     print("✅ Calls page contains call schedule table")
 
     # Check for filtering capabilities
-    filter_elements = re.search(
-        r'<select[^>]*id="[^"]*Filter"[^>]*>', html, re.IGNORECASE
-    )
+    filter_elements = re.search(r'<select[^>]*id="[^"]*Filter"[^>]*>', html, re.IGNORECASE)
     if not filter_elements:
         print("❌ Call filtering elements not found")
         return False
@@ -413,16 +391,12 @@ def test_dashboard_page(base_url):
     """Test the dashboard page"""
     print("\n🔍 Test: Dashboard Page")
 
-    result, html, parser = fetch_page(
-        f"{base_url}/dashboard", expected_title="Dashboard"
-    )
+    result, html, parser = fetch_page(f"{base_url}/dashboard", expected_title="Dashboard")
     if not result:
         return False
 
     # Check for dashboard elements
-    patient_summary = re.search(
-        r'<div[^>]*id="patientSummary"[^>]*>', html, re.IGNORECASE
-    )
+    patient_summary = re.search(r'<div[^>]*id="patientSummary"[^>]*>', html, re.IGNORECASE)
     recent_calls = re.search(r'<div[^>]*id="recentCalls"[^>]*>', html, re.IGNORECASE)
 
     if not patient_summary:
@@ -538,9 +512,7 @@ def run_all_tests(base_url="http://0.0.0.0:8080"):
                 if data:
                     protocol_id = data[0]["id"]
                     print(f"\n🔍 Testing protocol details page for ID {protocol_id}")
-                    result, _, _ = client.fetch_page(
-                        f"/protocols/{protocol_id}", "Protocol Details"
-                    )
+                    result, _, _ = client.fetch_page(f"/protocols/{protocol_id}", "Protocol Details")
                     results.append(result)
                 else:
                     print("❌ No protocols found")
@@ -565,35 +537,20 @@ def run_all_tests(base_url="http://0.0.0.0:8080"):
                 data = json.loads(response.read().decode("utf-8"))
                 if data and len(data) > 0:
                     assessment_id = data[0]["id"]
-                    print(
-                        f"\n🔍 Testing assessment details page for ID {assessment_id}"
-                    )
-                    result, html, _ = client.fetch_page(
-                        f"/assessments/{assessment_id}", "Assessment Detail"
-                    )
+                    print(f"\n🔍 Testing assessment details page for ID {assessment_id}")
+                    result, html, _ = client.fetch_page(f"/assessments/{assessment_id}", "Assessment Detail")
 
                     # Just check for successful page load, since we've improved error handling
                     # to show fallback displays even when there are errors loading protocol data
-                    if (
-                        "Assessment Information" in html
-                        and "Patient Information" in html
-                    ):
-                        print(
-                            "✅ Assessment details page loads successfully with basic information"
-                        )
+                    if "Assessment Information" in html and "Patient Information" in html:
+                        print("✅ Assessment details page loads successfully with basic information")
                         # We'll log warnings about errors but not fail the test, since the page is still usable
                         if "Error loading symptoms information" in html:
-                            print(
-                                "⚠️ Warning: Page contains symptom loading error but has fallback display"
-                            )
+                            print("⚠️ Warning: Page contains symptom loading error but has fallback display")
                         if "Error loading interventions information" in html:
-                            print(
-                                "⚠️ Warning: Page contains interventions loading error but has fallback display"
-                            )
+                            print("⚠️ Warning: Page contains interventions loading error but has fallback display")
                         if "Error loading responses information" in html:
-                            print(
-                                "⚠️ Warning: Page contains responses loading error but has fallback display"
-                            )
+                            print("⚠️ Warning: Page contains responses loading error but has fallback display")
 
                         # Check if we have fallbacks loaded
                         has_fallbacks = (
@@ -606,9 +563,7 @@ def run_all_tests(base_url="http://0.0.0.0:8080"):
 
                         results.append(True)
                     else:
-                        print(
-                            "❌ Assessment details page is missing core information sections"
-                        )
+                        print("❌ Assessment details page is missing core information sections")
                         results.append(False)
                 else:
                     print("❌ No assessments found")

@@ -61,12 +61,8 @@ def init_db(config=None, seed=False, reset=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Initialize the SteadywellOS database")
-    parser.add_argument(
-        "--seed", action="store_true", help="Seed the database with initial data"
-    )
-    parser.add_argument(
-        "--reset", action="store_true", help="Reset the database (drop all tables)"
-    )
+    parser.add_argument("--seed", action="store_true", help="Seed the database with initial data")
+    parser.add_argument("--reset", action="store_true", help="Reset the database (drop all tables)")
     parser.add_argument("--config", help="Specify the configuration to use")
 
     args = parser.parse_args()

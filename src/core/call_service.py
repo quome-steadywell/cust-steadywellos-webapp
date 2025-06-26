@@ -51,14 +51,10 @@ def make_retell_call(patient: Dict[str, Any]) -> Optional[str]:
         raise ValueError("Patient phone number is missing")
 
     if make_real_call:
-        logger.info(
-            f"REAL CALL MODE: Initiating actual call to {first_name} {last_name} at {phone_number}"
-        )
+        logger.info(f"REAL CALL MODE: Initiating actual call to {first_name} {last_name} at {phone_number}")
         return _make_real_retell_call(patient)
     else:
-        logger.info(
-            f"SIMULATION MODE: Would initiate call to {first_name} {last_name} at {phone_number}"
-        )
+        logger.info(f"SIMULATION MODE: Would initiate call to {first_name} {last_name} at {phone_number}")
         return _make_simulated_call(patient)
 
 
@@ -105,9 +101,7 @@ def _make_real_retell_call(patient: Dict[str, Any]) -> Optional[str]:
     if not api_key:
         raise ValueError("RETELLAI_API_KEY is not configured")
     if not agent_id:
-        agent_var = (
-            "RETELLAI_LOCAL_AGENT_ID" if mode == "LOCAL" else "RETELLAI_REMOTE_AGENT_ID"
-        )
+        agent_var = "RETELLAI_LOCAL_AGENT_ID" if mode == "LOCAL" else "RETELLAI_REMOTE_AGENT_ID"
         raise ValueError(f"{agent_var} is not configured")
     if not from_number:
         raise ValueError("RETELLAI_PHONE_NUMBER is not configured")
@@ -143,9 +137,7 @@ def _make_real_retell_call(patient: Dict[str, Any]) -> Optional[str]:
         },
     }
 
-    logger.info(
-        f"Making Retell.ai API call with request: {json.dumps(call_request, indent=2)}"
-    )
+    logger.info(f"Making Retell.ai API call with request: {json.dumps(call_request, indent=2)}")
 
     try:
         response = requests.post(

@@ -289,7 +289,7 @@ payload_env_vars=$(
 				echo "${!var_name:-}"
 			fi
 		done
-		
+
 		# Add FORCE_RESEED separately (controlled by --reseed flag)
 		echo "FORCE_RESEED"
 		if [ "$RECREATE_DATABASE" = true ] || [ "$RESEED_DATABASE" = true ]; then
@@ -297,7 +297,7 @@ payload_env_vars=$(
 		else
 			echo "false"
 		fi
-		
+
 		# Add RECREATE_SCHEMA separately (controlled by --recreate-db flag)
 		echo "RECREATE_SCHEMA"
 		if [ "$RECREATE_DATABASE" = true ]; then
@@ -464,13 +464,13 @@ echo "$CLEAN_RESPONSE" | jq . || echo "$CLEAN_RESPONSE"
 # Check if successful
 if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
 	echo -e "${GREEN}✅ Application deployed successfully!${NC}"
-	
+
 	# Try to extract domain name
 	DOMAIN_NAME=$(echo "$CLEAN_RESPONSE" | jq -r '.domain_name // empty' 2>/dev/null)
 	if [ ! -z "$DOMAIN_NAME" ]; then
 		echo -e "${BLUE}🌐 Application URL: https://$DOMAIN_NAME${NC}"
 	fi
-	
+
 	echo -e "${BLUE}📊 Logs URL: https://demo.quome.cloud/api/v1/orgs/$CLOUD_ORG_ID/apps/$CLOUD_APP_ID/logs${NC}"
 else
 	echo -e "${RED}❌ Failed to update app (HTTP status: $HTTP_STATUS)${NC}"

@@ -218,7 +218,7 @@
         .then(data => {
             const tableBody = document.getElementById('todayCallsTableBody');
             tableBody.innerHTML = '';
-            
+
             if (data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -227,14 +227,14 @@
                 `;
                 return;
             }
-            
+
             data.forEach(call => {
                 const row = document.createElement('tr');
-                
+
                 // Format date and time
                 const scheduledTime = new Date(call.scheduled_time);
                 const timeString = scheduledTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
+
                 // Determine status badge color
                 let statusBadgeClass = 'bg-secondary';
                 if (call.status === 'scheduled') statusBadgeClass = 'bg-primary';
@@ -242,14 +242,14 @@
                 if (call.status === 'completed') statusBadgeClass = 'bg-success';
                 if (call.status === 'missed') statusBadgeClass = 'bg-danger';
                 if (call.status === 'cancelled') statusBadgeClass = 'bg-secondary';
-                
+
                 // Format call type for display
                 const callTypeDisplay = call.call_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                
+
                 // Add overdue marker
                 const isOverdue = call.is_overdue && call.status === 'scheduled';
                 const overdueMarker = isOverdue ? '<span class="badge bg-danger ms-2">Overdue</span>' : '';
-                
+
                 row.innerHTML = `
                     <td>${timeString} ${overdueMarker}</td>
                     <td>${call.patient.full_name}</td>
@@ -271,19 +271,19 @@
                         </div>
                     </td>
                 `;
-                
+
                 tableBody.appendChild(row);
             });
-            
+
             // Add event listeners
             document.querySelectorAll('.view-call').forEach(button => {
                 button.addEventListener('click', () => viewCall(button.dataset.id));
             });
-            
+
             document.querySelectorAll('.initiate-call').forEach(button => {
                 button.addEventListener('click', () => initiateCall(button.dataset.id));
             });
-            
+
             document.querySelectorAll('.cancel-call').forEach(button => {
                 button.addEventListener('click', () => cancelCall(button.dataset.id));
             });
@@ -297,7 +297,7 @@
             `;
         });
     }
-    
+
     // Fetch and populate patients for filter
     function loadPatients() {
         fetch('/api/v1/patients/', {
@@ -308,12 +308,12 @@
         .then(response => response.json())
         .then(patients => {
             const patientSelect = document.getElementById('patientFilter');
-            
+
             // Clear previous options (keeping the "All Patients" option)
             while (patientSelect.options.length > 1) {
                 patientSelect.remove(1);
             }
-            
+
             // Add patient options
             patients.forEach(patient => {
                 const option = document.createElement('option');
@@ -326,7 +326,7 @@
             console.error('Error fetching patients:', error);
         });
     }
-    
+
     // Fetch and populate call history
     function loadCallHistory() {
         // Get filter values
@@ -335,7 +335,7 @@
         const callType = document.getElementById('callTypeFilter').value;
         const fromDate = document.getElementById('fromDateFilter').value;
         const toDate = document.getElementById('toDateFilter').value;
-        
+
         // Build URL with filters
         let url = '/api/v1/calls/?';
         if (patientId) url += `patient_id=${patientId}&`;
@@ -343,7 +343,7 @@
         if (callType) url += `call_type=${callType}&`;
         if (fromDate) url += `from_date=${fromDate}T00:00:00Z&`;
         if (toDate) url += `to_date=${toDate}T23:59:59Z&`;
-        
+
         fetch(url, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
@@ -353,7 +353,7 @@
         .then(data => {
             const tableBody = document.getElementById('callHistoryTableBody');
             tableBody.innerHTML = '';
-            
+
             if (data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -362,15 +362,15 @@
                 `;
                 return;
             }
-            
+
             data.forEach(call => {
                 const row = document.createElement('tr');
-                
+
                 // Format date and time
                 const scheduledTime = new Date(call.scheduled_time);
-                const dateTimeString = scheduledTime.toLocaleDateString() + ' ' + 
+                const dateTimeString = scheduledTime.toLocaleDateString() + ' ' +
                                      scheduledTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
+
                 // Format duration
                 let durationString = '-';
                 if (call.duration) {
@@ -378,7 +378,7 @@
                     const seconds = Math.floor(call.duration % 60);
                     durationString = `${minutes}m ${seconds}s`;
                 }
-                
+
                 // Determine status badge color
                 let statusBadgeClass = 'bg-secondary';
                 if (call.status === 'scheduled') statusBadgeClass = 'bg-primary';
@@ -386,10 +386,10 @@
                 if (call.status === 'completed') statusBadgeClass = 'bg-success';
                 if (call.status === 'missed') statusBadgeClass = 'bg-danger';
                 if (call.status === 'cancelled') statusBadgeClass = 'bg-secondary';
-                
+
                 // Format call type for display
                 const callTypeDisplay = call.call_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                
+
                 row.innerHTML = `
                     <td>${dateTimeString}</td>
                     <td>${call.patient.full_name}</td>
@@ -410,15 +410,15 @@
                         </div>
                     </td>
                 `;
-                
+
                 tableBody.appendChild(row);
             });
-            
+
             // Add event listeners
             document.querySelectorAll('.view-call').forEach(button => {
                 button.addEventListener('click', () => viewCall(button.dataset.id));
             });
-            
+
             document.querySelectorAll('.view-transcript').forEach(button => {
                 button.addEventListener('click', () => viewTranscript(button.dataset.id));
             });
@@ -432,7 +432,7 @@
             `;
         });
     }
-    
+
     // View call details
     function viewCall(callId) {
         fetch(`/api/v1/calls/${callId}`, {
@@ -443,7 +443,7 @@
         .then(response => response.json())
         .then(call => {
             const detailsBody = document.getElementById('callDetailsBody');
-            
+
             // Format dates
             const scheduledTime = new Date(call.scheduled_time).toLocaleString();
             let startTime = 'Not started';
@@ -454,7 +454,7 @@
             if (call.end_time) {
                 endTime = new Date(call.end_time).toLocaleString();
             }
-            
+
             // Format duration
             let durationString = '-';
             if (call.duration) {
@@ -462,10 +462,10 @@
                 const seconds = Math.floor(call.duration % 60);
                 durationString = `${minutes} minutes, ${seconds} seconds`;
             }
-            
+
             // Format call type for display
             const callTypeDisplay = call.call_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-            
+
             // Determine status badge color
             let statusBadgeClass = 'bg-secondary';
             if (call.status === 'scheduled') statusBadgeClass = 'bg-primary';
@@ -473,7 +473,7 @@
             if (call.status === 'completed') statusBadgeClass = 'bg-success';
             if (call.status === 'missed') statusBadgeClass = 'bg-danger';
             if (call.status === 'cancelled') statusBadgeClass = 'bg-secondary';
-            
+
             detailsBody.innerHTML = `
                 <div class="row">
                     <div class="col-md-6">
@@ -493,7 +493,7 @@
                         <p><strong>Phone:</strong> ${call.patient.phone_number}</p>
                     </div>
                 </div>
-                
+
                 ${call.notes ? `
                 <div class="row mt-3">
                     <div class="col-12">
@@ -502,7 +502,7 @@
                     </div>
                 </div>
                 ` : ''}
-                
+
                 ${call.recording_url ? `
                 <div class="row mt-3">
                     <div class="col-12">
@@ -511,7 +511,7 @@
                     </div>
                 </div>
                 ` : ''}
-                
+
                 ${call.transcript ? `
                 <div class="row mt-3">
                     <div class="col-12">
@@ -524,7 +524,7 @@
                 </div>
                 ` : ''}
             `;
-            
+
             // Show/hide assessment button
             const viewAssessmentBtn = document.getElementById('viewAssessmentBtn');
             if (call.assessment) {
@@ -533,17 +533,17 @@
             } else {
                 viewAssessmentBtn.style.display = 'none';
             }
-            
+
             // Store call ID for edit button
             document.getElementById('editCallBtn').dataset.id = call.id;
-            
+
             // Add transcript button event listener
             if (call.transcript) {
                 document.querySelector('.view-transcript').addEventListener('click', () => {
                     viewTranscript(call.id);
                 });
             }
-            
+
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('callDetailsModal'));
             modal.show();
@@ -553,7 +553,7 @@
             alert('Failed to load call details. Please try again.');
         });
     }
-    
+
     // View call transcript
     function viewTranscript(callId) {
         fetch(`/api/v1/calls/${callId}`, {
@@ -567,20 +567,20 @@
                 alert('No transcript available for this call.');
                 return;
             }
-            
+
             // Close details modal if open
             const detailsModal = document.getElementById('callDetailsModal');
             if (detailsModal.classList.contains('show')) {
                 bootstrap.Modal.getInstance(detailsModal).hide();
             }
-            
+
             // Set transcript content
             document.getElementById('transcriptContent').innerText = call.transcript;
             document.getElementById('editTranscript').value = call.transcript;
-            
+
             // Store call ID for save button
             document.getElementById('saveTranscriptBtn').dataset.id = call.id;
-            
+
             // Show transcript modal
             const modal = new bootstrap.Modal(document.getElementById('transcriptModal'));
             modal.show();
@@ -590,14 +590,14 @@
             alert('Failed to load transcript. Please try again.');
         });
     }
-    
+
     // Edit call - opens modal with call data
     document.getElementById('editCallBtn').addEventListener('click', function() {
         const callId = this.dataset.id;
-        
+
         // Close details modal
         bootstrap.Modal.getInstance(document.getElementById('callDetailsModal')).hide();
-        
+
         // Fetch call data
         fetch(`/api/v1/calls/${callId}`, {
             headers: {
@@ -608,7 +608,7 @@
         .then(call => {
             // Set form values
             document.getElementById('callId').value = call.id;
-            
+
             // Format date-time for input
             const scheduledTime = new Date(call.scheduled_time);
             const year = scheduledTime.getFullYear();
@@ -617,10 +617,10 @@
             const hours = String(scheduledTime.getHours()).padStart(2, '0');
             const minutes = String(scheduledTime.getMinutes()).padStart(2, '0');
             document.getElementById('callScheduledTime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-            
+
             document.getElementById('callStatus').value = call.status;
             document.getElementById('callNotes').value = call.notes || '';
-            
+
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('editCallModal'));
             modal.show();
@@ -630,18 +630,18 @@
             alert('Failed to load call data for editing');
         });
     });
-    
+
     // Save call (update)
     document.getElementById('saveCallBtn').addEventListener('click', function() {
         const callId = document.getElementById('callId').value;
-        
+
         // Collect form data
         const callData = {
             scheduled_time: document.getElementById('callScheduledTime').value,
             status: document.getElementById('callStatus').value,
             notes: document.getElementById('callNotes').value
         };
-        
+
         // Make API request
         fetch(`/api/v1/calls/${callId}`, {
             method: 'PUT',
@@ -667,20 +667,20 @@
         .catch(error => {
             console.error('Error updating call:', error);
             let errorMessage = 'Failed to update call.';
-            
+
             if (error.messages) {
                 errorMessage += ' ' + Object.values(error.messages).flat().join(', ');
             }
-            
+
             alert(errorMessage);
         });
     });
-    
+
     // Save transcript
     document.getElementById('saveTranscriptBtn').addEventListener('click', function() {
         const callId = this.dataset.id;
         const transcript = document.getElementById('editTranscript').value;
-        
+
         // Make API request
         fetch(`/api/v1/calls/${callId}/transcript`, {
             method: 'POST',
@@ -709,13 +709,13 @@
             alert('Failed to update transcript. Please try again.');
         });
     });
-    
+
     // Initiate call
     function initiateCall(callId) {
         if (!confirm('Are you sure you want to initiate this call now?')) {
             return;
         }
-        
+
         fetch(`/api/v1/calls/${callId}/initiate`, {
             method: 'POST',
             headers: {
@@ -737,21 +737,21 @@
         .catch(error => {
             console.error('Error initiating call:', error);
             let errorMessage = 'Failed to initiate call.';
-            
+
             if (error.error) {
                 errorMessage += ' ' + error.error;
             }
-            
+
             alert(errorMessage);
         });
     }
-    
+
     // Cancel call
     function cancelCall(callId) {
         if (!confirm('Are you sure you want to cancel this call?')) {
             return;
         }
-        
+
         fetch(`/api/v1/calls/${callId}/cancel`, {
             method: 'PUT',
             headers: {
@@ -774,35 +774,35 @@
         .catch(error => {
             console.error('Error cancelling call:', error);
             let errorMessage = 'Failed to cancel call.';
-            
+
             if (error.error) {
                 errorMessage += ' ' + error.error;
             }
-            
+
             alert(errorMessage);
         });
     }
-    
+
     // Apply filters
     document.getElementById('applyFilters').addEventListener('click', loadCallHistory);
-    
+
     // Set default date range (last 7 days)
     function setDefaultDateRange() {
         const today = new Date();
         const lastWeek = new Date();
         lastWeek.setDate(today.getDate() - 7);
-        
+
         const formatDate = (date) => {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         };
-        
+
         document.getElementById('fromDateFilter').value = formatDate(lastWeek);
         document.getElementById('toDateFilter').value = formatDate(today);
     }
-    
+
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
         loadTodayCalls();

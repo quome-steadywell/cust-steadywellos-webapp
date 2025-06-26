@@ -140,10 +140,7 @@ def schedule_call():
         return jsonify({"error": "Patient not found"}), 404
 
     current_user = User.query.get(current_user_id)
-    if (
-        current_user.role == UserRole.NURSE
-        and patient.primary_nurse_id != current_user_id
-    ):
+    if current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user_id:
         return jsonify({"error": "Unauthorized to schedule call for this patient"}), 403
 
     # Create new call
@@ -288,11 +285,7 @@ def initiate_outbound_call(id):
             protocol = Protocol.get_latest_active_protocol(patient.protocol_type)
             if not protocol:
                 return (
-                    jsonify(
-                        {
-                            "error": f"No active protocol found for {patient.protocol_type.value}"
-                        }
-                    ),
+                    jsonify({"error": f"No active protocol found for {patient.protocol_type.value}"}),
                     400,
                 )
 
@@ -505,9 +498,7 @@ def get_today_calls():
     today_end = today_start + timedelta(days=1) - timedelta(microseconds=1)
 
     # Build query for today's calls
-    query = Call.query.filter(
-        Call.scheduled_time >= today_start, Call.scheduled_time <= today_end
-    )
+    query = Call.query.filter(Call.scheduled_time >= today_start, Call.scheduled_time <= today_end)
 
     # Regular nurses can only see calls for their patients
     if current_user.role == UserRole.NURSE:
@@ -541,10 +532,7 @@ def ring_now():
         return jsonify({"error": "Patient not found"}), 404
 
     # Check authorization - nurses can only call their own patients
-    if (
-        current_user.role == UserRole.NURSE
-        and patient.primary_nurse_id != current_user_id
-    ):
+    if current_user.role == UserRole.NURSE and patient.primary_nurse_id != current_user_id:
         return jsonify({"error": "Unauthorized to call this patient"}), 403
 
     # Validate phone number
@@ -633,9 +621,7 @@ def call_setting():
         make_real_call_str = os.environ.get("MAKE_REAL_CALL", "false").lower()
         make_real_call = make_real_call_str in ("true", "t", "1", "yes")
 
-        current_app.logger.info(
-            f"Call setting GET request - current value: {make_real_call}"
-        )
+        current_app.logger.info(f"Call setting GET request - current value: {make_real_call}")
 
         return jsonify({"make_real_call": make_real_call}), 200
 
@@ -656,9 +642,7 @@ def call_setting():
 
         # Log the action
         mode = "Real Call Mode" if make_real_call else "Simulation Mode"
-        current_app.logger.info(
-            f"Call mode updated to {mode} by user {current_user.full_name} (ID: {current_user_id})"
-        )
+        current_app.logger.info(f"Call mode updated to {mode} by user {current_user.full_name} (ID: {current_user_id})")
 
         return (
             jsonify(

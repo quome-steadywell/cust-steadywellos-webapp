@@ -12,9 +12,7 @@ class AnthropicClientWrapper:
         """Initialize the client with just the API key"""
         self.api_key = api_key
 
-    def call_model(
-        self, model, prompt=None, system=None, messages=None, max_tokens=1000
-    ):
+    def call_model(self, model, prompt=None, system=None, messages=None, max_tokens=1000):
         """
         Make a call to Claude model using the appropriate API
         Works with any version of the client library by calling APIs directly
@@ -45,9 +43,7 @@ class AnthropicClientWrapper:
             }
 
         # Make direct API call
-        response = requests.post(
-            "https://api.anthropic.com/v1/messages", headers=headers, json=payload
-        )
+        response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload)
 
         # Handle response
         if response.status_code == 200:

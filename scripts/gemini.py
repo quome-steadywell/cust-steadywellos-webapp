@@ -239,9 +239,7 @@ def main():
                 print(f"Error processing {rel_path}: {e}")
                 skipped_files += 1
 
-    print(
-        f"Completed! Processed {processed_files} files, skipped {skipped_files} files"
-    )
+    print(f"Completed! Processed {processed_files} files, skipped {skipped_files} files")
     print(f"Output saved to {output_file} with timestamp {timestamp}")
 
     # Show output file size

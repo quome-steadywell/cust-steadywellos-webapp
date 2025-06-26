@@ -18,9 +18,7 @@ def test_protocols_page_loads(authenticated_driver, base_url):
     assert "Protocols" in driver.title
 
     # Wait for protocol cards to load (they're loaded via AJAX)
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "protocolCards"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "protocolCards")))
 
     # Verify that multiple protocol cards exist
     protocol_cards = driver.find_elements(By.CLASS_NAME, "card")
@@ -38,9 +36,7 @@ def test_protocol_filtering(authenticated_driver, base_url):
     driver.get(f"{base_url}/protocols")
 
     # Wait for protocol cards to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "protocolCards"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "protocolCards")))
 
     # Get initial count of protocols
     initial_cards = driver.find_elements(By.CLASS_NAME, "card-header")
@@ -78,18 +74,14 @@ def test_protocol_details(authenticated_driver, base_url):
     driver.get(f"{base_url}/protocols")
 
     # Wait for protocol cards to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "protocolCards"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "protocolCards")))
 
     # Click the first View button to open protocol details
     view_button = driver.find_element(By.XPATH, "//a[contains(text(), 'View')]")
     view_button.click()
 
     # Wait for protocol details page to load
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "protocolOverview"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "protocolOverview")))
 
     # Check for protocol components
     assert driver.find_element(By.ID, "questionsContainer").is_displayed()
@@ -97,7 +89,5 @@ def test_protocol_details(authenticated_driver, base_url):
     assert driver.find_element(By.ID, "decisionTreeContainer").is_displayed()
 
     # Check for back button
-    back_button = driver.find_element(
-        By.XPATH, "//a[contains(text(), 'Back to Protocols')]"
-    )
+    back_button = driver.find_element(By.XPATH, "//a[contains(text(), 'Back to Protocols')]")
     assert back_button.is_displayed()

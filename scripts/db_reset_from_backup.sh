@@ -79,24 +79,24 @@ if [ -n "$BACKUP_FILE" ]; then
   echo -e "${GREEN}Restoring from backup: $(basename $BACKUP_FILE)...${NC}"
   # Copy the backup file to the container
   docker-compose exec -T db bash -c "cat > /tmp/backup.sql" < $BACKUP_FILE
-  
+
   # Restore from the backup file
   docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB -f /tmp/backup.sql
-  
+
   # Clean up the temporary file
   docker-compose exec db rm /tmp/backup.sql
-  
+
   echo -e "${GREEN}Database restored from backup successfully!${NC}"
 else
   echo -e "${RED}Backup file not found at $BACKUP_FILE${NC}"
   echo -e "${YELLOW}Using default database seeding instead...${NC}"
-  
+
   echo -e "${GREEN}Initializing database tables...${NC}"
   docker-compose exec web python run.py create_db
-  
+
   echo -e "${GREEN}Seeding database with sample data...${NC}"
   docker-compose exec web python run.py seed_db
-  
+
   # Clean up any duplicate protocols
   echo -e "${GREEN}Cleaning up database protocols...${NC}"
   docker-compose exec web python scripts/clean_db.py

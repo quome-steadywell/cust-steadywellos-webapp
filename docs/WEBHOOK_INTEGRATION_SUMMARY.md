@@ -6,7 +6,7 @@
 
 1. **`src/api/webhooks.py`**
    - Contains webhook endpoints for Retell.ai callbacks
-   - Routes: `/webhook` and `/palliative-care-callback` 
+   - Routes: `/webhook` and `/palliative-care-callback`
    - Handles incoming webhook data and processes patient status updates
    - Includes comprehensive logging for debugging
 
@@ -34,7 +34,7 @@
 2. **`config/config.py`**
    - Added Retell AI configuration variables:
      - `RETELLAI_API_KEY`
-     - `RETELLAI_LOCAL_AGENT_ID` 
+     - `RETELLAI_LOCAL_AGENT_ID`
      - `RETELLAI_REMOTE_AGENT_ID`
      - `RETELLAI_PHONE_NUMBER`
      - `CLOUD_APP_NAME`
