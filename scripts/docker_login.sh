@@ -4,7 +4,7 @@
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$(dirname "$SCRIPT_DIR")/.env"
- 
+
 # Check if .env file exists
 if [ ! -f "$ENV_FILE" ]; then
   echo "❌ Error: .env file not found at $ENV_FILE"

@@ -78,13 +78,13 @@
         const protocolType = document.getElementById('protocolTypeFilter').value;
         const isActive = document.getElementById('activeFilter').value;
         const latestOnly = document.getElementById('versionFilter').value === 'latest';
-        
+
         // Build URL with filters
         let url = '/api/v1/protocols/?';
         if (protocolType) url += `type=${protocolType}&`;
         if (isActive !== '') url += `is_active=${isActive}&`;
         if (latestOnly) url += `latest_only=true&`;
-        
+
         fetch(url)
         .then(response => {
             if (!response.ok) {
@@ -95,7 +95,7 @@
         .then(protocols => {
             const protocolCards = document.getElementById('protocolCards');
             protocolCards.innerHTML = '';
-            
+
             if (protocols.length === 0) {
                 protocolCards.innerHTML = `
                     <div class="col-12 text-center py-5">
@@ -107,7 +107,7 @@
                 `;
                 return;
             }
-            
+
             // Group protocols by type
             const groupedProtocols = {};
             protocols.forEach(protocol => {
@@ -116,34 +116,34 @@
                 }
                 groupedProtocols[protocol.protocol_type].push(protocol);
             });
-            
+
             // Display protocol cards by type
             Object.entries(groupedProtocols).forEach(([type, protocols]) => {
                 // Format type name for display
                 const typeDisplay = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                
+
                 const typeSection = document.createElement('div');
                 typeSection.className = 'col-12 mb-4';
                 typeSection.innerHTML = `
                     <h4 class="border-bottom pb-2">${typeDisplay} Protocols</h4>
                 `;
                 protocolCards.appendChild(typeSection);
-                
+
                 const protocolRow = document.createElement('div');
                 protocolRow.className = 'row';
-                
+
                 // Sort protocols by version (descending)
                 protocols.sort((a, b) => {
                     return a.version > b.version ? -1 : 1;
                 });
-                
+
                 // Add cards for each protocol
                 protocols.forEach(protocol => {
                     // Determine active status badge
-                    const activeBadge = protocol.is_active ? 
-                        '<span class="badge bg-success">Active</span>' : 
+                    const activeBadge = protocol.is_active ?
+                        '<span class="badge bg-success">Active</span>' :
                         '<span class="badge bg-secondary">Inactive</span>';
-                    
+
                     const card = document.createElement('div');
                     card.className = 'col-md-4 mb-4';
                     card.innerHTML = `
@@ -172,7 +172,7 @@
                     `;
                     protocolRow.appendChild(card);
                 });
-                
+
                 typeSection.appendChild(protocolRow);
             });
         })
@@ -189,11 +189,11 @@
             `;
         });
     }
-    
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         loadProtocols();
-        
+
         // Add event listener for filter button
         document.getElementById('applyFilters').addEventListener('click', loadProtocols);
     });

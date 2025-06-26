@@ -27,9 +27,7 @@ def check_patients():
         patients = Patient.query.all()
         print(f"Total patients: {len(patients)}")
         for p in patients:
-            print(
-                f"ID: {p.id}, Name: {p.first_name} {p.last_name}, Active: {p.is_active}, Protocol: {p.protocol_type}"
-            )
+            print(f"ID: {p.id}, Name: {p.first_name} {p.last_name}, Active: {p.is_active}, Protocol: {p.protocol_type}")
 
         # Update Mary Johnson to active if needed
         mary = Patient.query.filter_by(first_name="Mary").first()
@@ -80,13 +78,9 @@ def update_db_for_march25():
                 print(f"  FIXING: Setting conducted_by_id to {nurse1.id} (nurse1)")
 
             # Make sure protocol_id is set correctly based on patient's protocol type
-            protocol = Protocol.query.filter_by(
-                protocol_type=patient.protocol_type
-            ).first()
+            protocol = Protocol.query.filter_by(protocol_type=patient.protocol_type).first()
             if protocol and assessment.protocol_id != protocol.id:
-                print(
-                    f"  FIXING: Changing protocol_id from {assessment.protocol_id} to {protocol.id}"
-                )
+                print(f"  FIXING: Changing protocol_id from {assessment.protocol_id} to {protocol.id}")
                 assessment.protocol_id = protocol.id
 
             # Ensure high priority assessments are set properly
@@ -129,14 +123,10 @@ def check_permissions():
                 accessible_patients.append(patient)
 
         # Check assessments for each accessible patient
-        print(
-            f"\nChecking assessments for {len(accessible_patients)} accessible patients:"
-        )
+        print(f"\nChecking assessments for {len(accessible_patients)} accessible patients:")
         for patient in accessible_patients:
             assessments = Assessment.query.filter_by(patient_id=patient.id).all()
-            print(
-                f"  Patient {patient.id}: {patient.first_name} {patient.last_name} - {len(assessments)} assessments"
-            )
+            print(f"  Patient {patient.id}: {patient.first_name} {patient.last_name} - {len(assessments)} assessments")
 
             for assessment in assessments:
                 print(
@@ -146,15 +136,11 @@ def check_permissions():
         # Check Mary Johnson specifically
         mary = Patient.query.filter_by(first_name="Mary", last_name="Johnson").first()
         if mary:
-            print(
-                f"\nMary Johnson (ID: {mary.id}) - Primary nurse ID: {mary.primary_nurse_id}"
-            )
+            print(f"\nMary Johnson (ID: {mary.id}) - Primary nurse ID: {mary.primary_nurse_id}")
 
             # Ensure Mary's primary nurse is set correctly
             if mary.primary_nurse_id != nurse1.id:
-                print(
-                    f"FIXING: Setting Mary's primary nurse to nurse1 (ID: {nurse1.id})"
-                )
+                print(f"FIXING: Setting Mary's primary nurse to nurse1 (ID: {nurse1.id})")
                 mary.primary_nurse_id = nurse1.id
                 db.session.commit()
                 print("Changes committed to database")

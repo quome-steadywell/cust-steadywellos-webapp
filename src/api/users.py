@@ -158,15 +158,9 @@ def deactivate_user(id):
 @jwt_required()
 def get_nurses():
     """Get all active nurses (for assigning to patients)"""
-    nurses = User.query.filter(
-        User.role.in_([UserRole.NURSE, UserRole.PHYSICIAN]), User.is_active == True
-    ).all()
+    nurses = User.query.filter(User.role.in_([UserRole.NURSE, UserRole.PHYSICIAN]), User.is_active == True).all()
 
     return (
-        jsonify(
-            UserSchema(many=True, only=["id", "username", "full_name", "role"]).dump(
-                nurses
-            )
-        ),
+        jsonify(UserSchema(many=True, only=["id", "username", "full_name", "role"]).dump(nurses)),
         200,
     )

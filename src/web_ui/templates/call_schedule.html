@@ -35,7 +35,7 @@
                         <option value="medication_check">Medication Check</option>
                     </select>
                 </div>
-                
+
                 <!-- Scheduling -->
                 <div class="col-md-6">
                     <label for="scheduledTime" class="form-label">Scheduled Date & Time*</label>
@@ -48,13 +48,13 @@
                         <!-- Will be populated by JavaScript -->
                     </select>
                 </div>
-                
+
                 <!-- Notes -->
                 <div class="col-12">
                     <label for="notes" class="form-label">Notes</label>
                     <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
                 </div>
-                
+
                 <!-- Patient Information Preview -->
                 <div class="col-12 mt-4" id="patientInfoSection" style="display: none;">
                     <h5>Patient Information</h5>
@@ -66,7 +66,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Submit Button -->
                 <div class="col-12 mt-4">
                     <button type="submit" class="btn btn-primary">
@@ -111,16 +111,16 @@
         const now = new Date();
         const minutes = Math.ceil(now.getMinutes() / 15) * 15;
         now.setMinutes(minutes);
-        
+
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
         const mins = String(now.getMinutes()).padStart(2, '0');
-        
+
         document.getElementById('scheduledTime').value = `${year}-${month}-${day}T${hours}:${mins}`;
     }
-    
+
     // Fetch and populate patients dropdown
     function loadPatients() {
         fetch('/api/v1/patients/', {
@@ -132,14 +132,14 @@
         .then(patients => {
             const patientSelect = document.getElementById('patientId');
             patientSelect.innerHTML = '<option value="">Select a patient</option>';
-            
+
             patients.forEach(patient => {
                 const option = document.createElement('option');
                 option.value = patient.id;
                 option.textContent = `${patient.full_name} (MRN: ${patient.mrn})`;
                 patientSelect.appendChild(option);
             });
-            
+
             // Check if we have a patient ID from localStorage (from patient page)
             const storedPatientId = localStorage.getItem('schedule_call_patient_id');
             if (storedPatientId) {
@@ -154,7 +154,7 @@
             alert('Failed to load patient list');
         });
     }
-    
+
     // Fetch and populate nurses dropdown
     function loadNurses() {
         fetch('/api/v1/users/?role=nurse', {
@@ -166,14 +166,14 @@
         .then(nurses => {
             const nurseSelect = document.getElementById('conductedById');
             nurseSelect.innerHTML = '<option value="">Select a nurse</option>';
-            
+
             nurses.forEach(nurse => {
                 const option = document.createElement('option');
                 option.value = nurse.id;
                 option.textContent = nurse.full_name;
                 nurseSelect.appendChild(option);
             });
-            
+
             // Set current user as default if they are a nurse
             const currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
             if (currentUser && currentUser.id) {
@@ -189,7 +189,7 @@
             alert('Failed to load nurse list');
         });
     }
-    
+
     // Load patient info when a patient is selected
     function loadPatientInfo(patientId) {
         if (!patientId) {
@@ -197,7 +197,7 @@
             document.getElementById('recentCallsSection').style.display = 'none';
             return;
         }
-        
+
         fetch(`/api/v1/patients/${patientId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
@@ -207,7 +207,7 @@
         .then(patient => {
             // Format protocol type for display
             const protocolDisplay = patient.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-            
+
             // Update patient info section
             document.getElementById('patientInfo').innerHTML = `
                 <div class="col-md-6">
@@ -223,10 +223,10 @@
                     <p><strong>Primary Nurse:</strong> ${patient.primary_nurse ? patient.primary_nurse.full_name : 'Unassigned'}</p>
                 </div>
             `;
-            
+
             // Show patient info section
             document.getElementById('patientInfoSection').style.display = 'block';
-            
+
             // Load recent calls for this patient
             loadRecentCalls(patientId);
         })
@@ -235,14 +235,14 @@
             document.getElementById('patientInfoSection').style.display = 'none';
         });
     }
-    
+
     // Load recent calls for selected patient
     function loadRecentCalls(patientId) {
         if (!patientId) {
             document.getElementById('recentCallsSection').style.display = 'none';
             return;
         }
-        
+
         fetch(`/api/v1/calls/?patient_id=${patientId}&limit=5`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
@@ -252,7 +252,7 @@
         .then(calls => {
             const tableBody = document.getElementById('recentCallsTableBody');
             tableBody.innerHTML = '';
-            
+
             if (calls.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -262,12 +262,12 @@
             } else {
                 calls.forEach(call => {
                     const row = document.createElement('tr');
-                    
+
                     // Format date and time
                     const scheduledTime = new Date(call.scheduled_time);
-                    const dateTimeString = scheduledTime.toLocaleDateString() + ' ' + 
+                    const dateTimeString = scheduledTime.toLocaleDateString() + ' ' +
                                          scheduledTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    
+
                     // Format duration
                     let durationString = '-';
                     if (call.duration) {
@@ -275,7 +275,7 @@
                         const seconds = Math.floor(call.duration % 60);
                         durationString = `${minutes}m ${seconds}s`;
                     }
-                    
+
                     // Determine status badge color
                     let statusBadgeClass = 'bg-secondary';
                     if (call.status === 'scheduled') statusBadgeClass = 'bg-primary';
@@ -283,10 +283,10 @@
                     if (call.status === 'completed') statusBadgeClass = 'bg-success';
                     if (call.status === 'missed') statusBadgeClass = 'bg-danger';
                     if (call.status === 'cancelled') statusBadgeClass = 'bg-secondary';
-                    
+
                     // Format call type for display
                     const callTypeDisplay = call.call_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    
+
                     row.innerHTML = `
                         <td>${dateTimeString}</td>
                         <td>${callTypeDisplay}</td>
@@ -294,11 +294,11 @@
                         <td>${durationString}</td>
                         <td>${call.conducted_by ? call.conducted_by.full_name : 'N/A'}</td>
                     `;
-                    
+
                     tableBody.appendChild(row);
                 });
             }
-            
+
             // Show recent calls section
             document.getElementById('recentCallsSection').style.display = 'block';
         })
@@ -307,19 +307,19 @@
             document.getElementById('recentCallsSection').style.display = 'none';
         });
     }
-    
+
     // Handle form submission
     document.getElementById('scheduleCallForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         // Collect form data
         const formData = new FormData(this);
         const callData = {};
-        
+
         formData.forEach((value, key) => {
             callData[key] = value;
         });
-        
+
         // Make API request
         fetch('/api/v1/calls/', {
             method: 'POST',
@@ -342,20 +342,20 @@
         .catch(error => {
             console.error('Error scheduling call:', error);
             let errorMessage = 'Failed to schedule call.';
-            
+
             if (error.messages) {
                 errorMessage += ' ' + Object.values(error.messages).flat().join(', ');
             }
-            
+
             alert(errorMessage);
         });
     });
-    
+
     // When patient is selected, load their info and recent calls
     document.getElementById('patientId').addEventListener('change', function() {
         loadPatientInfo(this.value);
     });
-    
+
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
         setDefaultScheduledTime();

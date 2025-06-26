@@ -41,9 +41,34 @@ dependencies = [
     "pytest-flask>=1.3.0",
     "pytest-cov>=4.1.0",
     "faker>=20.1.0",
-    "black>=23.11.0",
+    "black>=25.1.0",
     "flake8>=6.1.0",
     "isort>=5.12.0",
     "gunicorn>=21.2.0",
     "supervisor>=4.2.5",
+    "pre-commit>=3.5.0",
 ]
+
+[tool.black]
+line-length = 120
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | migrations
+  | env
+  | .venv
+)/
+'''

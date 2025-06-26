@@ -35,15 +35,9 @@ def get_dashboard_summary():
 
     # Limit queries for nurses to their assigned patients
     if current_user.role == UserRole.NURSE:
-        patient_query = patient_query.filter(
-            Patient.primary_nurse_id == current_user_id
-        )
-        call_query = call_query.join(Patient).filter(
-            Patient.primary_nurse_id == current_user_id
-        )
-        assessment_query = assessment_query.join(Patient).filter(
-            Patient.primary_nurse_id == current_user_id
-        )
+        patient_query = patient_query.filter(Patient.primary_nurse_id == current_user_id)
+        call_query = call_query.join(Patient).filter(Patient.primary_nurse_id == current_user_id)
+        assessment_query = assessment_query.join(Patient).filter(Patient.primary_nurse_id == current_user_id)
 
     # Get patient counts
     total_patients = patient_query.count()
@@ -62,9 +56,7 @@ def get_dashboard_summary():
         protocol_distribution[protocol_type.value] = count
 
     # Get call statistics
-    today_calls = call_query.filter(
-        Call.scheduled_time >= today, Call.scheduled_time < tomorrow
-    ).count()
+    today_calls = call_query.filter(Call.scheduled_time >= today, Call.scheduled_time < tomorrow).count()
 
     completed_calls_today = call_query.filter(
         Call.status == CallStatus.COMPLETED,
@@ -175,11 +167,7 @@ def get_urgent_followups():
                 "patient_name": f"{assessment.patient.first_name} {assessment.patient.last_name}",
                 "patient_id": assessment.patient.id,
                 "assessment_date": assessment.assessment_date.isoformat(),
-                "follow_up_date": (
-                    assessment.follow_up_date.isoformat()
-                    if assessment.follow_up_date
-                    else None
-                ),
+                "follow_up_date": (assessment.follow_up_date.isoformat() if assessment.follow_up_date else None),
                 "protocol_type": assessment.patient.protocol_type.value,
             }
         )
@@ -202,18 +190,12 @@ def get_recent_activity():
 
     # Limit to nurse's patients if applicable
     if current_user.role == UserRole.NURSE:
-        call_query = call_query.join(Patient).filter(
-            Patient.primary_nurse_id == current_user_id
-        )
-        assessment_query = assessment_query.join(Patient).filter(
-            Patient.primary_nurse_id == current_user_id
-        )
+        call_query = call_query.join(Patient).filter(Patient.primary_nurse_id == current_user_id)
+        assessment_query = assessment_query.join(Patient).filter(Patient.primary_nurse_id == current_user_id)
 
     # Get the activities
     recent_calls = call_query.order_by(Call.end_time.desc()).limit(5).all()
-    recent_assessments = (
-        assessment_query.order_by(Assessment.assessment_date.desc()).limit(5).all()
-    )
+    recent_assessments = assessment_query.order_by(Assessment.assessment_date.desc()).limit(5).all()
 
     # Format the response
     result = {"calls": [], "assessments": []}

@@ -51,9 +51,7 @@ def parse_protocol_from_text(text, protocol_type):
     questions = re.findall(question_pattern, text)
 
     # Create basic questions
-    for i, (_, question_text) in enumerate(
-        questions[:10]
-    ):  # Limit to first 10 questions for demo
+    for i, (_, question_text) in enumerate(questions[:10]):  # Limit to first 10 questions for demo
         question_id = f"q_{i+1}"
         symptom_type = "general"
 
@@ -141,9 +139,7 @@ def save_protocol_json(protocol_data, output_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Extract protocol data from PDF documentation"
-    )
+    parser = argparse.ArgumentParser(description="Extract protocol data from PDF documentation")
     parser.add_argument("pdf_path", help="Path to the PDF file")
     parser.add_argument(
         "--type",
@@ -157,9 +153,7 @@ def main():
 
     # Set default output path if not provided
     if not args.output:
-        output_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "protocols"
-        )
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "protocols")
         os.makedirs(output_dir, exist_ok=True)
         args.output = os.path.join(output_dir, f"{args.type}_protocol.json")
 

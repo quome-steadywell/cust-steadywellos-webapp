@@ -52,9 +52,7 @@ def start_ngrok() -> Optional[str]:
 
     try:
         # Start ngrok in the background
-        process = subprocess.Popen(
-            ["ngrok", "http", port], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        process = subprocess.Popen(["ngrok", "http", port], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # Give ngrok time to start
         logger.info("Waiting for ngrok to start...")
@@ -98,9 +96,7 @@ def get_webhook_url() -> Optional[str]:
 
             if not base_url:
                 port = os.getenv("RETELLAI_LOCAL_WEBHOOK_PORT", "8081")
-                logger.error(
-                    f"Failed to start ngrok. Please start it manually with: ngrok http {port}"
-                )
+                logger.error(f"Failed to start ngrok. Please start it manually with: ngrok http {port}")
                 return None
 
         logger.info(f"Using local ngrok URL: {base_url}")
@@ -222,16 +218,12 @@ def main():
     if runtime_env == "local":
         agent_id = os.getenv("RETELLAI_LOCAL_AGENT_ID")
         if not agent_id:
-            logger.error(
-                "RETELLAI_LOCAL_AGENT_ID environment variable not set for local environment"
-            )
+            logger.error("RETELLAI_LOCAL_AGENT_ID environment variable not set for local environment")
             sys.exit(1)
     else:
         agent_id = os.getenv("RETELLAI_REMOTE_AGENT_ID")
         if not agent_id:
-            logger.error(
-                "RETELLAI_REMOTE_AGENT_ID environment variable not set for remote environment"
-            )
+            logger.error("RETELLAI_REMOTE_AGENT_ID environment variable not set for remote environment")
             sys.exit(1)
 
     api_key = os.getenv("RETELLAI_API_KEY")

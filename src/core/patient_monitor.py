@@ -38,12 +38,8 @@ def load_patient_data() -> List[Dict[str, Any]]:
                 "Last Name": patient.last_name,
                 "Phone Number": patient.phone_number,
                 "Email Address": patient.email or "",
-                "Protocol": (
-                    patient.protocol_type.value if patient.protocol_type else ""
-                ),
-                "Status": getattr(
-                    patient, "status", "Not-Called"
-                ),  # Default status if not exists
+                "Protocol": (patient.protocol_type.value if patient.protocol_type else ""),
+                "Status": getattr(patient, "status", "Not-Called"),  # Default status if not exists
                 # Template compatibility fields
                 "firstName": patient.first_name,
                 "lastName": patient.last_name,
@@ -52,9 +48,7 @@ def load_patient_data() -> List[Dict[str, Any]]:
             }
             patient_data.append(patient_dict)
 
-        logger.info(
-            f"Successfully retrieved {len(patient_data)} patients from database"
-        )
+        logger.info(f"Successfully retrieved {len(patient_data)} patients from database")
         return patient_data
 
     except Exception as e:
@@ -73,19 +67,14 @@ def update_patient_status_by_phone(phone_number: str, new_status: str) -> bool:
         True if successful, False otherwise
     """
     try:
-        logger.info(
-            f"Updating patient status for {phone_number} to '{new_status}' in database"
-        )
+        logger.info(f"Updating patient status for {phone_number} to '{new_status}' in database")
 
         # Normalize phone number for comparison (remove +, spaces, etc.)
-        normalized_search = (
-            phone_number.replace("+", "").replace(" ", "").replace("-", "")
-        )
+        normalized_search = phone_number.replace("+", "").replace(" ", "").replace("-", "")
 
         # Find patient by phone number
         patient = Patient.query.filter(
-            Patient.phone_number.like(f"%{normalized_search}")
-            | Patient.phone_number.like(f"%{phone_number}")
+            Patient.phone_number.like(f"%{normalized_search}") | Patient.phone_number.like(f"%{phone_number}")
         ).first()
 
         if patient:
@@ -106,9 +95,7 @@ def update_patient_status_by_phone(phone_number: str, new_status: str) -> bool:
                 if "Status:" in current_notes:
                     # Find and remove old status line
                     lines = current_notes.split("\n")
-                    filtered_lines = [
-                        line for line in lines if not line.strip().startswith("Status:")
-                    ]
+                    filtered_lines = [line for line in lines if not line.strip().startswith("Status:")]
                     current_notes = "\n".join(filtered_lines).strip()
 
                 # Add new status
@@ -166,9 +153,7 @@ def update_patient_status(webhook_data: Dict[str, Any]) -> Dict[str, Any]:
             logger.error("No phone number found in webhook data")
             logger.error(f"Webhook structure: {list(webhook_data.keys())}")
             if "call" in webhook_data:
-                logger.error(
-                    f"Call data keys: {list(webhook_data.get('call', {}).keys())}"
-                )
+                logger.error(f"Call data keys: {list(webhook_data.get('call', {}).keys())}")
             return {"status": "error", "message": "No phone number in webhook data"}
 
         # Determine new status based on call outcome
@@ -186,14 +171,11 @@ def update_patient_status(webhook_data: Dict[str, Any]) -> Dict[str, Any]:
         if success and (recording_url or public_log_url or call_id):
             try:
                 # Normalize phone number for comparison
-                normalized_search = (
-                    to_number.replace("+", "").replace(" ", "").replace("-", "")
-                )
+                normalized_search = to_number.replace("+", "").replace(" ", "").replace("-", "")
 
                 # Find patient by phone number
                 patient = Patient.query.filter(
-                    Patient.phone_number.like(f"%{normalized_search}")
-                    | Patient.phone_number.like(f"%{to_number}")
+                    Patient.phone_number.like(f"%{normalized_search}") | Patient.phone_number.like(f"%{to_number}")
                 ).first()
 
                 if patient:
@@ -201,19 +183,13 @@ def update_patient_status(webhook_data: Dict[str, Any]) -> Dict[str, Any]:
                     call_info = []
                     if recording_url:
                         call_info.append(f"Recording URL: {recording_url}")
-                        logger.info(
-                            f"Updated recording URL for patient {to_number}: {recording_url}"
-                        )
+                        logger.info(f"Updated recording URL for patient {to_number}: {recording_url}")
                     if public_log_url:
                         call_info.append(f"Public Log URL: {public_log_url}")
-                        logger.info(
-                            f"Updated public log URL for patient {to_number}: {public_log_url}"
-                        )
+                        logger.info(f"Updated public log URL for patient {to_number}: {public_log_url}")
                     if call_id:
                         call_info.append(f"Call ID: {call_id}")
-                        logger.info(
-                            f"Updated call ID for patient {to_number}: {call_id}"
-                        )
+                        logger.info(f"Updated call ID for patient {to_number}: {call_id}")
 
                     if call_info:
                         current_notes = patient.notes or ""
@@ -221,9 +197,7 @@ def update_patient_status(webhook_data: Dict[str, Any]) -> Dict[str, Any]:
                         patient.notes = f"{call_info_str} | {current_notes}"
 
                     db.session.commit()
-                    logger.info(
-                        f"Successfully updated call information for patient {to_number}"
-                    )
+                    logger.info(f"Successfully updated call information for patient {to_number}")
             except Exception as e:
                 logger.error(f"Failed to update call information for patient: {str(e)}")
                 db.session.rollback()
@@ -265,11 +239,7 @@ def monitor_and_call() -> Dict[str, Any]:
         patient_data = load_patient_data()
 
         # Find patients with "Not-Called" status
-        not_called_patients = [
-            patient
-            for patient in patient_data
-            if patient.get("Status", "").lower() == "not-called"
-        ]
+        not_called_patients = [patient for patient in patient_data if patient.get("Status", "").lower() == "not-called"]
 
         logger.info(
             f"Found {len(not_called_patients)} patients with 'not-called' status out of {len(patient_data)} total patients"

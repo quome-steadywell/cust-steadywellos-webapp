@@ -10,9 +10,7 @@ class PatientSchema(Schema):
     first_name = fields.Str(required=True)
     last_name = fields.Str(required=True)
     date_of_birth = fields.Date(required=True)
-    gender = fields.Str(
-        required=True, validate=validate.OneOf([gender.value for gender in Gender])
-    )
+    gender = fields.Str(required=True, validate=validate.OneOf([gender.value for gender in Gender]))
     phone_number = fields.Str(required=True)
     email = fields.Email()
     address = fields.Str()
@@ -28,9 +26,7 @@ class PatientSchema(Schema):
     emergency_contact_relationship = fields.Str()
     emergency_contact_can_share_medical_info = fields.Bool()
     advance_directive = fields.Bool()
-    advance_directive_status = fields.Str(
-        validate=validate.OneOf([status.value for status in AdvanceDirectiveStatus])
-    )
+    advance_directive_status = fields.Str(validate=validate.OneOf([status.value for status in AdvanceDirectiveStatus]))
     dnr_status = fields.Bool()
     allergies = fields.Str()
     notes = fields.Str()
@@ -43,9 +39,7 @@ class PatientSchema(Schema):
     age = fields.Int(dump_only=True)
 
     # Nested fields
-    primary_nurse = fields.Nested(
-        "UserSchema", only=["id", "full_name", "email"], dump_only=True
-    )
+    primary_nurse = fields.Nested("UserSchema", only=["id", "full_name", "email"], dump_only=True)
 
     @validates("mrn")
     def validate_mrn(self, value):
@@ -80,9 +74,7 @@ class PatientListSchema(Schema):
     primary_diagnosis = fields.Str()
     protocol_type = fields.Str()
     phone_number = fields.Str()
-    primary_nurse = fields.Nested(
-        "UserSchema", only=["id", "full_name"], dump_only=True
-    )
+    primary_nurse = fields.Nested("UserSchema", only=["id", "full_name"], dump_only=True)
     last_assessment_date = fields.DateTime(dump_only=True)
     is_active = fields.Bool()
 
@@ -96,7 +88,5 @@ class PatientUpdateSchema(PatientSchema):
     date_of_birth = fields.Date()
     gender = fields.Str(validate=validate.OneOf([gender.value for gender in Gender]))
     phone_number = fields.Str()
-    protocol_type = fields.Str(
-        validate=validate.OneOf([protocol.value for protocol in ProtocolType])
-    )
+    protocol_type = fields.Str(validate=validate.OneOf([protocol.value for protocol in ProtocolType]))
     primary_nurse_id = fields.Int()

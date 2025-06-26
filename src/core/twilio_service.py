@@ -37,9 +37,7 @@ def initiate_call(
 
         # Prepare webhook URLs
         status_callback = url_for("calls.call_status_webhook", _external=True)
-        voice_url = url_for(
-            "calls.voice_webhook", _external=True, call_id=call_id, call_type=call_type
-        )
+        voice_url = url_for("calls.voice_webhook", _external=True, call_id=call_id, call_type=call_type)
 
         # Make the call
         call = client.calls.create(
@@ -80,19 +78,13 @@ def generate_call_twiml(call: Call) -> str:
 
         # Verify identity
         try:
-            action_url = url_for(
-                "calls.voice_webhook", _external=True, call_id=call.id, action="verify"
-            )
+            action_url = url_for("calls.voice_webhook", _external=True, call_id=call.id, action="verify")
         except Exception as e:
-            current_app.logger.warning(
-                f"Could not build URL for voice webhook: {str(e)}"
-            )
+            current_app.logger.warning(f"Could not build URL for voice webhook: {str(e)}")
             action_url = f"/api/v1/calls/voice?call_id={call.id}&action=verify"
 
         gather = Gather(num_digits=1, action=action_url, method="POST")
-        gather.say(
-            f"If you are {patient.first_name} {patient.last_name}, please press 1."
-        )
+        gather.say(f"If you are {patient.first_name} {patient.last_name}, please press 1.")
         response.append(gather)
 
         # Timeout handling
@@ -119,9 +111,7 @@ def generate_call_twiml(call: Call) -> str:
     return str(response)
 
 
-def process_call_recording(
-    recording_sid: str, recording_url: str, call: Call
-) -> Dict[str, Any]:
+def process_call_recording(recording_sid: str, recording_url: str, call: Call) -> Dict[str, Any]:
     """Process a call recording - download, transcribe, and analyze"""
     try:
         client = get_twilio_client()
@@ -150,11 +140,7 @@ def process_call_recording(
             "analysis": None,
         }
 
-        if (
-            transcript
-            and transcript != "[Transcription not available]"
-            and call.patient_id
-        ):
+        if transcript and transcript != "[Transcription not available]" and call.patient_id:
             # Get patient and protocol for analysis
             patient = Patient.query.get(call.patient_id)
             if patient and patient.protocol_type:

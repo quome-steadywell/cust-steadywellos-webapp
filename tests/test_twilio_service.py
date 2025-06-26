@@ -86,9 +86,7 @@ def mock_protocol():
     protocol.version = "1.0"
 
     # Add get_latest_active_protocol as a class method
-    protocol.get_latest_active_protocol = classmethod(
-        lambda cls, protocol_type: protocol
-    )
+    protocol.get_latest_active_protocol = classmethod(lambda cls, protocol_type: protocol)
 
     return protocol
 
@@ -181,9 +179,7 @@ class TestTwilioService(unittest.TestCase):
         mock_client.calls.create.return_value = mock_call
         mock_get_client.return_value = mock_client
 
-        mock_url_for.side_effect = (
-            lambda endpoint, **kwargs: f"https://example.com/{endpoint}"
-        )
+        mock_url_for.side_effect = lambda endpoint, **kwargs: f"https://example.com/{endpoint}"
 
         # Execute
         result = initiate_call(
@@ -264,9 +260,7 @@ class TestTwilioService(unittest.TestCase):
     @patch("src.core.twilio_service.Patient")
     @patch("src.core.twilio_service.Protocol")
     @patch("src.core.twilio_service.analyze_call_transcript")
-    def test_process_call_recording(
-        self, mock_analyze, mock_protocol_class, mock_patient_class, mock_get_client
-    ):
+    def test_process_call_recording(self, mock_analyze, mock_protocol_class, mock_patient_class, mock_get_client):
         """Test process_call_recording function"""
         # Setup
         mock_client = MagicMock()
@@ -276,9 +270,7 @@ class TestTwilioService(unittest.TestCase):
 
         mock_transcription = MagicMock()
         mock_transcription.transcription_text = "This is a test transcription."
-        mock_client.recordings.return_value.transcriptions.list.return_value = [
-            mock_transcription
-        ]
+        mock_client.recordings.return_value.transcriptions.list.return_value = [mock_transcription]
 
         mock_get_client.return_value = mock_client
 
@@ -379,9 +371,7 @@ def test_initiate_call_edge_cases(to_number, from_number, expected_exception, ap
                     mock_client.calls.create.return_value = mock_call
 
                 mock_get_client.return_value = mock_client
-                mock_url_for.side_effect = (
-                    lambda endpoint, **kwargs: f"https://example.com/{endpoint}"
-                )
+                mock_url_for.side_effect = lambda endpoint, **kwargs: f"https://example.com/{endpoint}"
 
                 # Execute and verify
                 if expected_exception:

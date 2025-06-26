@@ -42,9 +42,7 @@ def init_sentry(app):
         before_send=before_send_filter,
     )
 
-    app.logger.info(
-        f"Sentry initialized for environment: {os.environ.get('ENVIRONMENT', 'development')}"
-    )
+    app.logger.info(f"Sentry initialized for environment: {os.environ.get('ENVIRONMENT', 'development')}")
 
 
 def before_send_filter(event, hint):

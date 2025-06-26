@@ -106,5 +106,5 @@ The tests use JWT authentication to validate protected endpoints:
 2. For UI tests, modify `ui_test.py`
    - Use `UITestClient` for authenticated page requests
    - Use the existing testing functions for page content validation
-   
+
 3. Make sure to add docstrings and comments

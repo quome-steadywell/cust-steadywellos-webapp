@@ -21,9 +21,7 @@ class TestAnthropicClientWrapper(unittest.TestCase):
         # Mock response for successful API call
         self.mock_success_response = MagicMock()
         self.mock_success_response.status_code = 200
-        self.mock_success_response.json.return_value = {
-            "content": [{"text": "This is a test response"}]
-        }
+        self.mock_success_response.json.return_value = {"content": [{"text": "This is a test response"}]}
 
         # Mock response for failed API call
         self.mock_error_response = MagicMock()
@@ -45,9 +43,7 @@ class TestAnthropicClientWrapper(unittest.TestCase):
         system = "You are a helpful assistant"
 
         # Execute
-        result = self.client.call_model(
-            model="claude-3-sonnet-20240229", messages=messages, system=system
-        )
+        result = self.client.call_model(model="claude-3-sonnet-20240229", messages=messages, system=system)
 
         # Verify
         mock_post.assert_called_once()

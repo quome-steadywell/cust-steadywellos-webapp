@@ -807,4 +807,3 @@ ALTER TABLE ONLY public.patients
 --
 -- PostgreSQL database dump complete
 --
-

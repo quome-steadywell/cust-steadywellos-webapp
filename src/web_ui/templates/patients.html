@@ -129,7 +129,7 @@
                             <label for="lastName" class="form-label">Last Name*</label>
                             <input type="text" id="lastName" name="last_name" class="form-control" required>
                         </div>
-                        
+
                         <div class="col-md-4">
                             <label for="dob" class="form-label">Date of Birth*</label>
                             <input type="date" id="dob" name="date_of_birth" class="form-control" required>
@@ -147,7 +147,7 @@
                             <label for="phoneNumber" class="form-label">Phone Number*</label>
                             <input type="tel" id="phoneNumber" name="phone_number" class="form-control" required>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" id="email" name="email" class="form-control">
@@ -156,7 +156,7 @@
                             <label for="address" class="form-label">Address</label>
                             <input type="text" id="address" name="address" class="form-control">
                         </div>
-                        
+
                         <!-- Clinical Information -->
                         <div class="col-md-6">
                             <label for="primaryDiagnosis" class="form-label">Primary Diagnosis*</label>
@@ -166,7 +166,7 @@
                             <label for="secondaryDiagnoses" class="form-label">Secondary Diagnoses</label>
                             <input type="text" id="secondaryDiagnoses" name="secondary_diagnoses" class="form-control">
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="protocolType" class="form-label">Protocol Type*</label>
                             <select id="protocolType" name="protocol_type" class="form-select" required>
@@ -182,12 +182,12 @@
                                 <!-- Will be populated by JavaScript -->
                             </select>
                         </div>
-                        
+
                         <div class="col-md-12">
                             <label for="allergies" class="form-label">Allergies</label>
                             <input type="text" id="allergies" name="allergies" class="form-control">
                         </div>
-                        
+
                         <!-- Emergency Contact -->
                         <div class="col-12 mt-3">
                             <h5>Emergency Contact</h5>
@@ -212,7 +212,7 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Advance Directives -->
                         <div class="col-12 mt-3">
                             <h5>Advance Directives</h5>
@@ -246,7 +246,7 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Notes -->
                         <div class="col-12">
                             <label for="notes" class="form-label">Notes</label>
@@ -271,17 +271,17 @@
         const searchTerm = document.getElementById('searchInput').value;
         const protocolType = document.getElementById('protocolFilter').value;
         const isActive = document.getElementById('statusFilter').value;
-        
+
         let url = '/api/v1/patients/?is_active=' + isActive;
         if (protocolType) url += '&protocol_type=' + protocolType;
         if (searchTerm) url += '&search=' + encodeURIComponent(searchTerm);
-        
+
         authFetch(url)
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById('patientTableBody');
             tableBody.innerHTML = '';
-            
+
             if (data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -290,19 +290,19 @@
                 `;
                 return;
             }
-            
+
             data.forEach(patient => {
                 const row = document.createElement('tr');
-                
+
                 // Format last assessment date
                 let lastAssessmentDate = 'None';
                 if (patient.last_assessment_date) {
                     lastAssessmentDate = new Date(patient.last_assessment_date).toLocaleDateString();
                 }
-                
+
                 // Format protocol type for display
                 const protocolDisplay = patient.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                
+
                 row.innerHTML = `
                     <td>${patient.mrn}</td>
                     <td>${patient.full_name}</td>
@@ -325,15 +325,15 @@
                         </div>
                     </td>
                 `;
-                
+
                 tableBody.appendChild(row);
             });
-            
+
             // Add event listeners to view buttons
             document.querySelectorAll('.view-patient').forEach(button => {
                 button.addEventListener('click', () => viewPatient(button.dataset.id));
             });
-            
+
             // Add event listeners to schedule call buttons
             document.querySelectorAll('.schedule-call').forEach(button => {
                 button.addEventListener('click', () => {
@@ -342,7 +342,7 @@
                     window.location.href = '/calls/schedule';
                 });
             });
-            
+
             // Add event listeners to ring now buttons
             document.querySelectorAll('.ring-now').forEach(button => {
                 button.addEventListener('click', () => {
@@ -355,27 +355,27 @@
             alert('Failed to load patients. Please try again.');
         });
     }
-    
+
     // Apply filters
     document.getElementById('applyFilters').addEventListener('click', loadPatients);
-    
+
     // Search input - search as you type with debounce
     let searchTimeout;
     document.getElementById('searchInput').addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(loadPatients, 500);
     });
-    
+
     // View patient details
     function viewPatient(patientId) {
         authFetch(`/api/v1/patients/${patientId}`)
         .then(response => response.json())
         .then(patient => {
             const detailsBody = document.getElementById('patientDetailsBody');
-            
+
             // Format protocol type for display
             const protocolDisplay = patient.protocol_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-            
+
             detailsBody.innerHTML = `
                 <div class="row">
                     <div class="col-md-6">
@@ -399,7 +399,7 @@
                         <p><strong>DNR Status:</strong> ${patient.dnr_status ? 'Yes' : 'No'}</p>
                     </div>
                 </div>
-                
+
                 <div class="row mt-3">
                     <div class="col-12">
                         <h5>Emergency Contact</h5>
@@ -411,7 +411,7 @@
                         ` : '<p>No emergency contact information provided</p>'}
                     </div>
                 </div>
-                
+
                 ${patient.notes ? `
                 <div class="row mt-3">
                     <div class="col-12">
@@ -420,7 +420,7 @@
                     </div>
                 </div>
                 ` : ''}
-                
+
                 <div class="row mt-3">
                     <div class="col-12">
                         <div class="d-flex justify-content-between">
@@ -431,34 +431,34 @@
                     </div>
                 </div>
             `;
-            
+
             // Store patient ID for edit button
             document.getElementById('editPatientBtn').dataset.id = patient.id;
-            
+
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('patientDetailsModal'));
             modal.show();
-            
+
             // Fetch recent assessments
             authFetch(`/api/v1/assessments/?patient_id=${patient.id}&limit=3`)
             .then(response => response.json())
             .then(assessments => {
                 const assessmentsContainer = document.getElementById('recentAssessments');
-                
+
                 if (assessments.length === 0) {
                     assessmentsContainer.innerHTML = '<p>No assessments recorded</p>';
                     return;
                 }
-                
+
                 let html = '<div class="list-group">';
                 assessments.forEach(assessment => {
                     const date = new Date(assessment.assessment_date).toLocaleDateString();
-                    
+
                     // Get urgent symptoms
                     const urgentSymptoms = Object.entries(assessment.symptoms || {})
                         .filter(([_, severity]) => severity >= 7)
                         .map(([symptom, severity]) => `${symptom} (${severity})`);
-                    
+
                     html += `
                         <a href="/assessments/${assessment.id}" class="list-group-item list-group-item-action">
                             <div class="d-flex w-100 justify-content-between">
@@ -473,7 +473,7 @@
                     `;
                 });
                 html += '</div>';
-                
+
                 assessmentsContainer.innerHTML = html;
             })
             .catch(error => {
@@ -486,7 +486,7 @@
             alert('Failed to load patient details. Please try again.');
         });
     }
-    
+
     // Fetch and populate nurses dropdown
     function loadNurses() {
         authFetch('/api/v1/users/?role=nurse')
@@ -494,7 +494,7 @@
         .then(nurses => {
             const nurseSelect = document.getElementById('primaryNurseId');
             nurseSelect.innerHTML = '<option value="">Select a nurse</option>';
-            
+
             nurses.forEach(nurse => {
                 const option = document.createElement('option');
                 option.value = nurse.id;
@@ -507,21 +507,21 @@
             alert('Failed to load nurse list');
         });
     }
-    
+
     // Edit patient - opens modal with patient data
     document.getElementById('editPatientBtn').addEventListener('click', function() {
         const patientId = this.dataset.id;
-        
+
         // Close details modal
         bootstrap.Modal.getInstance(document.getElementById('patientDetailsModal')).hide();
-        
+
         // Fetch patient data
         authFetch(`/api/v1/patients/${patientId}`)
         .then(response => response.json())
         .then(patient => {
             // Update modal title
             document.getElementById('patientModalTitle').textContent = `Edit Patient: ${patient.full_name}`;
-            
+
             // Set form values
             document.getElementById('patientId').value = patient.id;
             document.getElementById('mrn').value = patient.mrn;
@@ -545,7 +545,7 @@
             document.getElementById('advanceDirective').checked = patient.advance_directive;
             document.getElementById('dnrStatus').checked = patient.dnr_status;
             document.getElementById('notes').value = patient.notes || '';
-            
+
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('addPatientModal'));
             modal.show();
@@ -555,36 +555,36 @@
             alert('Failed to load patient data for editing');
         });
     });
-    
+
     // Reset form when opening Add Patient modal
     document.querySelector('[data-bs-target="#addPatientModal"]').addEventListener('click', function() {
         document.getElementById('patientModalTitle').textContent = 'Add New Patient';
         document.getElementById('patientForm').reset();
         document.getElementById('patientId').value = '';
     });
-    
+
     // Save patient (create or update)
     document.getElementById('savePatientBtn').addEventListener('click', function() {
         const patientId = document.getElementById('patientId').value;
         const isUpdate = !!patientId;
-        
+
         // Collect form data
         const formData = new FormData(document.getElementById('patientForm'));
         const patientData = {};
-        
+
         formData.forEach((value, key) => {
             patientData[key] = value;
         });
-        
+
         // Handle checkboxes separately (they won't be in FormData if unchecked)
         patientData['advance_directive'] = document.getElementById('advanceDirective').checked;
         patientData['dnr_status'] = document.getElementById('dnrStatus').checked;
         patientData['emergency_contact_can_share_medical_info'] = document.getElementById('emergencyContactCanShareMedicalInfo').checked;
-        
+
         // Make API request (POST for new, PUT for update)
         const url = isUpdate ? `/api/v1/patients/${patientId}` : '/api/v1/patients/';
         const method = isUpdate ? 'PUT' : 'POST';
-        
+
         authFetch(url, {
             method: method,
             body: JSON.stringify(patientData)
@@ -604,32 +604,32 @@
         .catch(error => {
             console.error('Error saving patient:', error);
             let errorMessage = 'Failed to save patient data.';
-            
+
             if (error.messages) {
                 errorMessage += ' ' + Object.values(error.messages).flat().join(', ');
             }
-            
+
             alert(errorMessage);
         });
     });
-    
+
     // Ring now function - initiate immediate call
     function ringNow(patientId, patientName, patientPhone) {
         if (!patientPhone) {
             alert('No phone number available for this patient.');
             return;
         }
-        
+
         if (!confirm(`Ring ${patientName} now at ${patientPhone}?`)) {
             return;
         }
-        
+
         // Show loading state
         const button = document.querySelector(`.ring-now[data-id="${patientId}"]`);
         const originalHtml = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         button.disabled = true;
-        
+
         // Make API call to initiate the call
         authFetch('/api/v1/calls/ring-now', {
             method: 'POST',
@@ -657,27 +657,27 @@
             button.disabled = false;
         });
     }
-    
+
     // Call Mode Toggle Logic
     let isRealCallMode = false;
-    
+
     // Initialize call mode from server
     async function initializeCallMode() {
         console.log('Initializing call mode...');
         try {
             const response = await authFetch('/api/v1/calls/call-setting');
             console.log('Init response status:', response.status);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
             console.log('Init response data:', data);
-            
+
             isRealCallMode = data.make_real_call || false;
             console.log('Set isRealCallMode to:', isRealCallMode);
-            
+
             updateCallModeButton();
         } catch (error) {
             console.error('Failed to load call mode setting:', error);
@@ -686,12 +686,12 @@
             updateCallModeButton();
         }
     }
-    
+
     // Update button appearance based on current mode
     function updateCallModeButton() {
         const button = document.getElementById('toggle-call-mode');
         const text = document.getElementById('call-mode-text');
-        
+
         // Add defensive checks
         if (!button) {
             console.error('Could not find toggle-call-mode button element');
@@ -701,9 +701,9 @@
             console.error('Could not find call-mode-text span element');
             return;
         }
-        
+
         console.log('Updating button - isRealCallMode:', isRealCallMode);
-        
+
         if (isRealCallMode) {
             button.className = 'btn btn-danger';
             text.textContent = 'Real Call Mode';
@@ -712,7 +712,7 @@
             text.textContent = 'Simulation Mode';
         }
     }
-    
+
     // Toggle call mode with confirmation
     async function toggleCallMode() {
         if (!isRealCallMode) {
@@ -724,35 +724,35 @@
             );
             if (!confirmed) return;
         }
-        
+
         // Show loading state
         const button = document.getElementById('toggle-call-mode');
         const originalHtml = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Switching...';
         button.disabled = true;
-        
+
         try {
             console.log('Sending call mode toggle request...');
             const response = await authFetch('/api/v1/calls/call-setting', {
                 method: 'POST',
                 body: JSON.stringify({ make_real_call: !isRealCallMode })
             });
-            
+
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const result = await response.json();
             console.log('Response data:', result);
-            
+
             if (result.success) {
                 // Use the actual value from backend instead of toggling
                 isRealCallMode = result.make_real_call;
                 updateCallModeButton();
-                
+
                 const mode = isRealCallMode ? 'Real Call Mode' : 'Simulation Mode';
                 alert(`Successfully switched to ${mode}`);
             } else {
@@ -768,22 +768,22 @@
             updateCallModeButton();
         }
     }
-    
+
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
         loadPatients();
         loadNurses();
         initializeCallMode();
-        
+
         // Add event listener for call mode toggle
         document.getElementById('toggle-call-mode').addEventListener('click', toggleCallMode);
-        
+
         // Check if we should show a specific patient's details
         const storedPatientId = localStorage.getItem('view_patient_id');
         if (storedPatientId) {
             // Clear the stored ID to prevent showing it again on next page load
             localStorage.removeItem('view_patient_id');
-            
+
             // Show patient details after a short delay to ensure data is loaded
             setTimeout(() => {
                 viewPatient(storedPatientId);

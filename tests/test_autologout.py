@@ -154,9 +154,7 @@ class AutoLogoutTester:
                 title = title_match.group(1) if title_match else ""
 
                 if expected_title and expected_title not in title:
-                    print(
-                        f"❌ Title '{title}' doesn't contain expected '{expected_title}'"
-                    )
+                    print(f"❌ Title '{title}' doesn't contain expected '{expected_title}'")
                     return False, html, parser
 
                 if expected_title:
@@ -181,9 +179,7 @@ class AutoLogoutTester:
         """Fetch auto-logout settings"""
         try:
             # Create request
-            req = urllib.request.Request(
-                f"{self.base_url}/api/v1/auth/session-settings"
-            )
+            req = urllib.request.Request(f"{self.base_url}/api/v1/auth/session-settings")
 
             # Add authentication token if available
             if self.access_token:
@@ -200,9 +196,7 @@ class AutoLogoutTester:
                 auto_logout_minutes = data.get("auto_logout_minutes")
                 warning_minutes = data.get("warning_minutes")
 
-                print(
-                    f"✅ Auto-logout time: {auto_logout_minutes} minutes ({auto_logout_ms} ms)"
-                )
+                print(f"✅ Auto-logout time: {auto_logout_minutes} minutes ({auto_logout_ms} ms)")
                 print(f"✅ Warning time: {warning_minutes} minutes ({warning_ms} ms)")
 
                 return auto_logout_minutes, warning_minutes
@@ -252,17 +246,13 @@ class AutoLogoutTester:
         # Here we'll check if the auto-logout mechanism is properly included in the page
 
         # Check for performAutoLogout function
-        auto_logout_fn = re.search(
-            r"function\s+performAutoLogout\(\)", html, re.IGNORECASE
-        )
+        auto_logout_fn = re.search(r"function\s+performAutoLogout\(\)", html, re.IGNORECASE)
         if not auto_logout_fn:
             print("❌ performAutoLogout function not found")
             return False
 
         # Check for redirection to login in the auto-logout function
-        redirect_to_login = re.search(
-            r'window\.location\.href\s*=\s*[\'"]\/login[\'"]', html, re.IGNORECASE
-        )
+        redirect_to_login = re.search(r'window\.location\.href\s*=\s*[\'"]\/login[\'"]', html, re.IGNORECASE)
         if not redirect_to_login:
             print("❌ Redirect to login page not found in auto-logout function")
             return False
@@ -298,17 +288,13 @@ class AutoLogoutTester:
             return False
 
         # Check if the auto-logout JavaScript is present
-        auto_logout_js = re.search(
-            r"function\s+performAutoLogout\(\)", html, re.IGNORECASE
-        )
+        auto_logout_js = re.search(r"function\s+performAutoLogout\(\)", html, re.IGNORECASE)
         if not auto_logout_js:
             print("❌ Auto-logout JavaScript not found in page")
             return False
 
         # Check if local storage clearing code is present
-        localStorage_clear = re.search(
-            r"localStorage\.removeItem\(.*\)", html, re.IGNORECASE
-        )
+        localStorage_clear = re.search(r"localStorage\.removeItem\(.*\)", html, re.IGNORECASE)
         if not localStorage_clear:
             print("❌ Local storage clearing code not found in auto-logout function")
             return False
@@ -352,9 +338,7 @@ class AutoLogoutTester:
         if not has_token_check:
             # Last resort - check if the script contains both token check and redirect code
             # even if not in the exact pattern we expected
-            token_check = (
-                "!token" in html or "!localStorage.getItem('auth_token')" in html
-            )
+            token_check = "!token" in html or "!localStorage.getItem('auth_token')" in html
             redirect_code = "window.location.href" in html and "/login" in html
 
             if token_check and redirect_code:
@@ -364,9 +348,7 @@ class AutoLogoutTester:
             print("❌ Token validation and redirect code not found")
             return False
 
-        print(
-            "✅ Page contains token validation code that prevents access to protected pages after logout"
-        )
+        print("✅ Page contains token validation code that prevents access to protected pages after logout")
         return True
 
 
@@ -389,9 +371,7 @@ def test_role_specific_autologout(base_url="http://0.0.0.0:8080"):
         tester = AutoLogoutTester(base_url)
 
         # Login with role-specific credentials
-        if not tester.login(
-            username=credentials["username"], password=credentials["password"]
-        ):
+        if not tester.login(username=credentials["username"], password=credentials["password"]):
             print(f"❌ Login failed for {role}")
             results[role] = False
             continue
@@ -408,12 +388,8 @@ def test_role_specific_autologout(base_url="http://0.0.0.0:8080"):
         print(f"✅ Successfully accessed dashboard as {role}")
 
         # Check if auto-logout mechanism is present for this role
-        auto_logout_fn = re.search(
-            r"function\s+performAutoLogout\(\)", html, re.IGNORECASE
-        )
-        local_storage_clear = re.search(
-            r"localStorage\.removeItem\(.*\)", html, re.IGNORECASE
-        )
+        auto_logout_fn = re.search(r"function\s+performAutoLogout\(\)", html, re.IGNORECASE)
+        local_storage_clear = re.search(r"localStorage\.removeItem\(.*\)", html, re.IGNORECASE)
         inactivity_timer = re.search(
             r"inactivityTimer\s*=\s*setTimeout\(\s*performAutoLogout",
             html,
@@ -472,9 +448,7 @@ def test_role_specific_autologout(base_url="http://0.0.0.0:8080"):
         if role in timeout_settings:
             auto_logout = timeout_settings[role]["auto_logout"]
             warning = timeout_settings[role]["warning"]
-            print(
-                f"{status}: {role.capitalize()} auto-logout (timeout: {auto_logout}min, warning: {warning}min)"
-            )
+            print(f"{status}: {role.capitalize()} auto-logout (timeout: {auto_logout}min, warning: {warning}min)")
         else:
             print(f"{status}: {role.capitalize()} auto-logout")
 

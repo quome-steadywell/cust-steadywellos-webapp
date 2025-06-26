@@ -58,7 +58,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Interventions -->
     <div class="col-lg-6">
         <div class="card mb-4">
@@ -132,7 +132,7 @@
     // Get protocol ID from URL
     const protocolId = {{ protocol_id }};
     let protocolData = null;
-    
+
     // Load protocol data
     function loadProtocol() {
         fetch(`/api/v1/protocols/${protocolId}`)
@@ -144,17 +144,17 @@
         })
         .then(protocol => {
             protocolData = protocol;
-            
+
             // Update UI with protocol data
             updateProtocolOverview(protocol);
             updateQuestions(protocol.questions);
             updateInterventions(protocol.interventions);
             updateDecisionTree(protocol.decision_tree);
-            
+
             // Update toggle button state
             const toggleBtn = document.getElementById('toggleActiveBtn');
             const toggleText = document.getElementById('toggleText');
-            
+
             if (protocol.is_active) {
                 toggleBtn.classList.remove('btn-success');
                 toggleBtn.classList.add('btn-warning');
@@ -176,16 +176,16 @@
             `;
         });
     }
-    
+
     // Update protocol overview section
     function updateProtocolOverview(protocol) {
         const typeName = protocol.protocol_type.replace(/_/g, ' ')
             .replace(/\b\w/g, l => l.toUpperCase());
-        
-        const activeBadge = protocol.is_active ? 
-            '<span class="badge bg-success">Active</span>' : 
+
+        const activeBadge = protocol.is_active ?
+            '<span class="badge bg-success">Active</span>' :
             '<span class="badge bg-secondary">Inactive</span>';
-        
+
         const overviewHtml = `
             <div class="row">
                 <div class="col-md-6">
@@ -221,10 +221,10 @@
                 </div>
             </div>
         `;
-        
+
         document.getElementById('protocolOverview').innerHTML = overviewHtml;
     }
-    
+
     // Update questions section
     function updateQuestions(questions) {
         if (!questions || questions.length === 0) {
@@ -232,7 +232,7 @@
             document.getElementById('questionsModalBody').innerHTML = '<p>No questions defined for this protocol.</p>';
             return;
         }
-        
+
         // Group questions by category
         const categories = {};
         questions.forEach(question => {
@@ -242,26 +242,26 @@
             }
             categories[category].push(question);
         });
-        
+
         // Create accordion for categories
         let accordionHtml = '<div class="accordion" id="questionsAccordion">';
-        
+
         Object.entries(categories).forEach(([category, categoryQuestions], index) => {
             accordionHtml += `
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading${index}">
-                        <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" 
-                                data-bs-toggle="collapse" data-bs-target="#collapse${index}" 
+                        <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapse${index}"
                                 aria-expanded="${index === 0}" aria-controls="collapse${index}">
                             ${category} (${categoryQuestions.length} questions)
                         </button>
                     </h2>
-                    <div id="collapse${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                    <div id="collapse${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}"
                          aria-labelledby="heading${index}" data-bs-parent="#questionsAccordion">
                         <div class="accordion-body p-0">
                             <div class="list-group list-group-flush">
             `;
-            
+
             categoryQuestions.forEach(question => {
                 // Format question details based on type
                 let questionDetails = '';
@@ -272,7 +272,7 @@
                 } else if (question.type === 'boolean') {
                     questionDetails = 'Yes/No question';
                 }
-                
+
                 accordionHtml += `
                     <div class="list-group-item">
                         <div class="d-flex justify-content-between align-items-center">
@@ -284,7 +284,7 @@
                     </div>
                 `;
             });
-            
+
             accordionHtml += `
                             </div>
                         </div>
@@ -292,14 +292,14 @@
                 </div>
             `;
         });
-        
+
         accordionHtml += '</div>';
-        
+
         // Update both main view and modal
         document.getElementById('questionsContainer').innerHTML = accordionHtml;
         document.getElementById('questionsModalBody').innerHTML = accordionHtml;
     }
-    
+
     // Update interventions section
     function updateInterventions(interventions) {
         if (!interventions || interventions.length === 0) {
@@ -307,7 +307,7 @@
             document.getElementById('interventionsModalBody').innerHTML = '<p>No interventions defined for this protocol.</p>';
             return;
         }
-        
+
         // Group interventions by priority
         const priorities = {
             'urgent': [],
@@ -315,7 +315,7 @@
             'medium': [],
             'low': []
         };
-        
+
         interventions.forEach(intervention => {
             const priority = intervention.priority || 'medium';
             if (priorities[priority]) {
@@ -324,10 +324,10 @@
                 priorities.medium.push(intervention);
             }
         });
-        
+
         // Create cards for each priority
         let cardsHtml = '<div class="row">';
-        
+
         // Define priority order and styling
         const priorityOrder = [
             { key: 'urgent', label: 'Urgent', bgClass: 'bg-danger' },
@@ -335,11 +335,11 @@
             { key: 'medium', label: 'Medium', bgClass: 'bg-info' },
             { key: 'low', label: 'Low', bgClass: 'bg-success' }
         ];
-        
+
         priorityOrder.forEach(priority => {
             const priorityInterventions = priorities[priority.key];
             if (priorityInterventions.length === 0) return;
-            
+
             cardsHtml += `
                 <div class="col-md-6 mb-3">
                     <div class="card h-100">
@@ -349,7 +349,7 @@
                         <div class="card-body p-0">
                             <div class="list-group list-group-flush">
             `;
-            
+
             priorityInterventions.forEach(intervention => {
                 cardsHtml += `
                     <div class="list-group-item">
@@ -360,7 +360,7 @@
                     </div>
                 `;
             });
-            
+
             cardsHtml += `
                             </div>
                         </div>
@@ -368,21 +368,21 @@
                 </div>
             `;
         });
-        
+
         cardsHtml += '</div>';
-        
+
         // Update both main view and modal
         document.getElementById('interventionsContainer').innerHTML = cardsHtml;
         document.getElementById('interventionsModalBody').innerHTML = cardsHtml;
     }
-    
+
     // Update decision tree visualization
     function updateDecisionTree(decisionTree) {
         if (!decisionTree || decisionTree.length === 0) {
             document.getElementById('decisionTreeContainer').innerHTML = '<p>No decision tree defined for this protocol.</p>';
             return;
         }
-        
+
         // For now, just display as a table (a proper visualization would require more complex JS)
         let treeHtml = `
             <div class="table-responsive">
@@ -399,7 +399,7 @@
                     </thead>
                     <tbody>
         `;
-        
+
         decisionTree.forEach(node => {
             treeHtml += `
                 <tr>
@@ -410,7 +410,7 @@
                     <td>${node.next_node_id || '-'}</td>
                     <td>
             `;
-            
+
             if (node.intervention_ids && node.intervention_ids.length > 0) {
                 treeHtml += '<ul class="mb-0">';
                 node.intervention_ids.forEach(id => {
@@ -428,30 +428,30 @@
             } else {
                 treeHtml += '-';
             }
-            
+
             treeHtml += `
                     </td>
                 </tr>
             `;
         });
-        
+
         treeHtml += `
                     </tbody>
                 </table>
             </div>
         `;
-        
+
         document.getElementById('decisionTreeContainer').innerHTML = treeHtml;
     }
-    
+
     // Toggle protocol active status
     function toggleProtocolStatus() {
         if (!protocolData) return;
-        
-        const endpoint = protocolData.is_active ? 
-            `/api/v1/protocols/${protocolId}/deactivate` : 
+
+        const endpoint = protocolData.is_active ?
+            `/api/v1/protocols/${protocolId}/deactivate` :
             `/api/v1/protocols/${protocolId}/activate`;
-        
+
         fetch(endpoint, {
             method: 'PUT'
         })
@@ -469,28 +469,28 @@
         .catch(error => {
             console.error('Error toggling protocol status:', error);
             let errorMessage = 'Failed to update protocol status.';
-            
+
             if (error.error) {
                 errorMessage += ' ' + error.error;
             }
-            
+
             alert(errorMessage);
         });
     }
-    
+
     // Set up event listeners
     document.addEventListener('DOMContentLoaded', function() {
         // Load protocol data
         loadProtocol();
-        
+
         // Set up toggle button
         document.getElementById('toggleActiveBtn').addEventListener('click', toggleProtocolStatus);
-        
+
         // Set up expand buttons for questions and interventions
         document.getElementById('expandQuestionsBtn').addEventListener('click', function() {
             new bootstrap.Modal(document.getElementById('questionsModal')).show();
         });
-        
+
         document.getElementById('expandInterventionsBtn').addEventListener('click', function() {
             new bootstrap.Modal(document.getElementById('interventionsModal')).show();
         });

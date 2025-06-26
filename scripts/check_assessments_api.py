@@ -44,43 +44,22 @@ def check_assessment_api(assessment_id):
             print(f"patient_id: {assessment.patient_id}")
 
             # Check if protocol field is properly populated in serialized output
-            if (
-                "protocol" not in serialized_assessment
-                or not serialized_assessment["protocol"]
-            ):
-                print(
-                    "WARNING: 'protocol' field is missing or empty in serialized output!"
-                )
+            if "protocol" not in serialized_assessment or not serialized_assessment["protocol"]:
+                print("WARNING: 'protocol' field is missing or empty in serialized output!")
             else:
-                print(
-                    f"protocol field populated correctly: {serialized_assessment['protocol']['name']}"
-                )
+                print(f"protocol field populated correctly: {serialized_assessment['protocol']['name']}")
 
             # Check if patient field is properly populated in serialized output
-            if (
-                "patient" not in serialized_assessment
-                or not serialized_assessment["patient"]
-            ):
-                print(
-                    "WARNING: 'patient' field is missing or empty in serialized output!"
-                )
+            if "patient" not in serialized_assessment or not serialized_assessment["patient"]:
+                print("WARNING: 'patient' field is missing or empty in serialized output!")
             else:
-                print(
-                    f"patient field populated correctly: {serialized_assessment['patient']['full_name']}"
-                )
+                print(f"patient field populated correctly: {serialized_assessment['patient']['full_name']}")
 
             # Check conducted_by field
-            if (
-                "conducted_by" not in serialized_assessment
-                or not serialized_assessment["conducted_by"]
-            ):
-                print(
-                    "WARNING: 'conducted_by' field is missing or empty in serialized output!"
-                )
+            if "conducted_by" not in serialized_assessment or not serialized_assessment["conducted_by"]:
+                print("WARNING: 'conducted_by' field is missing or empty in serialized output!")
             else:
-                print(
-                    f"conducted_by field populated correctly: {serialized_assessment['conducted_by']['full_name']}"
-                )
+                print(f"conducted_by field populated correctly: {serialized_assessment['conducted_by']['full_name']}")
 
             # Check permissions for nurse1
             from src.models.user import User, UserRole
@@ -91,9 +70,7 @@ def check_assessment_api(assessment_id):
                 patient = Patient.query.get(assessment.patient_id)
                 if patient:
                     has_permission = patient.primary_nurse_id == nurse1.id
-                    print(
-                        f"Nurse1 has permission to view this assessment: {has_permission}"
-                    )
+                    print(f"Nurse1 has permission to view this assessment: {has_permission}")
 
                     # Now try to directly call the API endpoint function
                     from src.api.assessments import get_assessment
@@ -118,45 +95,29 @@ def check_assessment_api(assessment_id):
                             return nurse1.id
 
                     # Temporarily replace jwt functions
-                    original_jwt_required = app.extensions.get(
-                        "flask_jwt_extended"
-                    ).jwt_required
-                    original_get_jwt_identity = app.extensions.get(
-                        "flask_jwt_extended"
-                    ).get_jwt_identity
+                    original_jwt_required = app.extensions.get("flask_jwt_extended").jwt_required
+                    original_get_jwt_identity = app.extensions.get("flask_jwt_extended").get_jwt_identity
 
                     try:
-                        app.extensions.get("flask_jwt_extended").jwt_required = (
-                            MockAuth.jwt_required
-                        )
-                        app.extensions.get("flask_jwt_extended").get_jwt_identity = (
-                            MockAuth.get_jwt_identity
-                        )
+                        app.extensions.get("flask_jwt_extended").jwt_required = MockAuth.jwt_required
+                        app.extensions.get("flask_jwt_extended").get_jwt_identity = MockAuth.get_jwt_identity
 
                         # Create a mock request context
-                        with app.test_request_context(
-                            f"/api/v1/assessments/{assessment_id}"
-                        ):
+                        with app.test_request_context(f"/api/v1/assessments/{assessment_id}"):
                             response = get_assessment(assessment_id)
 
                             # If response is a tuple, it likely has an error status
                             if isinstance(response, tuple):
                                 print(f"API endpoint returned an error: {response}")
                             elif isinstance(response, Response):
-                                print(
-                                    f"API endpoint returned successfully with status {response.status_code}"
-                                )
+                                print(f"API endpoint returned successfully with status {response.status_code}")
                             else:
                                 print(f"API endpoint returned: {response}")
 
                     finally:
                         # Restore original functions
-                        app.extensions.get("flask_jwt_extended").jwt_required = (
-                            original_jwt_required
-                        )
-                        app.extensions.get("flask_jwt_extended").get_jwt_identity = (
-                            original_get_jwt_identity
-                        )
+                        app.extensions.get("flask_jwt_extended").jwt_required = original_jwt_required
+                        app.extensions.get("flask_jwt_extended").get_jwt_identity = original_get_jwt_identity
 
         except Exception as e:
             print(f"Error serializing assessment: {str(e)}")
@@ -202,12 +163,8 @@ def check_multiple_assessments():
                 print("WARNING: Protocol object is None or missing")
                 # Check if protocol ID exists in Protocol table
                 if assessment.protocol_id:
-                    found = Protocol.query.filter(
-                        Protocol.id == assessment.protocol_id
-                    ).first()
-                    print(
-                        f"Protocol ID {assessment.protocol_id} exists in Protocol table: {'Yes' if found else 'No'}"
-                    )
+                    found = Protocol.query.filter(Protocol.id == assessment.protocol_id).first()
+                    print(f"Protocol ID {assessment.protocol_id} exists in Protocol table: {'Yes' if found else 'No'}")
 
             # Check patient
             patient = Patient.query.get(assessment.patient_id)
@@ -221,9 +178,7 @@ def check_multiple_assessments():
                 schema = AssessmentSchema()
                 result = schema.dump(assessment)
                 print("\nSerialization result:")
-                print(
-                    f"Protocol included in serialized data: {'Yes' if result.get('protocol') else 'No'}"
-                )
+                print(f"Protocol included in serialized data: {'Yes' if result.get('protocol') else 'No'}")
                 if result.get("protocol"):
                     print(f"Protocol data: {result['protocol']}")
                 else:

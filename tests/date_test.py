@@ -31,9 +31,7 @@ class DateTestClient:
         print(f"📝 Logging in as {username}")
         login_data = {"username": username, "password": password}
 
-        success, response = self.post(
-            "/api/v1/auth/login", login_data, expected_status=200
-        )
+        success, response = self.post("/api/v1/auth/login", login_data, expected_status=200)
         if not success:
             print("❌ Login failed")
             return False
@@ -116,9 +114,7 @@ class DateTestClient:
         if self.access_token and not path.startswith("/api/v1/auth/login"):
             headers["Authorization"] = f"Bearer {self.access_token}"
 
-        req = urllib.request.Request(
-            url, data=data_bytes, headers=headers, method="POST"
-        )
+        req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
 
         # Add cookies if available
         if self.cookies:
@@ -197,9 +193,7 @@ class DateTestClient:
                 title = title_match.group(1) if title_match else ""
 
                 if expected_title and expected_title not in title:
-                    print(
-                        f"❌ Title '{title}' doesn't contain expected '{expected_title}'"
-                    )
+                    print(f"❌ Title '{title}' doesn't contain expected '{expected_title}'")
                     return False, None
 
                 if expected_title:
@@ -283,14 +277,10 @@ def test_dashboard_weekly_assessments(client):
 
         # Compare counts
         if weekly_count == actual_count:
-            print(
-                f"✅ Dashboard count ({weekly_count}) matches assessments API count ({actual_count})"
-            )
+            print(f"✅ Dashboard count ({weekly_count}) matches assessments API count ({actual_count})")
             return True
         else:
-            print(
-                f"❌ Dashboard count ({weekly_count}) does not match assessments API count ({actual_count})"
-            )
+            print(f"❌ Dashboard count ({weekly_count}) does not match assessments API count ({actual_count})")
             return False
     except json.JSONDecodeError:
         print("❌ Invalid assessments data")
@@ -339,14 +329,10 @@ def test_dashboard_ui_consistency(client):
 
         # Verify consistency
         if weekly_count == actual_count:
-            print(
-                f"✅ Dashboard API count ({weekly_count}) matches assessments API count ({actual_count})"
-            )
+            print(f"✅ Dashboard API count ({weekly_count}) matches assessments API count ({actual_count})")
             return True
         else:
-            print(
-                f"❌ Dashboard API count ({weekly_count}) does not match assessments API count ({actual_count})"
-            )
+            print(f"❌ Dashboard API count ({weekly_count}) does not match assessments API count ({actual_count})")
             return False
     except json.JSONDecodeError:
         print("❌ Invalid assessments data")
@@ -412,9 +398,7 @@ def test_weekly_assessment_boundary_cases(client):
 
     # Verify that this week's count matches the dashboard
     if len(this_week_assessments) == weekly_count:
-        print(
-            f"✅ Dashboard count ({weekly_count}) matches API count for this week ({len(this_week_assessments)})"
-        )
+        print(f"✅ Dashboard count ({weekly_count}) matches API count for this week ({len(this_week_assessments)})")
         return True
     else:
         print(
@@ -481,14 +465,10 @@ def test_sunday_inclusion(client):
     # The sum should equal the dashboard count
     total_count = len(sunday_assessments) + len(weekday_assessments)
     if total_count == weekly_count:
-        print(
-            f"✅ Dashboard count ({weekly_count}) matches combined count ({total_count})"
-        )
+        print(f"✅ Dashboard count ({weekly_count}) matches combined count ({total_count})")
         return True
     else:
-        print(
-            f"❌ Dashboard count ({weekly_count}) does not match combined count ({total_count})"
-        )
+        print(f"❌ Dashboard count ({weekly_count}) does not match combined count ({total_count})")
         return False
 
 

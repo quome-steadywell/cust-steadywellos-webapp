@@ -8,9 +8,7 @@ class UserSchema(Schema):
     id = fields.Int(dump_only=True)
     username = fields.Str(required=True, validate=validate.Length(min=3, max=80))
     email = fields.Email(required=True)
-    password = fields.Str(
-        load_only=True, required=True, validate=validate.Length(min=8)
-    )
+    password = fields.Str(load_only=True, required=True, validate=validate.Length(min=8))
     first_name = fields.Str(required=True)
     last_name = fields.Str(required=True)
     role = fields.Str(validate=validate.OneOf([role.value for role in UserRole]))
@@ -46,9 +44,7 @@ class UserSchema(Schema):
 class UserUpdateSchema(UserSchema):
     """Schema for updating User instances"""
 
-    password = fields.Str(
-        load_only=True, validate=validate.Length(min=8), required=False
-    )
+    password = fields.Str(load_only=True, validate=validate.Length(min=8), required=False)
     username = fields.Str(validate=validate.Length(min=3, max=80))
     email = fields.Email()
     first_name = fields.Str()

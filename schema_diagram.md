@@ -134,13 +134,13 @@ erDiagram
     USERS ||--o{ CALLS : "conducted_by_id"
     USERS ||--o{ ASSESSMENTS : "conducted_by_id"
     USERS ||--o{ AUDIT_LOGS : "user_id"
-    
+
     PATIENTS ||--o{ CALLS : "patient_id"
     PATIENTS ||--o{ ASSESSMENTS : "patient_id"
     PATIENTS ||--o{ MEDICATIONS : "patient_id"
-    
+
     PROTOCOLS ||--o{ ASSESSMENTS : "protocol_id"
-    
+
     CALLS ||--o{ ASSESSMENTS : "call_id"
 ```
 

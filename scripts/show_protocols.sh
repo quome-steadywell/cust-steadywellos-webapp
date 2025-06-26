@@ -40,7 +40,7 @@ if [ "${DEV_STATE}" = "TEST" ] && [ "$PROTOCOL_COUNT" = "0" ]; then
   echo -e "${YELLOW}No protocols found and DEV_STATE is TEST. Initializing protocols...${NC}"
   docker-compose exec -T web python scripts/protocol_ingest.py
   echo -e "${GREEN}Protocols initialized.${NC}"
-  
+
   # Check protocols again
   echo -e "${GREEN}Checking protocols in the database...${NC}"
   docker-compose exec web python scripts/check_protocols.py

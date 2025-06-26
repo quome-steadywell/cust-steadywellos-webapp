@@ -32,9 +32,7 @@ def generate_token(user_id, expires_in=86400):
 def decode_token(token):
     """Decode and validate a JWT token"""
     try:
-        payload = jwt.decode(
-            token, current_app.config["SECRET_KEY"], algorithms=["HS256"]
-        )
+        payload = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
         return payload["sub"]  # User ID
     except PyJWTError:
         return None
@@ -55,9 +53,7 @@ def generate_password_reset_token(user_id, expires_in=3600):
 def verify_password_reset_token(token):
     """Verify a password reset token"""
     try:
-        payload = jwt.decode(
-            token, current_app.config["SECRET_KEY"], algorithms=["HS256"]
-        )
+        payload = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
 
         if payload.get("type") != "password_reset":
             return None
