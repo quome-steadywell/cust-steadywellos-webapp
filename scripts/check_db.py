@@ -9,7 +9,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load .env file from one directory above this script
-env_path = Path(__file__).resolve().parent.parent / '.env'
+env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 # Add the parent directory to the path so we can import src
@@ -22,6 +22,7 @@ from src.models.protocol import Protocol
 from src.models.assessment import Assessment
 from src.models.user import User
 
+
 def check_mary_johnson():
     """Check Mary Johnson record in database"""
     app = create_app()
@@ -31,13 +32,13 @@ def check_mary_johnson():
         if not mary:
             print("Mary Johnson not found in the database!")
             return
-            
+
         # Display Mary's info
         print(f"Mary Johnson (ID: {mary.id})")
         print(f"MRN: {mary.mrn}")
         print(f"Protocol Type: {mary.protocol_type}")
         print(f"Primary Nurse ID: {mary.primary_nurse_id}")
-        
+
         # Find nurse1
         nurse1 = User.query.filter_by(username="nurse1").first()
         if nurse1:
@@ -45,18 +46,18 @@ def check_mary_johnson():
             print(f"Mary's primary nurse matches nurse1: {mary.primary_nurse_id == nurse1.id}")
         else:
             print("Nurse1 not found in the database!")
-        
+
         # Find protocol for Mary's protocol type
         protocol = Protocol.query.filter_by(protocol_type=mary.protocol_type).first()
         if protocol:
             print(f"\nProtocol (ID: {protocol.id}, Name: {protocol.name})")
         else:
             print(f"No protocol found for type {mary.protocol_type}!")
-            
+
         # Get Mary's assessments
         assessments = Assessment.query.filter_by(patient_id=mary.id).all()
         print(f"\nFound {len(assessments)} assessments for Mary Johnson")
-        
+
         for assessment in assessments:
             print(f"\nAssessment {assessment.id}:")
             print(f"  Date: {assessment.assessment_date}")
@@ -65,6 +66,7 @@ def check_mary_johnson():
             if assessment.follow_up_needed:
                 print(f"  Follow-up date: {assessment.follow_up_date}")
                 print(f"  Follow-up priority: {assessment.follow_up_priority}")
+
 
 if __name__ == "__main__":
     check_mary_johnson()

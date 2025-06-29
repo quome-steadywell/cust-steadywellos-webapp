@@ -165,10 +165,10 @@ fi
 if [ "$INTERACTIVE" = true ]; then
     read -p "Repository name [$DEFAULT_REPOSITORY]: " REPOSITORY
     REPOSITORY=${REPOSITORY:-$DEFAULT_REPOSITORY}
-    
+
     read -p "Description [$DEFAULT_DESCRIPTION]: " DESCRIPTION
     DESCRIPTION=${DESCRIPTION:-$DEFAULT_DESCRIPTION}
-    
+
     # Choose which architectures to build (default to both)
     read -p "Which architectures to build? (arm/intel/both) [both]: " BUILD_CHOICE
     BUILD_CHOICE=${BUILD_CHOICE:-both}
@@ -183,11 +183,11 @@ else
         ENV_DESCRIPTION=$(grep '^DEFAULT_DESCRIPTION=' "$ENV_FILE" | cut -d '=' -f2)
     fi
     ENV_BUILD_CHOICE=$(grep '^DEFAULT_BUILD_CHOICE=' "$ENV_FILE" | cut -d '=' -f2)
-    
+
     REPOSITORY=${ENV_REPOSITORY:-$DEFAULT_REPOSITORY}
     DESCRIPTION=${ENV_DESCRIPTION:-$DEFAULT_DESCRIPTION}
     BUILD_CHOICE=${ENV_BUILD_CHOICE:-both}
-    
+
     echo "📋 Using repository from .env: $REPOSITORY"
     echo "📋 Using description from .env: $DESCRIPTION"
     echo "📋 Using build choice from .env: $BUILD_CHOICE"
@@ -303,7 +303,7 @@ for ARCH in "${ARCHITECTURES[@]}"; do
 	else
 		echo "⏩ Skipping Docker Scout for cross-compiled image (not compatible with different architectures)"
 	fi
-    
+
 	# Update the tag in .env file
 	if [ -f "$ENV_FILE" ]; then
 		# Convert architecture to uppercase for env var
@@ -356,7 +356,7 @@ if [ ${#ARCHITECTURES[@]} -gt 1 ]; then
 	docker manifest push "$USERNAME/$REPOSITORY:latest"
 
 	echo "✅ Multi-architecture 'latest' tag created"
-	
+
 	# Note for Quome Cloud deployment
 	echo "📝 Note: For Quome Cloud deployment, use the Intel-specific tag (required for Quome Cloud)"
 fi
@@ -372,14 +372,14 @@ fi
 if [ -n "$DOCKER_TOKEN" ]; then
     # Use token from .env
     echo "Using Docker token from .env file"
-    
+
     # Using token with Docker Hub API
     RESPONSE=$(curl -s -X PATCH \
         -H "Content-Type: application/json" \
         -H "Authorization: JWT $DOCKER_TOKEN" \
         -d "{\"is_private\": true, \"description\": \"$DESCRIPTION\"}" \
         "https://hub.docker.com/v2/repositories/$USERNAME/$REPOSITORY/")
-    
+
     # Check if response contains error
     if [[ "$RESPONSE" == *"error"* ]]; then
         echo "❌ Failed to update repository settings: $RESPONSE"
@@ -390,14 +390,14 @@ else
     # Prompt for password if token not found
     echo "Enter your Docker Hub password:"
     read -s PASSWORD
-    
+
     # Using username/password with Docker Hub API
     RESPONSE=$(curl -s -X PATCH \
         -H "Content-Type: application/json" \
         -u "$USERNAME:$PASSWORD" \
         -d "{\"is_private\": true, \"description\": \"$DESCRIPTION\"}" \
         "https://hub.docker.com/v2/repositories/$USERNAME/$REPOSITORY/")
-    
+
     # Check if response contains error
     if [[ "$RESPONSE" == *"error"* ]]; then
         echo "❌ Failed to update repository settings: $RESPONSE"
@@ -466,7 +466,7 @@ services:
       - ANTHROPIC_API_KEY=your-api-key
     depends_on:
       - db
-  
+
   db:
     image: postgres:15-alpine
     environment:

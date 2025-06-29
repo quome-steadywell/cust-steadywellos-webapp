@@ -1,12 +1,24 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, Text, Enum, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    JSON,
+    Text,
+    Enum,
+    ForeignKey,
+)
 from sqlalchemy.orm import relationship
 import enum
 from src import db
 from src.models.patient import ProtocolType
 
+
 class Protocol(db.Model):
     """Protocol model for storing clinical protocols"""
+
     __tablename__ = "protocols"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -20,17 +32,14 @@ class Protocol(db.Model):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     assessments = relationship("Assessment", back_populates="protocol")
-    
+
     def __repr__(self):
         return f"<Protocol {self.name} v{self.version}>"
-    
+
     @classmethod
     def get_latest_active_protocol(cls, protocol_type):
         """Get the latest active protocol for a given type"""
-        return cls.query.filter_by(
-            protocol_type=protocol_type,
-            is_active=True
-        ).order_by(cls.version.desc()).first()
+        return cls.query.filter_by(protocol_type=protocol_type, is_active=True).order_by(cls.version.desc()).first()

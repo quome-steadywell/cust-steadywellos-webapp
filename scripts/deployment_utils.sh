@@ -234,7 +234,7 @@ pushJSONSecretToQuome() {
 		cat <<EOF
 {
     "name": "$full_secret_name",
-    "type": "generic", 
+    "type": "generic",
     "description": "$secret_name for $APPLICATION_NAME app",
     "secret": {
         "value": $json_content
@@ -274,14 +274,14 @@ pushSecretPayloadToQuome() {
 		echo -e "${GREEN}✅  Secret '$secret_name' created or updated successfully${NC}"
 	elif [[ "$status" -eq 409 || "$response" == *"already exists"* ]]; then
 		echo -e "${BLUE}ℹ️  Secret '$secret_name' already exists, deleting and recreating...${NC}"
-		
+
 		# First, get the secret ID
 		local list_response=$(curl $CURL_SSL_OPTION -L -s \
 			-H "Authorization: Bearer $QUOME_API_KEY" \
 			"$secrets_api_url" 2>>"$debug_file")
-		
+
 		local secret_id=$(echo "$list_response" | jq -r ".secrets[] | select(.name == \"$secret_name\") | .id")
-		
+
 		if [ -z "$secret_id" ]; then
 			echo -e "${YELLOW}⚠️  Could not find secret ID for '$secret_name', attempting to create anyway...${NC}"
 		else
@@ -290,14 +290,14 @@ pushSecretPayloadToQuome() {
 			local delete_response=$(curl $CURL_SSL_OPTION -L -s -w "\nStatus Code: %{http_code}\n" -X DELETE \
 				-H "Authorization: Bearer $QUOME_API_KEY" \
 				"$secrets_api_url/$secret_id" 2>>"$debug_file")
-			
+
 			local delete_status=$(echo "$delete_response" | grep "Status Code:" | awk '{print $3}')
-			
+
 			if [[ "$delete_status" -eq 204 ]] || [[ "$delete_status" -eq 200 ]]; then
 			echo -e "${GREEN}✅ Secret deleted successfully${NC}"
 			echo -e "${BLUE}⏳ Waiting for deletion to complete...${NC}"
 			sleep 2
-			
+
 			# Now recreate the secret
 			echo -e "${BLUE}📡 Recreating secret '$secret_name'...${NC}"
 			local recreate_response=$(curl $CURL_SSL_OPTION -L -s -w "\nStatus Code: %{http_code}\n" -X POST \
@@ -305,9 +305,9 @@ pushSecretPayloadToQuome() {
 				-H "Authorization: Bearer $QUOME_API_KEY" \
 				-d "$secret_payload" \
 				"$secrets_api_url" 2>>"$debug_file")
-			
+
 			local recreate_status=$(echo "$recreate_response" | grep "Status Code:" | awk '{print $3}')
-			
+
 			if [[ "$recreate_status" -ge 200 && "$recreate_status" -lt 300 ]] ||
 				[[ "$recreate_response" == *"\"status\":\"success\""* || "$recreate_response" == *"\"status\":\"ok\""* ]]; then
 				echo -e "${GREEN}✅  Secret '$secret_name' recreated successfully${NC}"
@@ -350,9 +350,9 @@ updateSecretToQuome() {
 	local list_response=$(curl $CURL_SSL_OPTION -L -s \
 		-H "Authorization: Bearer $QUOME_API_KEY" \
 		"$secrets_api_url" 2>>"$debug_file")
-	
+
 	local secret_id=$(echo "$list_response" | jq -r ".secrets[] | select(.name == \"$secret_name\") | .id")
-	
+
 	if [ -n "$secret_id" ]; then
 		# Secret exists, update it using PUT
 		echo -e "${BLUE}🔄 Updating existing secret '$secret_name'...${NC}"
@@ -361,9 +361,9 @@ updateSecretToQuome() {
 			-H "Authorization: Bearer $QUOME_API_KEY" \
 			-d "$secret_payload" \
 			"$secrets_api_url/$secret_id" 2>>"$debug_file")
-		
+
 		local update_status=$(echo "$update_response" | grep "Status Code:" | awk '{print $3}')
-		
+
 		if [[ "$update_status" -ge 200 && "$update_status" -lt 300 ]] ||
 			[[ "$update_response" == *"\"status\":\"success\""* || "$update_response" == *"\"status\":\"ok\""* ]]; then
 			echo -e "${GREEN}✅  Secret '$secret_name' updated successfully${NC}"
@@ -381,9 +381,9 @@ updateSecretToQuome() {
 			-H "Authorization: Bearer $QUOME_API_KEY" \
 			-d "$secret_payload" \
 			"$secrets_api_url" 2>>"$debug_file")
-		
+
 		local create_status=$(echo "$create_response" | grep "Status Code:" | awk '{print $3}')
-		
+
 		if [[ "$create_status" -ge 200 && "$create_status" -lt 300 ]] ||
 			[[ "$create_response" == *"\"status\":\"success\""* || "$create_response" == *"\"status\":\"ok\""* ]]; then
 			echo -e "${GREEN}✅  Secret '$secret_name' created successfully${NC}"

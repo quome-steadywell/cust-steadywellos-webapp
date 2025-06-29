@@ -14,20 +14,21 @@ from src.utils.logger import get_logger
 # Set up logging
 logger = get_logger()
 
+
 def seed_database(test_scenario=None):
     """
     Seed the database with initial data
-    
+
     Args:
         test_scenario (str, optional): Specific test scenario to generate data for
             Valid values: None, 'date_check'
     """
     logger.info("🌱 Starting database seeding process...")
     logger.info(f"Test scenario: {test_scenario if test_scenario else 'None'}")
-    
+
     # Clear existing data in the correct order to handle foreign key constraints
     logger.info("🧹 Clearing existing data to reseed database...")
-    
+
     # Count existing records before deletion for logging
     assessments_count = db.session.query(Assessment).count()
     calls_count = db.session.query(Call).count()
@@ -35,35 +36,37 @@ def seed_database(test_scenario=None):
     patients_count = db.session.query(Patient).count()
     audit_logs_count = db.session.query(AuditLog).count()
     users_count = db.session.query(User).count()
-    
-    logger.info(f"Found existing records - Users: {users_count}, Patients: {patients_count}, Calls: {calls_count}, Assessments: {assessments_count}, Medications: {medications_count}, Audit Logs: {audit_logs_count}")
-    
+
+    logger.info(
+        f"Found existing records - Users: {users_count}, Patients: {patients_count}, Calls: {calls_count}, Assessments: {assessments_count}, Medications: {medications_count}, Audit Logs: {audit_logs_count}"
+    )
+
     # Delete records
     db.session.query(Assessment).delete()
     logger.info(f"Deleted {assessments_count} assessments")
-    
+
     db.session.query(Call).delete()
     logger.info(f"Deleted {calls_count} calls")
-    
+
     db.session.query(Medication).delete()
     logger.info(f"Deleted {medications_count} medications")
-    
+
     db.session.query(Patient).delete()
     logger.info(f"Deleted {patients_count} patients")
-    
+
     # We don't delete protocols anymore - they should be created before this runs
     # db.session.query(Protocol).delete()
-    
+
     # Delete audit logs before users to avoid foreign key constraint issues
     db.session.query(AuditLog).delete()
     logger.info(f"Deleted {audit_logs_count} audit logs")
-    
+
     db.session.query(User).delete()
     logger.info(f"Deleted {users_count} users")
-    
+
     db.session.commit()
     logger.info("✅ Successfully cleared existing data")
-    
+
     # Create users
     logger.info("👥 Creating seed users...")
     admin = User(
@@ -73,10 +76,10 @@ def seed_database(test_scenario=None):
         last_name="User",
         role=UserRole.ADMIN,
         phone_number="555-123-4567",
-        is_active=True
+        is_active=True,
     )
     admin.password = "password123"
-    
+
     nurse1 = User(
         username="nurse1",
         email="nurse1@example.com",
@@ -85,10 +88,10 @@ def seed_database(test_scenario=None):
         role=UserRole.NURSE,
         phone_number="555-234-5678",
         license_number="RN12345",
-        is_active=True
+        is_active=True,
     )
     nurse1.password = "password123"
-    
+
     nurse2 = User(
         username="nurse2",
         email="nurse2@example.com",
@@ -97,10 +100,10 @@ def seed_database(test_scenario=None):
         role=UserRole.NURSE,
         phone_number="555-345-6789",
         license_number="RN67890",
-        is_active=True
+        is_active=True,
     )
     nurse2.password = "password123"
-    
+
     physician = User(
         username="physician",
         email="physician@example.com",
@@ -109,32 +112,34 @@ def seed_database(test_scenario=None):
         role=UserRole.PHYSICIAN,
         phone_number="555-456-7890",
         license_number="MD12345",
-        is_active=True
+        is_active=True,
     )
     physician.password = "password123"
-    
+
     db.session.add_all([admin, nurse1, nurse2, physician])
     db.session.commit()
     logger.info("✅ Created 4 seed users (admin, nurse1, nurse2, physician)")
-    
+
     # Get or create protocols
     logger.info("📋 Checking for existing protocols...")
     cancer_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.CANCER).first()
     heart_failure_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
     copd_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.COPD).first()
     fit_protocol = Protocol.query.filter_by(protocol_type=ProtocolType.FIT).first()
-    
-    logger.info(f"Found protocols - Cancer: {'✅' if cancer_protocol else '❌'}, Heart Failure: {'✅' if heart_failure_protocol else '❌'}, COPD: {'✅' if copd_protocol else '❌'}, FIT: {'✅' if fit_protocol else '❌'}")
-    
+
+    logger.info(
+        f"Found protocols - Cancer: {'✅' if cancer_protocol else '❌'}, Heart Failure: {'✅' if heart_failure_protocol else '❌'}, COPD: {'✅' if copd_protocol else '❌'}, FIT: {'✅' if fit_protocol else '❌'}"
+    )
+
     # Forces creation of default protocols since we're skipping the protocol_ingest step
     logger.info("📝 Creating default protocols in the database...")
     # Create protocols
     if not cancer_protocol:
         cancer_protocol = Protocol(
-                name="Cancer Palliative Care Protocol",
-                description="Protocol for managing symptoms in patients with advanced cancer",
-                protocol_type=ProtocolType.CANCER,
-                version="1.0",
+            name="Cancer Palliative Care Protocol",
+            description="Protocol for managing symptoms in patients with advanced cancer",
+            protocol_type=ProtocolType.CANCER,
+            version="1.0",
             questions=[
                 {
                     "id": "pain_level",
@@ -143,14 +148,14 @@ def seed_database(test_scenario=None):
                     "required": True,
                     "symptom_type": "pain",
                     "min_value": 0,
-                    "max_value": 10
+                    "max_value": 10,
                 },
                 {
                     "id": "pain_location",
                     "text": "Where is your pain located?",
                     "type": "text",
                     "required": True,
-                    "symptom_type": "pain"
+                    "symptom_type": "pain",
                 },
                 {
                     "id": "nausea",
@@ -159,7 +164,7 @@ def seed_database(test_scenario=None):
                     "required": True,
                     "symptom_type": "nausea",
                     "min_value": 0,
-                    "max_value": 10
+                    "max_value": 10,
                 },
                 {
                     "id": "fatigue",
@@ -168,7 +173,7 @@ def seed_database(test_scenario=None):
                     "required": True,
                     "symptom_type": "fatigue",
                     "min_value": 0,
-                    "max_value": 10
+                    "max_value": 10,
                 },
                 {
                     "id": "appetite",
@@ -177,40 +182,40 @@ def seed_database(test_scenario=None):
                     "required": True,
                     "symptom_type": "appetite",
                     "min_value": 0,
-                    "max_value": 10
-                }
+                    "max_value": 10,
+                },
             ],
             decision_tree=[
                 {
                     "id": "pain_assessment",
                     "symptom_type": "pain",
                     "condition": ">=7",
-                    "intervention_ids": ["severe_pain"]
+                    "intervention_ids": ["severe_pain"],
                 },
                 {
                     "id": "pain_moderate",
                     "symptom_type": "pain",
                     "condition": ">=4",
-                    "intervention_ids": ["moderate_pain"]
+                    "intervention_ids": ["moderate_pain"],
                 },
                 {
                     "id": "pain_mild",
                     "symptom_type": "pain",
                     "condition": "<4",
-                    "intervention_ids": ["mild_pain"]
+                    "intervention_ids": ["mild_pain"],
                 },
                 {
                     "id": "nausea_severe",
                     "symptom_type": "nausea",
                     "condition": ">=7",
-                    "intervention_ids": ["severe_nausea"]
+                    "intervention_ids": ["severe_nausea"],
                 },
                 {
                     "id": "fatigue_severe",
                     "symptom_type": "fatigue",
                     "condition": ">=7",
-                    "intervention_ids": ["severe_fatigue"]
-                }
+                    "intervention_ids": ["severe_fatigue"],
+                },
             ],
             interventions=[
                 {
@@ -218,341 +223,341 @@ def seed_database(test_scenario=None):
                     "title": "Severe Pain Management",
                     "description": "Urgent review of pain medication. Consider opioid rotation or adjustment.",
                     "symptom_type": "pain",
-                    "severity_threshold": 7
+                    "severity_threshold": 7,
                 },
                 {
                     "id": "moderate_pain",
                     "title": "Moderate Pain Management",
                     "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
                     "symptom_type": "pain",
-                    "severity_threshold": 4
+                    "severity_threshold": 4,
                 },
                 {
                     "id": "mild_pain",
                     "title": "Mild Pain Management",
                     "description": "Continue current pain management. Monitor for changes.",
                     "symptom_type": "pain",
-                    "severity_threshold": 0
+                    "severity_threshold": 0,
                 },
                 {
                     "id": "severe_nausea",
                     "title": "Severe Nausea Management",
                     "description": "Review antiemetic regimen. Consider adding a different class of antiemetic.",
                     "symptom_type": "nausea",
-                    "severity_threshold": 7
+                    "severity_threshold": 7,
                 },
                 {
                     "id": "severe_fatigue",
                     "title": "Severe Fatigue Management",
                     "description": "Assess for reversible causes. Consider energy conservation strategies.",
                     "symptom_type": "fatigue",
-                    "severity_threshold": 7
-                }
+                    "severity_threshold": 7,
+                },
             ],
-            is_active=True
+            is_active=True,
         )
-        
+
         if not heart_failure_protocol:
             heart_failure_protocol = Protocol(
                 name="Heart Failure Palliative Care Protocol",
                 description="Protocol for managing symptoms in patients with advanced heart failure",
                 protocol_type=ProtocolType.HEART_FAILURE,
                 version="1.0",
-            questions=[
-                {
-                    "id": "dyspnea",
-                    "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "dyspnea",
-                    "min_value": 0,
-                    "max_value": 10
-                },
-                {
-                    "id": "edema",
-                    "text": "On a scale of 0 to 10, how would you rate the swelling in your legs or ankles?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "edema",
-                    "min_value": 0,
-                    "max_value": 10
-                },
-                {
-                    "id": "orthopnea",
-                    "text": "How many pillows do you need to sleep comfortably without shortness of breath?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "orthopnea",
-                    "min_value": 0,
-                    "max_value": 10
-                },
-                {
-                    "id": "fatigue",
-                    "text": "On a scale of 0 to 10, how would you rate your fatigue?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "fatigue",
-                    "min_value": 0,
-                    "max_value": 10
-                },
-                {
-                    "id": "chest_pain",
-                    "text": "Have you experienced any chest pain?",
-                    "type": "boolean",
-                    "required": True,
-                    "symptom_type": "chest_pain"
-                }
-            ],
-            decision_tree=[
-                {
-                    "id": "dyspnea_severe",
-                    "symptom_type": "dyspnea",
-                    "condition": ">=7",
-                    "intervention_ids": ["severe_dyspnea"]
-                },
-                {
-                    "id": "edema_severe",
-                    "symptom_type": "edema",
-                    "condition": ">=7",
-                    "intervention_ids": ["severe_edema"]
-                },
-                {
-                    "id": "chest_pain_present",
-                    "symptom_type": "chest_pain",
-                    "condition": "==true",
-                    "intervention_ids": ["chest_pain_management"]
-                }
-            ],
-            interventions=[
-                {
-                    "id": "severe_dyspnea",
-                    "title": "Severe Dyspnea Management",
-                    "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen.",
-                    "symptom_type": "dyspnea",
-                    "severity_threshold": 7
-                },
-                {
-                    "id": "severe_edema",
-                    "title": "Severe Edema Management",
-                    "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
-                    "symptom_type": "edema",
-                    "severity_threshold": 7
-                },
-                {
-                    "id": "chest_pain_management",
-                    "title": "Chest Pain Management",
-                    "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed.",
-                    "symptom_type": "chest_pain"
-                }
-            ],
-            is_active=True
-        )
-        
+                questions=[
+                    {
+                        "id": "dyspnea",
+                        "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "dyspnea",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                    {
+                        "id": "edema",
+                        "text": "On a scale of 0 to 10, how would you rate the swelling in your legs or ankles?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "edema",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                    {
+                        "id": "orthopnea",
+                        "text": "How many pillows do you need to sleep comfortably without shortness of breath?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "orthopnea",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                    {
+                        "id": "fatigue",
+                        "text": "On a scale of 0 to 10, how would you rate your fatigue?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "fatigue",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                    {
+                        "id": "chest_pain",
+                        "text": "Have you experienced any chest pain?",
+                        "type": "boolean",
+                        "required": True,
+                        "symptom_type": "chest_pain",
+                    },
+                ],
+                decision_tree=[
+                    {
+                        "id": "dyspnea_severe",
+                        "symptom_type": "dyspnea",
+                        "condition": ">=7",
+                        "intervention_ids": ["severe_dyspnea"],
+                    },
+                    {
+                        "id": "edema_severe",
+                        "symptom_type": "edema",
+                        "condition": ">=7",
+                        "intervention_ids": ["severe_edema"],
+                    },
+                    {
+                        "id": "chest_pain_present",
+                        "symptom_type": "chest_pain",
+                        "condition": "==true",
+                        "intervention_ids": ["chest_pain_management"],
+                    },
+                ],
+                interventions=[
+                    {
+                        "id": "severe_dyspnea",
+                        "title": "Severe Dyspnea Management",
+                        "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen.",
+                        "symptom_type": "dyspnea",
+                        "severity_threshold": 7,
+                    },
+                    {
+                        "id": "severe_edema",
+                        "title": "Severe Edema Management",
+                        "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
+                        "symptom_type": "edema",
+                        "severity_threshold": 7,
+                    },
+                    {
+                        "id": "chest_pain_management",
+                        "title": "Chest Pain Management",
+                        "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed.",
+                        "symptom_type": "chest_pain",
+                    },
+                ],
+                is_active=True,
+            )
+
         if not copd_protocol:
             copd_protocol = Protocol(
                 name="COPD Palliative Care Protocol",
                 description="Protocol for managing symptoms in patients with advanced COPD",
                 protocol_type=ProtocolType.COPD,
                 version="1.0",
-            questions=[
-                {
-                    "id": "dyspnea",
-                    "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "dyspnea",
-                    "min_value": 0,
-                    "max_value": 10
-                },
-                {
-                    "id": "cough",
-                    "text": "On a scale of 0 to 10, how would you rate your cough?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "cough",
-                    "min_value": 0,
-                    "max_value": 10
-                },
-                {
-                    "id": "sputum_color",
-                    "text": "What color is your sputum/phlegm?",
-                    "type": "choice",
-                    "required": True,
-                    "symptom_type": "sputum",
-                    "choices": ["Clear", "White", "Yellow", "Green"]
-                },
-                {
-                    "id": "oxygen_use",
-                    "text": "How many hours per day are you using oxygen?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "oxygen_use",
-                    "min_value": 0,
-                    "max_value": 24
-                },
-                {
-                    "id": "anxiety",
-                    "text": "On a scale of 0 to 10, how would you rate your anxiety related to breathing?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "anxiety",
-                    "min_value": 0,
-                    "max_value": 10
-                }
-            ],
-            decision_tree=[
-                {
-                    "id": "dyspnea_severe",
-                    "symptom_type": "dyspnea",
-                    "condition": ">=7",
-                    "intervention_ids": ["severe_dyspnea_copd"]
-                },
-                {
-                    "id": "sputum_green",
-                    "symptom_type": "sputum",
-                    "condition": "==Green",
-                    "intervention_ids": ["infection_evaluation"]
-                },
-                {
-                    "id": "anxiety_severe",
-                    "symptom_type": "anxiety",
-                    "condition": ">=7",
-                    "intervention_ids": ["severe_anxiety"]
-                }
-            ],
-            interventions=[
-                {
-                    "id": "severe_dyspnea_copd",
-                    "title": "Severe Dyspnea Management for COPD",
-                    "description": "Review bronchodilator use. Consider rescue pack if available.",
-                    "symptom_type": "dyspnea",
-                    "severity_threshold": 7
-                },
-                {
-                    "id": "infection_evaluation",
-                    "title": "Respiratory Infection Evaluation",
-                    "description": "Evaluate for respiratory infection. Consider antibiotics per protocol.",
-                    "symptom_type": "sputum"
-                },
-                {
-                    "id": "severe_anxiety",
-                    "title": "Respiratory Anxiety Management",
-                    "description": "Review breathing techniques. Consider anxiolytic if severe.",
-                    "symptom_type": "anxiety",
-                    "severity_threshold": 7
-                }
-            ],
-            is_active=True
-        )
-        
+                questions=[
+                    {
+                        "id": "dyspnea",
+                        "text": "On a scale of 0 to 10, how would you rate your shortness of breath?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "dyspnea",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                    {
+                        "id": "cough",
+                        "text": "On a scale of 0 to 10, how would you rate your cough?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "cough",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                    {
+                        "id": "sputum_color",
+                        "text": "What color is your sputum/phlegm?",
+                        "type": "choice",
+                        "required": True,
+                        "symptom_type": "sputum",
+                        "choices": ["Clear", "White", "Yellow", "Green"],
+                    },
+                    {
+                        "id": "oxygen_use",
+                        "text": "How many hours per day are you using oxygen?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "oxygen_use",
+                        "min_value": 0,
+                        "max_value": 24,
+                    },
+                    {
+                        "id": "anxiety",
+                        "text": "On a scale of 0 to 10, how would you rate your anxiety related to breathing?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "anxiety",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                ],
+                decision_tree=[
+                    {
+                        "id": "dyspnea_severe",
+                        "symptom_type": "dyspnea",
+                        "condition": ">=7",
+                        "intervention_ids": ["severe_dyspnea_copd"],
+                    },
+                    {
+                        "id": "sputum_green",
+                        "symptom_type": "sputum",
+                        "condition": "==Green",
+                        "intervention_ids": ["infection_evaluation"],
+                    },
+                    {
+                        "id": "anxiety_severe",
+                        "symptom_type": "anxiety",
+                        "condition": ">=7",
+                        "intervention_ids": ["severe_anxiety"],
+                    },
+                ],
+                interventions=[
+                    {
+                        "id": "severe_dyspnea_copd",
+                        "title": "Severe Dyspnea Management for COPD",
+                        "description": "Review bronchodilator use. Consider rescue pack if available.",
+                        "symptom_type": "dyspnea",
+                        "severity_threshold": 7,
+                    },
+                    {
+                        "id": "infection_evaluation",
+                        "title": "Respiratory Infection Evaluation",
+                        "description": "Evaluate for respiratory infection. Consider antibiotics per protocol.",
+                        "symptom_type": "sputum",
+                    },
+                    {
+                        "id": "severe_anxiety",
+                        "title": "Respiratory Anxiety Management",
+                        "description": "Review breathing techniques. Consider anxiolytic if severe.",
+                        "symptom_type": "anxiety",
+                        "severity_threshold": 7,
+                    },
+                ],
+                is_active=True,
+            )
+
         if not fit_protocol:
             fit_protocol = Protocol(
                 name="FIT Protocol - Wellness Monitoring",
                 description="Protocol for monitoring very fit individuals with wellness and fitness assessments",
                 protocol_type=ProtocolType.FIT,
                 version="1.0",
-            questions=[
-                {
-                    "id": "mile_time",
-                    "text": "What is your recent 1-mile run time in minutes?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "fitness",
-                    "min_value": 5,
-                    "max_value": 20
-                },
-                {
-                    "id": "plank_time",
-                    "text": "How long can you hold a plank in minutes?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "strength",
-                    "min_value": 0,
-                    "max_value": 10
-                },
-                {
-                    "id": "row_5k_time",
-                    "text": "What is your 5K rowing time in minutes?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "endurance",
-                    "min_value": 15,
-                    "max_value": 45
-                },
-                {
-                    "id": "pushups_per_minute",
-                    "text": "How many push-ups can you do in one minute?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "strength",
-                    "min_value": 0,
-                    "max_value": 100
-                },
-                {
-                    "id": "swim_mile_time",
-                    "text": "What is your 1-mile swim time in minutes?",
-                    "type": "numeric",
-                    "required": True,
-                    "symptom_type": "endurance",
-                    "min_value": 20,
-                    "max_value": 60
-                }
-            ],
-            decision_tree=[
-                {
-                    "id": "excellent_fitness",
-                    "symptom_type": "fitness",
-                    "condition": "<=10",
-                    "intervention_ids": ["maintain_fitness"]
-                },
-                {
-                    "id": "good_plank",
-                    "symptom_type": "strength",
-                    "condition": ">=5",
-                    "intervention_ids": ["maintain_strength"]
-                },
-                {
-                    "id": "excellent_rowing",
-                    "symptom_type": "endurance",
-                    "condition": "<=25",
-                    "intervention_ids": ["maintain_endurance"]
-                },
-                {
-                    "id": "excellent_pushups",
-                    "symptom_type": "strength",
-                    "condition": ">=60",
-                    "intervention_ids": ["maintain_strength"]
-                },
-                {
-                    "id": "excellent_swimming",
-                    "symptom_type": "endurance",
-                    "condition": "<=30",
-                    "intervention_ids": ["maintain_endurance"]
-                }
-            ],
-            interventions=[
-                {
-                    "id": "maintain_fitness",
-                    "title": "Maintain Excellent Fitness",
-                    "description": "Continue current fitness routine. Excellent cardiovascular health.",
-                    "symptom_type": "fitness"
-                },
-                {
-                    "id": "maintain_strength",
-                    "title": "Maintain Strength Training",
-                    "description": "Continue strength training program. Excellent muscular endurance.",
-                    "symptom_type": "strength"
-                },
-                {
-                    "id": "maintain_endurance",
-                    "title": "Maintain Endurance Training",
-                    "description": "Continue endurance training. Excellent cardiovascular capacity.",
-                    "symptom_type": "endurance"
-                }
-            ],
-            is_active=True
-        )
-        
+                questions=[
+                    {
+                        "id": "mile_time",
+                        "text": "What is your recent 1-mile run time in minutes?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "fitness",
+                        "min_value": 5,
+                        "max_value": 20,
+                    },
+                    {
+                        "id": "plank_time",
+                        "text": "How long can you hold a plank in minutes?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "strength",
+                        "min_value": 0,
+                        "max_value": 10,
+                    },
+                    {
+                        "id": "row_5k_time",
+                        "text": "What is your 5K rowing time in minutes?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "endurance",
+                        "min_value": 15,
+                        "max_value": 45,
+                    },
+                    {
+                        "id": "pushups_per_minute",
+                        "text": "How many push-ups can you do in one minute?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "strength",
+                        "min_value": 0,
+                        "max_value": 100,
+                    },
+                    {
+                        "id": "swim_mile_time",
+                        "text": "What is your 1-mile swim time in minutes?",
+                        "type": "numeric",
+                        "required": True,
+                        "symptom_type": "endurance",
+                        "min_value": 20,
+                        "max_value": 60,
+                    },
+                ],
+                decision_tree=[
+                    {
+                        "id": "excellent_fitness",
+                        "symptom_type": "fitness",
+                        "condition": "<=10",
+                        "intervention_ids": ["maintain_fitness"],
+                    },
+                    {
+                        "id": "good_plank",
+                        "symptom_type": "strength",
+                        "condition": ">=5",
+                        "intervention_ids": ["maintain_strength"],
+                    },
+                    {
+                        "id": "excellent_rowing",
+                        "symptom_type": "endurance",
+                        "condition": "<=25",
+                        "intervention_ids": ["maintain_endurance"],
+                    },
+                    {
+                        "id": "excellent_pushups",
+                        "symptom_type": "strength",
+                        "condition": ">=60",
+                        "intervention_ids": ["maintain_strength"],
+                    },
+                    {
+                        "id": "excellent_swimming",
+                        "symptom_type": "endurance",
+                        "condition": "<=30",
+                        "intervention_ids": ["maintain_endurance"],
+                    },
+                ],
+                interventions=[
+                    {
+                        "id": "maintain_fitness",
+                        "title": "Maintain Excellent Fitness",
+                        "description": "Continue current fitness routine. Excellent cardiovascular health.",
+                        "symptom_type": "fitness",
+                    },
+                    {
+                        "id": "maintain_strength",
+                        "title": "Maintain Strength Training",
+                        "description": "Continue strength training program. Excellent muscular endurance.",
+                        "symptom_type": "strength",
+                    },
+                    {
+                        "id": "maintain_endurance",
+                        "title": "Maintain Endurance Training",
+                        "description": "Continue endurance training. Excellent cardiovascular capacity.",
+                        "symptom_type": "endurance",
+                    },
+                ],
+                is_active=True,
+            )
+
     # Add any newly created protocols
     protocols_to_add = []
     if cancer_protocol and not cancer_protocol.id:
@@ -563,14 +568,14 @@ def seed_database(test_scenario=None):
         protocols_to_add.append(copd_protocol)
     if fit_protocol and not fit_protocol.id:
         protocols_to_add.append(fit_protocol)
-        
+
     if protocols_to_add:
         db.session.add_all(protocols_to_add)
         db.session.commit()
         logger.info(f"✅ Added {len(protocols_to_add)} new protocols to the database.")
     else:
         logger.info("✅ All required protocols already exist")
-    
+
     # Create patients
     logger.info("🏥 Creating seed patients...")
     patient1 = Patient(
@@ -595,9 +600,9 @@ def seed_database(test_scenario=None):
         dnr_status=True,
         allergies="None",
         notes="Patient prefers morning calls",
-        is_active=True
+        is_active=True,
     )
-    
+
     patient2 = Patient(
         mrn="MRN67890",
         first_name="Tim",
@@ -620,9 +625,9 @@ def seed_database(test_scenario=None):
         dnr_status=True,
         allergies="None",
         notes="Hard of hearing, speak clearly and loudly",
-        is_active=True
+        is_active=True,
     )
-    
+
     patient3 = Patient(
         mrn="MRN24680",
         first_name="Frederic",
@@ -645,9 +650,9 @@ def seed_database(test_scenario=None):
         dnr_status=True,
         allergies="None known",
         notes="Uses oxygen 24/7, 2L via nasal cannula",
-        is_active=True
+        is_active=True,
     )
-    
+
     # Add Pete Jarvis as new patient with FIT Protocol
     patient4 = Patient(
         mrn="MRN13579",
@@ -671,13 +676,13 @@ def seed_database(test_scenario=None):
         dnr_status=False,
         allergies="None known",
         notes="Very active individual, monitors wellness and fitness metrics",
-        is_active=True
+        is_active=True,
     )
-    
+
     db.session.add_all([patient1, patient2, patient3, patient4])
     db.session.commit()
     logger.info("✅ Created 4 seed patients (Josh Kerm, Tim Raderstorf, Frederic Sauve-Hoover, Pete Jarvis)")
-    
+
     # Create medications
     logger.info("💊 Creating seed medications...")
     med1 = Medication(
@@ -691,9 +696,9 @@ def seed_database(test_scenario=None):
         prescriber="Dr. Williams",
         start_date=date.today() - timedelta(days=30),
         instructions="Take with food",
-        is_active=True
+        is_active=True,
     )
-    
+
     med2 = Medication(
         patient_id=patient1.id,
         name="Ondansetron",
@@ -705,9 +710,9 @@ def seed_database(test_scenario=None):
         prescriber="Dr. Williams",
         start_date=date.today() - timedelta(days=30),
         instructions="Take as needed for nausea, up to 3 times daily",
-        is_active=True
+        is_active=True,
     )
-    
+
     med3 = Medication(
         patient_id=patient2.id,
         name="Furosemide",
@@ -719,9 +724,9 @@ def seed_database(test_scenario=None):
         prescriber="Dr. Smith",
         start_date=date.today() - timedelta(days=60),
         instructions="Take first dose in morning, second dose no later than 4pm",
-        is_active=True
+        is_active=True,
     )
-    
+
     med4 = Medication(
         patient_id=patient3.id,
         name="Tiotropium",
@@ -733,69 +738,69 @@ def seed_database(test_scenario=None):
         prescriber="Dr. Johnson",
         start_date=date.today() - timedelta(days=90),
         instructions="Use once daily with HandiHaler device",
-        is_active=True
+        is_active=True,
     )
-    
+
     db.session.add_all([med1, med2, med3, med4])
     db.session.commit()
     logger.info("✅ Created 4 seed medications")
-    
+
     # Create calls
     logger.info("📞 Creating seed calls...")
     today = datetime.now()
     yesterday = today - timedelta(days=1)
     tomorrow = today + timedelta(days=1)
-    
+
     call1 = Call(
         patient_id=patient1.id,
         conducted_by_id=nurse1.id,
         scheduled_time=yesterday.replace(hour=10, minute=0, second=0, microsecond=0),
         start_time=yesterday.replace(hour=10, minute=5, second=0, microsecond=0),
         end_time=yesterday.replace(hour=10, minute=20, second=0, microsecond=0),
-        duration=15*60,  # 15 minutes in seconds
+        duration=15 * 60,  # 15 minutes in seconds
         status=CallStatus.COMPLETED,
         call_type="assessment",
         notes="Patient reported increased pain levels",
         twilio_call_sid="CA123456789",
         recording_url="https://example.com/recordings/call1.mp3",
-        transcript="Nurse: How are you feeling today? Patient: My pain has been worse, about a 7 out of 10."
+        transcript="Nurse: How are you feeling today? Patient: My pain has been worse, about a 7 out of 10.",
     )
-    
+
     call2 = Call(
         patient_id=patient2.id,
         conducted_by_id=nurse2.id,
         scheduled_time=yesterday.replace(hour=14, minute=0, second=0, microsecond=0),
         start_time=yesterday.replace(hour=14, minute=2, second=0, microsecond=0),
         end_time=yesterday.replace(hour=14, minute=18, second=0, microsecond=0),
-        duration=16*60,  # 16 minutes in seconds
+        duration=16 * 60,  # 16 minutes in seconds
         status=CallStatus.COMPLETED,
         call_type="assessment",
         notes="Patient reports increased edema in ankles",
         twilio_call_sid="CA987654321",
         recording_url="https://example.com/recordings/call2.mp3",
-        transcript="Nurse: How is your breathing today? Patient: A bit harder than usual, and my ankles are more swollen."
+        transcript="Nurse: How is your breathing today? Patient: A bit harder than usual, and my ankles are more swollen.",
     )
-    
+
     call3 = Call(
         patient_id=patient3.id,
         conducted_by_id=nurse1.id,
         scheduled_time=today.replace(hour=11, minute=0, second=0, microsecond=0),
         status=CallStatus.SCHEDULED,
-        call_type="assessment"
+        call_type="assessment",
     )
-    
+
     call4 = Call(
         patient_id=patient1.id,
         conducted_by_id=nurse1.id,
         scheduled_time=tomorrow.replace(hour=10, minute=0, second=0, microsecond=0),
         status=CallStatus.SCHEDULED,
-        call_type="follow_up"
+        call_type="follow_up",
     )
-    
+
     db.session.add_all([call1, call2, call3, call4])
     db.session.commit()
     logger.info("✅ Created 4 seed calls")
-    
+
     # Create assessments
     logger.info("📊 Creating seed assessments...")
     assessment1 = Assessment(
@@ -809,28 +814,23 @@ def seed_database(test_scenario=None):
             "pain_location": {"value": "Lower back and hips"},
             "nausea": {"value": 3},
             "fatigue": {"value": 6},
-            "appetite": {"value": 4}
+            "appetite": {"value": 4},
         },
-        symptoms={
-            "pain": 7,
-            "nausea": 3,
-            "fatigue": 6,
-            "appetite": 4
-        },
+        symptoms={"pain": 7, "nausea": 3, "fatigue": 6, "appetite": 4},
         interventions=[
             {
                 "id": "severe_pain",
                 "title": "Severe Pain Management",
-                "description": "Urgent review of pain medication. Consider opioid rotation or adjustment."
+                "description": "Urgent review of pain medication. Consider opioid rotation or adjustment.",
             }
         ],
         notes="Patient reports pain medication not lasting full duration between doses",
         follow_up_needed=True,
         follow_up_date=tomorrow.replace(hour=10, minute=0, second=0, microsecond=0),
         follow_up_priority=FollowUpPriority.HIGH,
-        ai_guidance="Recommend increasing morphine dosage or frequency. Consider adding breakthrough pain medication."
+        ai_guidance="Recommend increasing morphine dosage or frequency. Consider adding breakthrough pain medication.",
     )
-    
+
     assessment2 = Assessment(
         patient_id=patient2.id,
         protocol_id=heart_failure_protocol.id,
@@ -842,44 +842,56 @@ def seed_database(test_scenario=None):
             "edema": {"value": 7},
             "orthopnea": {"value": 3},
             "fatigue": {"value": 6},
-            "chest_pain": {"value": False}
+            "chest_pain": {"value": False},
         },
         symptoms={
             "dyspnea": 5,
             "edema": 7,
             "orthopnea": 3,
             "fatigue": 6,
-            "chest_pain": 0
+            "chest_pain": 0,
         },
         interventions=[
             {
                 "id": "severe_edema",
                 "title": "Severe Edema Management",
-                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose."
+                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
             }
         ],
         notes="Patient has been compliant with fluid restriction but still has increased edema",
         follow_up_needed=True,
         follow_up_date=tomorrow.replace(hour=14, minute=0, second=0, microsecond=0),
         follow_up_priority=FollowUpPriority.MEDIUM,
-        ai_guidance="Consider temporary increase in furosemide dose. Monitor weight daily and fluid intake."
+        ai_guidance="Consider temporary increase in furosemide dose. Monitor weight daily and fluid intake.",
     )
-    
+
     db.session.add_all([assessment1, assessment2])
     db.session.commit()
     logger.info("✅ Created 2 initial assessments")
-    
+
     # Add date-specific test data if requested
-    if test_scenario == 'date_check':
+    if test_scenario == "date_check":
         logger.info("📅 Adding date-specific test data...")
         seed_date_check_data()
-    
+
     # Add recent assessment history for patient details view
     logger.info("📈 Adding patient assessment history...")
-    seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol, heart_failure_protocol, copd_protocol, fit_protocol, nurse1, nurse2)
-        
+    seed_patient_history(
+        patient1,
+        patient2,
+        patient3,
+        patient4,
+        cancer_protocol,
+        heart_failure_protocol,
+        copd_protocol,
+        fit_protocol,
+        nurse1,
+        nurse2,
+    )
+
     logger.info("✅ Database seeded successfully! 🎉")
-    
+
+
 def seed_date_check_data():
     """Add test data specifically for date handling test cases"""
     logger.info("📅 Starting date check data seeding...")
@@ -888,17 +900,17 @@ def seed_date_check_data():
     nurse = User.query.filter_by(first_name="Robert").first()
     # Ensure we get the heart_failure_protocol from the database
     protocol = Protocol.query.filter_by(protocol_type=ProtocolType.HEART_FAILURE).first()
-    
+
     if not protocol:
         logger.error("❌ Error: Heart Failure protocol not found in database. Date test data will not be added.")
         return
-    
+
     # Get date references
     today = datetime.now()
-    
+
     # Create assessments spanning multiple weeks
     # These dates are carefully selected to test various week boundaries
-    
+
     # 1. Last week (Sunday)
     current_weekday = today.weekday()  # Monday=0, Sunday=6
     days_since_sunday = (current_weekday + 1) % 7  # Convert to Sunday=0 basis
@@ -912,9 +924,9 @@ def seed_date_check_data():
         responses={"edema": {"value": 6}},
         symptoms={"edema": 6},
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.MEDIUM
+        follow_up_priority=FollowUpPriority.MEDIUM,
     )
-    
+
     # 2. Last week (Wednesday)
     last_week_wednesday = last_week_sunday + timedelta(days=3)  # Sunday + 3 days = Wednesday
     assessment2 = Assessment(
@@ -925,9 +937,9 @@ def seed_date_check_data():
         responses={"dyspnea": {"value": 5}},
         symptoms={"dyspnea": 5},
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.LOW
+        follow_up_priority=FollowUpPriority.LOW,
     )
-    
+
     # 3. This week (Sunday)
     # We already computed this_sunday above, reuse it
     this_week_sunday = this_sunday
@@ -941,9 +953,9 @@ def seed_date_check_data():
         responses={"edema": {"value": 7}},
         symptoms={"edema": 7},
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.MEDIUM
+        follow_up_priority=FollowUpPriority.MEDIUM,
     )
-    
+
     # 4. This week (Monday)
     this_week_monday = this_sunday + timedelta(days=1)  # Sunday + 1 day = Monday
     if this_week_monday.date() > today.date():  # Ensure we're not in the future
@@ -955,9 +967,9 @@ def seed_date_check_data():
         assessment_date=this_week_monday.replace(hour=11, minute=30),
         responses={"fatigue": {"value": 6}},
         symptoms={"fatigue": 6},
-        follow_up_needed=False
+        follow_up_needed=False,
     )
-    
+
     # 5. This week (Current day)
     assessment5 = Assessment(
         patient_id=patient.id,
@@ -966,9 +978,9 @@ def seed_date_check_data():
         assessment_date=today.replace(hour=9, minute=0),
         responses={"orthopnea": {"value": 4}},
         symptoms={"orthopnea": 4},
-        follow_up_needed=False
+        follow_up_needed=False,
     )
-    
+
     # 6. Next week (Monday)
     next_week_monday = today + timedelta(days=7 - today.weekday())
     assessment6 = Assessment(
@@ -980,21 +992,33 @@ def seed_date_check_data():
         symptoms={"chest_pain": 1},
         follow_up_needed=True,
         follow_up_priority=FollowUpPriority.HIGH,
-        follow_up_date=next_week_monday + timedelta(days=1)
+        follow_up_date=next_week_monday + timedelta(days=1),
     )
-    
+
     # Add all assessments
     db.session.add_all([assessment1, assessment2, assessment3, assessment4, assessment5, assessment6])
     db.session.commit()
-    
+
     logger.info("✅ Date check test data added successfully")
 
-def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol, heart_failure_protocol, copd_protocol, fit_protocol, nurse1, nurse2):
+
+def seed_patient_history(
+    patient1,
+    patient2,
+    patient3,
+    patient4,
+    cancer_protocol,
+    heart_failure_protocol,
+    copd_protocol,
+    fit_protocol,
+    nurse1,
+    nurse2,
+):
     """Add assessment history for patients to populate patient details pages"""
-    
+
     logger.info("📈 Starting patient assessment history creation...")
     today = datetime.now()
-    
+
     # Add urgent follow-up assessment for Mary Johnson (patient2) on 3/25/2025
     urgent_assessment = Assessment(
         patient_id=patient2.id,
@@ -1006,40 +1030,40 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "edema": {"value": 9},
             "orthopnea": {"value": 5},
             "fatigue": {"value": 7},
-            "chest_pain": {"value": True}
+            "chest_pain": {"value": True},
         },
         symptoms={
             "dyspnea": 8,
             "edema": 9,
-            "orthopnea": 5, 
+            "orthopnea": 5,
             "fatigue": 7,
-            "chest_pain": 1
+            "chest_pain": 1,
         },
         interventions=[
             {
                 "id": "severe_dyspnea",
                 "title": "Severe Dyspnea Management",
-                "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen."
+                "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen.",
             },
             {
                 "id": "severe_edema",
                 "title": "Severe Edema Management",
-                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose."
+                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
             },
             {
                 "id": "chest_pain_management",
                 "title": "Chest Pain Management",
-                "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed."
-            }
+                "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed.",
+            },
         ],
         notes="Patient reports severe increase in edema, dyspnea, and new onset chest pain. Needs immediate medical attention.",
         follow_up_needed=True,
         follow_up_date=datetime(2025, 4, 2, 10, 0),  # April 2, 2025 10:00 AM
         follow_up_priority=FollowUpPriority.HIGH,
-        ai_guidance="Urgent review by physician recommended. Consider hospital evaluation for decompensated heart failure with possible acute coronary syndrome. Increase diuretic dose and monitor fluid status closely."
+        ai_guidance="Urgent review by physician recommended. Consider hospital evaluation for decompensated heart failure with possible acute coronary syndrome. Increase diuretic dose and monitor fluid status closely.",
     )
     db.session.add(urgent_assessment)
-    
+
     # For the urgent follow-up to appear properly in the dashboard, we'll add a second assessment
     # specifically for 3/25/2025 date shown in the dashboard
     second_urgent_assessment = Assessment(
@@ -1052,45 +1076,45 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "edema": {"value": 10},
             "orthopnea": {"value": 6},
             "fatigue": {"value": 8},
-            "chest_pain": {"value": True}
+            "chest_pain": {"value": True},
         },
         symptoms={
             "dyspnea": 9,
             "edema": 10,
-            "orthopnea": 6, 
+            "orthopnea": 6,
             "fatigue": 8,
-            "chest_pain": 1
+            "chest_pain": 1,
         },
         interventions=[
             {
                 "id": "severe_dyspnea",
                 "title": "Severe Dyspnea Management",
-                "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen."
+                "description": "Urgent evaluation needed. Review diuretic regimen and consider supplemental oxygen.",
             },
             {
                 "id": "severe_edema",
                 "title": "Severe Edema Management",
-                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose."
+                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
             },
             {
                 "id": "chest_pain_management",
                 "title": "Chest Pain Management",
-                "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed."
-            }
+                "description": "Evaluate for cardiac causes. Consider nitroglycerin if prescribed.",
+            },
         ],
         notes="Follow-up check shows worsening symptoms. Patient sent to emergency department for evaluation.",
         follow_up_needed=True,
         follow_up_date=datetime(2025, 3, 28, 10, 0),  # March 28, 2025 10:00 AM
         follow_up_priority=FollowUpPriority.HIGH,
-        ai_guidance="Urgent hospital evaluation recommended. Possible acute decompensated heart failure with cardiac ischemia."
+        ai_guidance="Urgent hospital evaluation recommended. Possible acute decompensated heart failure with cardiac ischemia.",
     )
     db.session.add(second_urgent_assessment)
     db.session.commit()
-    
+
     # Create assessment history for patient1 (cancer patient)
     # Last 4 weeks of assessments, twice per week
     patient1_assessments = []
-    
+
     # 4 weeks ago
     date_4w_ago = today - timedelta(days=28)
     assessment1 = Assessment(
@@ -1103,26 +1127,21 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back"},
             "nausea": {"value": 2},
             "fatigue": {"value": 5},
-            "appetite": {"value": 6}
+            "appetite": {"value": 6},
         },
-        symptoms={
-            "pain": 4,
-            "nausea": 2,
-            "fatigue": 5,
-            "appetite": 6
-        },
+        symptoms={"pain": 4, "nausea": 2, "fatigue": 5, "appetite": 6},
         interventions=[
             {
                 "id": "moderate_pain",
                 "title": "Moderate Pain Management",
-                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
             }
         ],
         notes="Patient reports stable pain with current medication regimen",
-        follow_up_needed=False
+        follow_up_needed=False,
     )
     patient1_assessments.append(assessment1)
-    
+
     # 3.5 weeks ago
     date_3w5d_ago = today - timedelta(days=25)
     assessment2 = Assessment(
@@ -1135,19 +1154,14 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back and right hip"},
             "nausea": {"value": 3},
             "fatigue": {"value": 6},
-            "appetite": {"value": 5}
+            "appetite": {"value": 5},
         },
-        symptoms={
-            "pain": 5,
-            "nausea": 3,
-            "fatigue": 6,
-            "appetite": 5
-        },
+        symptoms={"pain": 5, "nausea": 3, "fatigue": 6, "appetite": 5},
         interventions=[
             {
                 "id": "moderate_pain",
                 "title": "Moderate Pain Management",
-                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
             }
         ],
         notes="Patient reports slight increase in pain, spreading to hip",
@@ -1155,7 +1169,7 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
         follow_up_priority=FollowUpPriority.LOW,
     )
     patient1_assessments.append(assessment2)
-    
+
     # 3 weeks ago
     date_3w_ago = today - timedelta(days=21)
     assessment3 = Assessment(
@@ -1168,19 +1182,14 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back and right hip"},
             "nausea": {"value": 4},
             "fatigue": {"value": 6},
-            "appetite": {"value": 4}
+            "appetite": {"value": 4},
         },
-        symptoms={
-            "pain": 6,
-            "nausea": 4,
-            "fatigue": 6,
-            "appetite": 4
-        },
+        symptoms={"pain": 6, "nausea": 4, "fatigue": 6, "appetite": 4},
         interventions=[
             {
                 "id": "moderate_pain",
                 "title": "Moderate Pain Management",
-                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
             }
         ],
         notes="Continued increase in pain. Referred to physician for medication adjustment",
@@ -1188,7 +1197,7 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
         follow_up_priority=FollowUpPriority.MEDIUM,
     )
     patient1_assessments.append(assessment3)
-    
+
     # 2.5 weeks ago
     date_2w5d_ago = today - timedelta(days=18)
     assessment4 = Assessment(
@@ -1201,19 +1210,14 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back and right hip"},
             "nausea": {"value": 5},
             "fatigue": {"value": 5},
-            "appetite": {"value": 3}
+            "appetite": {"value": 3},
         },
-        symptoms={
-            "pain": 4,
-            "nausea": 5,
-            "fatigue": 5,
-            "appetite": 3
-        },
+        symptoms={"pain": 4, "nausea": 5, "fatigue": 5, "appetite": 3},
         interventions=[
             {
                 "id": "moderate_pain",
                 "title": "Moderate Pain Management",
-                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
             }
         ],
         notes="Pain improved after medication adjustment but nausea increased - likely side effect",
@@ -1221,7 +1225,7 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
         follow_up_priority=FollowUpPriority.MEDIUM,
     )
     patient1_assessments.append(assessment4)
-    
+
     # 2 weeks ago
     date_2w_ago = today - timedelta(days=14)
     assessment5 = Assessment(
@@ -1234,26 +1238,21 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back and right hip"},
             "nausea": {"value": 3},
             "fatigue": {"value": 4},
-            "appetite": {"value": 4}
+            "appetite": {"value": 4},
         },
-        symptoms={
-            "pain": 3,
-            "nausea": 3,
-            "fatigue": 4,
-            "appetite": 4
-        },
+        symptoms={"pain": 3, "nausea": 3, "fatigue": 4, "appetite": 4},
         interventions=[
             {
                 "id": "mild_pain",
                 "title": "Mild Pain Management",
-                "description": "Continue current pain management. Monitor for changes."
+                "description": "Continue current pain management. Monitor for changes.",
             }
         ],
         notes="Pain and nausea both improved. Anti-nausea medication effective",
-        follow_up_needed=False
+        follow_up_needed=False,
     )
     patient1_assessments.append(assessment5)
-    
+
     # 1.5 weeks ago
     date_1w5d_ago = today - timedelta(days=11)
     assessment6 = Assessment(
@@ -1266,19 +1265,14 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back, right hip, and now radiating to leg"},
             "nausea": {"value": 2},
             "fatigue": {"value": 6},
-            "appetite": {"value": 4}
+            "appetite": {"value": 4},
         },
-        symptoms={
-            "pain": 5,
-            "nausea": 2,
-            "fatigue": 6,
-            "appetite": 4
-        },
+        symptoms={"pain": 5, "nausea": 2, "fatigue": 6, "appetite": 4},
         interventions=[
             {
                 "id": "moderate_pain",
                 "title": "Moderate Pain Management",
-                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
             }
         ],
         notes="New pain location reported - now radiating to leg. Discussed with physician",
@@ -1286,7 +1280,7 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
         follow_up_priority=FollowUpPriority.MEDIUM,
     )
     patient1_assessments.append(assessment6)
-    
+
     # 1 week ago
     date_1w_ago = today - timedelta(days=7)
     assessment7 = Assessment(
@@ -1299,32 +1293,27 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back, right hip, and radiating to leg"},
             "nausea": {"value": 2},
             "fatigue": {"value": 7},
-            "appetite": {"value": 3}
+            "appetite": {"value": 3},
         },
-        symptoms={
-            "pain": 6,
-            "nausea": 2,
-            "fatigue": 7,
-            "appetite": 3
-        },
+        symptoms={"pain": 6, "nausea": 2, "fatigue": 7, "appetite": 3},
         interventions=[
             {
                 "id": "moderate_pain",
                 "title": "Moderate Pain Management",
-                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed."
+                "description": "Review current analgesics. Consider scheduled dosing instead of as-needed.",
             },
             {
                 "id": "severe_fatigue",
                 "title": "Severe Fatigue Management",
-                "description": "Assess for reversible causes. Consider energy conservation strategies."
-            }
+                "description": "Assess for reversible causes. Consider energy conservation strategies.",
+            },
         ],
         notes="Increasing pain and fatigue. Scheduled for follow-up with oncologist",
         follow_up_needed=True,
         follow_up_priority=FollowUpPriority.HIGH,
     )
     patient1_assessments.append(assessment7)
-    
+
     # 3 days ago
     date_3d_ago = today - timedelta(days=3)
     assessment8 = Assessment(
@@ -1337,35 +1326,30 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "pain_location": {"value": "Lower back, right hip, and radiating to leg"},
             "nausea": {"value": 3},
             "fatigue": {"value": 7},
-            "appetite": {"value": 2}
+            "appetite": {"value": 2},
         },
-        symptoms={
-            "pain": 7,
-            "nausea": 3,
-            "fatigue": 7,
-            "appetite": 2
-        },
+        symptoms={"pain": 7, "nausea": 3, "fatigue": 7, "appetite": 2},
         interventions=[
             {
                 "id": "severe_pain",
                 "title": "Severe Pain Management",
-                "description": "Urgent review of pain medication. Consider opioid rotation or adjustment."
+                "description": "Urgent review of pain medication. Consider opioid rotation or adjustment.",
             },
             {
                 "id": "severe_fatigue",
                 "title": "Severe Fatigue Management",
-                "description": "Assess for reversible causes. Consider energy conservation strategies."
-            }
+                "description": "Assess for reversible causes. Consider energy conservation strategies.",
+            },
         ],
         notes="Pain continues to increase despite medication adjustments. Oncologist appointment scheduled for tomorrow",
         follow_up_needed=True,
         follow_up_priority=FollowUpPriority.HIGH,
     )
     patient1_assessments.append(assessment8)
-    
+
     # Create assessment history for patient2 (heart failure patient)
     patient2_assessments = []
-    
+
     # 4 weeks ago
     assessment1 = Assessment(
         patient_id=patient2.id,
@@ -1377,20 +1361,20 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "edema": {"value": 4},
             "orthopnea": {"value": 2},
             "fatigue": {"value": 4},
-            "chest_pain": {"value": False}
+            "chest_pain": {"value": False},
         },
         symptoms={
             "dyspnea": 3,
             "edema": 4,
             "orthopnea": 2,
             "fatigue": 4,
-            "chest_pain": 0
+            "chest_pain": 0,
         },
         notes="Patient stable on current medication regimen",
-        follow_up_needed=False
+        follow_up_needed=False,
     )
     patient2_assessments.append(assessment1)
-    
+
     # 3 weeks ago
     assessment2 = Assessment(
         patient_id=patient2.id,
@@ -1402,21 +1386,21 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "edema": {"value": 5},
             "orthopnea": {"value": 2},
             "fatigue": {"value": 5},
-            "chest_pain": {"value": False}
+            "chest_pain": {"value": False},
         },
         symptoms={
             "dyspnea": 4,
             "edema": 5,
             "orthopnea": 2,
             "fatigue": 5,
-            "chest_pain": 0
+            "chest_pain": 0,
         },
         notes="Slight increase in edema and fatigue. Recommended fluid restriction",
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.LOW
+        follow_up_priority=FollowUpPriority.LOW,
     )
     patient2_assessments.append(assessment2)
-    
+
     # 2 weeks ago
     assessment3 = Assessment(
         patient_id=patient2.id,
@@ -1428,21 +1412,21 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "edema": {"value": 6},
             "orthopnea": {"value": 3},
             "fatigue": {"value": 5},
-            "chest_pain": {"value": False}
+            "chest_pain": {"value": False},
         },
         symptoms={
             "dyspnea": 4,
             "edema": 6,
             "orthopnea": 3,
             "fatigue": 5,
-            "chest_pain": 0
+            "chest_pain": 0,
         },
         notes="Edema increasing despite fluid restriction. Recommended diuretic adjustment",
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.MEDIUM
+        follow_up_priority=FollowUpPriority.MEDIUM,
     )
     patient2_assessments.append(assessment3)
-    
+
     # 1 week ago
     assessment4 = Assessment(
         patient_id=patient2.id,
@@ -1454,28 +1438,28 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "edema": {"value": 7},
             "orthopnea": {"value": 4},
             "fatigue": {"value": 6},
-            "chest_pain": {"value": False}
+            "chest_pain": {"value": False},
         },
         symptoms={
             "dyspnea": 5,
             "edema": 7,
             "orthopnea": 4,
             "fatigue": 6,
-            "chest_pain": 0
+            "chest_pain": 0,
         },
         interventions=[
             {
                 "id": "severe_edema",
                 "title": "Severe Edema Management",
-                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose."
+                "description": "Review diuretic regimen. Consider temporary increase in diuretic dose.",
             }
         ],
         notes="Significant increase in edema and now requiring more pillows to sleep. Diuretic dose increased",
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.HIGH
+        follow_up_priority=FollowUpPriority.HIGH,
     )
     patient2_assessments.append(assessment4)
-    
+
     # 4 days ago
     date_4d_ago = today - timedelta(days=4)
     assessment5 = Assessment(
@@ -1488,24 +1472,24 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "edema": {"value": 5},
             "orthopnea": {"value": 3},
             "fatigue": {"value": 5},
-            "chest_pain": {"value": False}
+            "chest_pain": {"value": False},
         },
         symptoms={
             "dyspnea": 4,
             "edema": 5,
             "orthopnea": 3,
             "fatigue": 5,
-            "chest_pain": 0
+            "chest_pain": 0,
         },
         notes="Improvement in symptoms with increased diuretic dose",
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.MEDIUM
+        follow_up_priority=FollowUpPriority.MEDIUM,
     )
     patient2_assessments.append(assessment5)
-    
+
     # Create assessment history for patient3 (COPD patient)
     patient3_assessments = []
-    
+
     # 3 weeks ago
     assessment1 = Assessment(
         patient_id=patient3.id,
@@ -1517,20 +1501,20 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "cough": {"value": 4},
             "sputum_color": {"value": "White"},
             "oxygen_use": {"value": 16},
-            "anxiety": {"value": 4}
+            "anxiety": {"value": 4},
         },
         symptoms={
             "dyspnea": 5,
             "cough": 4,
             "sputum": 2,
             "oxygen_use": 16,
-            "anxiety": 4
+            "anxiety": 4,
         },
         notes="Stable respiratory status. Using oxygen as prescribed",
-        follow_up_needed=False
+        follow_up_needed=False,
     )
     patient3_assessments.append(assessment1)
-    
+
     # 2 weeks ago
     assessment2 = Assessment(
         patient_id=patient3.id,
@@ -1542,21 +1526,21 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "cough": {"value": 5},
             "sputum_color": {"value": "Yellow"},
             "oxygen_use": {"value": 18},
-            "anxiety": {"value": 5}
+            "anxiety": {"value": 5},
         },
         symptoms={
             "dyspnea": 6,
             "cough": 5,
             "sputum": 3,
             "oxygen_use": 18,
-            "anxiety": 5
+            "anxiety": 5,
         },
         notes="Increasing shortness of breath and cough. Sputum now yellow",
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.MEDIUM
+        follow_up_priority=FollowUpPriority.MEDIUM,
     )
     patient3_assessments.append(assessment2)
-    
+
     # 1 week ago
     assessment3 = Assessment(
         patient_id=patient3.id,
@@ -1568,38 +1552,38 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "cough": {"value": 6},
             "sputum_color": {"value": "Green"},
             "oxygen_use": {"value": 21},
-            "anxiety": {"value": 7}
+            "anxiety": {"value": 7},
         },
         symptoms={
             "dyspnea": 7,
             "cough": 6,
             "sputum": 4,
             "oxygen_use": 21,
-            "anxiety": 7
+            "anxiety": 7,
         },
         interventions=[
             {
                 "id": "severe_dyspnea_copd",
                 "title": "Severe Dyspnea Management for COPD",
-                "description": "Review bronchodilator use. Consider rescue pack if available."
+                "description": "Review bronchodilator use. Consider rescue pack if available.",
             },
             {
                 "id": "infection_evaluation",
                 "title": "Respiratory Infection Evaluation",
-                "description": "Evaluate for respiratory infection. Consider antibiotics per protocol."
+                "description": "Evaluate for respiratory infection. Consider antibiotics per protocol.",
             },
             {
                 "id": "severe_anxiety",
                 "title": "Respiratory Anxiety Management",
-                "description": "Review breathing techniques. Consider anxiolytic if severe."
-            }
+                "description": "Review breathing techniques. Consider anxiolytic if severe.",
+            },
         ],
         notes="Likely respiratory infection. Started on antibiotics and increased bronchodilator use",
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.HIGH
+        follow_up_priority=FollowUpPriority.HIGH,
     )
     patient3_assessments.append(assessment3)
-    
+
     # 3 days ago
     assessment4 = Assessment(
         patient_id=patient3.id,
@@ -1611,24 +1595,24 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "cough": {"value": 5},
             "sputum_color": {"value": "Yellow"},
             "oxygen_use": {"value": 18},
-            "anxiety": {"value": 5}
+            "anxiety": {"value": 5},
         },
         symptoms={
             "dyspnea": 5,
             "cough": 5,
             "sputum": 3,
             "oxygen_use": 18,
-            "anxiety": 5
+            "anxiety": 5,
         },
         notes="Improving with antibiotics. Breathing easier and sputum changing from green to yellow",
         follow_up_needed=True,
-        follow_up_priority=FollowUpPriority.MEDIUM
+        follow_up_priority=FollowUpPriority.MEDIUM,
     )
     patient3_assessments.append(assessment4)
-    
+
     # Create assessment history for patient4 (FIT patient - Pete Jarvis)
     patient4_assessments = []
-    
+
     # 2 weeks ago - excellent performance
     date_2w_ago = today - timedelta(days=14)
     assessment1 = Assessment(
@@ -1641,35 +1625,31 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "plank_time": {"value": 7},
             "row_5k_time": {"value": 22},
             "pushups_per_minute": {"value": 75},
-            "swim_mile_time": {"value": 28}
+            "swim_mile_time": {"value": 28},
         },
-        symptoms={
-            "fitness": 6.5,
-            "strength": 7,
-            "endurance": 22
-        },
+        symptoms={"fitness": 6.5, "strength": 7, "endurance": 22},
         interventions=[
             {
                 "id": "maintain_fitness",
                 "title": "Maintain Excellent Fitness",
-                "description": "Continue current fitness routine. Excellent cardiovascular health."
+                "description": "Continue current fitness routine. Excellent cardiovascular health.",
             },
             {
                 "id": "maintain_strength",
                 "title": "Maintain Strength Training",
-                "description": "Continue strength training program. Excellent muscular endurance."
+                "description": "Continue strength training program. Excellent muscular endurance.",
             },
             {
                 "id": "maintain_endurance",
                 "title": "Maintain Endurance Training",
-                "description": "Continue endurance training. Excellent cardiovascular capacity."
-            }
+                "description": "Continue endurance training. Excellent cardiovascular capacity.",
+            },
         ],
         notes="All fitness metrics at excellent levels. Continue current training regimen",
-        follow_up_needed=False
+        follow_up_needed=False,
     )
     patient4_assessments.append(assessment1)
-    
+
     # 1 week ago - continued excellence
     date_1w_ago = today - timedelta(days=7)
     assessment2 = Assessment(
@@ -1682,41 +1662,39 @@ def seed_patient_history(patient1, patient2, patient3, patient4, cancer_protocol
             "plank_time": {"value": 6.8},
             "row_5k_time": {"value": 21.5},
             "pushups_per_minute": {"value": 78},
-            "swim_mile_time": {"value": 27}
+            "swim_mile_time": {"value": 27},
         },
-        symptoms={
-            "fitness": 6.2,
-            "strength": 6.8,
-            "endurance": 21.5
-        },
+        symptoms={"fitness": 6.2, "strength": 6.8, "endurance": 21.5},
         interventions=[
             {
                 "id": "maintain_fitness",
                 "title": "Maintain Excellent Fitness",
-                "description": "Continue current fitness routine. Excellent cardiovascular health."
+                "description": "Continue current fitness routine. Excellent cardiovascular health.",
             },
             {
                 "id": "maintain_strength",
                 "title": "Maintain Strength Training",
-                "description": "Continue strength training program. Excellent muscular endurance."
+                "description": "Continue strength training program. Excellent muscular endurance.",
             },
             {
                 "id": "maintain_endurance",
                 "title": "Maintain Endurance Training",
-                "description": "Continue endurance training. Excellent cardiovascular capacity."
-            }
+                "description": "Continue endurance training. Excellent cardiovascular capacity.",
+            },
         ],
         notes="Slight improvement in all metrics. Fitness level remains exceptional",
-        follow_up_needed=False
+        follow_up_needed=False,
     )
     patient4_assessments.append(assessment2)
-    
+
     # Add all assessments to the database
     db.session.add_all(patient1_assessments)
     db.session.add_all(patient2_assessments)
     db.session.add_all(patient3_assessments)
     db.session.add_all(patient4_assessments)
     db.session.commit()
-    
-    total_assessments = len(patient1_assessments) + len(patient2_assessments) + len(patient3_assessments) + len(patient4_assessments)
+
+    total_assessments = (
+        len(patient1_assessments) + len(patient2_assessments) + len(patient3_assessments) + len(patient4_assessments)
+    )
     logger.info(f"✅ Patient assessment history added successfully ({total_assessments} total assessments created)")

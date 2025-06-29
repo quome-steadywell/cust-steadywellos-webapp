@@ -1,8 +1,20 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey, Text, Enum, Float
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    Date,
+    ForeignKey,
+    Text,
+    Enum,
+    Float,
+)
 from sqlalchemy.orm import relationship
 import enum
 from src import db
+
 
 class MedicationRoute(enum.Enum):
     ORAL = "oral"
@@ -16,6 +28,7 @@ class MedicationRoute(enum.Enum):
     INTRAVENOUS = "intravenous"
     OTHER = "other"
 
+
 class MedicationFrequency(enum.Enum):
     ONCE_DAILY = "once_daily"
     TWICE_DAILY = "twice_daily"
@@ -28,12 +41,14 @@ class MedicationFrequency(enum.Enum):
     WEEKLY = "weekly"
     OTHER = "other"
 
+
 class Medication(db.Model):
     """Medication model for storing patient medications"""
+
     __tablename__ = "medications"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    patient_id = Column(Integer, ForeignKey('patients.id'), nullable=False)
+    patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False)
     name = Column(String(255), nullable=False)
     dosage = Column(String(100), nullable=False)
     dosage_unit = Column(String(50), nullable=False)
@@ -48,19 +63,19 @@ class Medication(db.Model):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     patient = relationship("Patient", back_populates="medications")
-    
+
     def __repr__(self):
         return f"<Medication {self.name} {self.dosage}{self.dosage_unit} for Patient {self.patient_id}>"
-    
+
     @property
     def display_frequency(self):
         if self.frequency == MedicationFrequency.OTHER and self.custom_frequency:
             return self.custom_frequency
-        return self.frequency.value.replace('_', ' ').title()
-    
+        return self.frequency.value.replace("_", " ").title()
+
     @property
     def is_expired(self):
         if not self.end_date:

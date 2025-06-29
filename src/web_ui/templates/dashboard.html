@@ -40,7 +40,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="card h-100 border-success">
             <div class="card-body">
@@ -59,7 +59,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="card h-100 border-warning">
             <div class="card-body">
@@ -78,7 +78,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="card h-100 border-info">
             <div class="card-body">
@@ -132,7 +132,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Recent Activity -->
         <div class="card mb-4">
             <div class="card-header bg-white">
@@ -145,7 +145,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Right Column -->
     <div class="col-lg-4">
         <!-- Patient Distribution -->
@@ -157,7 +157,7 @@
                 <canvas id="protocol-distribution-chart" height="220"></canvas>
             </div>
         </div>
-        
+
         <!-- Urgent Follow-ups -->
         <div class="card mb-4">
             <div class="card-header bg-white">
@@ -197,7 +197,7 @@
                             <label for="lastName" class="form-label">Last Name*</label>
                             <input type="text" id="lastName" name="last_name" class="form-control" required>
                         </div>
-                        
+
                         <div class="col-md-4">
                             <label for="dob" class="form-label">Date of Birth*</label>
                             <input type="date" id="dob" name="date_of_birth" class="form-control" required>
@@ -215,7 +215,7 @@
                             <label for="phoneNumber" class="form-label">Phone Number*</label>
                             <input type="tel" id="phoneNumber" name="phone_number" class="form-control" required>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" id="email" name="email" class="form-control">
@@ -224,7 +224,7 @@
                             <label for="address" class="form-label">Address</label>
                             <input type="text" id="address" name="address" class="form-control">
                         </div>
-                        
+
                         <!-- Clinical Information -->
                         <div class="col-md-6">
                             <label for="primaryDiagnosis" class="form-label">Primary Diagnosis*</label>
@@ -234,7 +234,7 @@
                             <label for="secondaryDiagnoses" class="form-label">Secondary Diagnoses</label>
                             <input type="text" id="secondaryDiagnoses" name="secondary_diagnoses" class="form-control">
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="protocolType" class="form-label">Protocol Type*</label>
                             <select id="protocolType" name="protocol_type" class="form-select" required>
@@ -250,12 +250,12 @@
                                 <!-- Will be populated by JavaScript -->
                             </select>
                         </div>
-                        
+
                         <div class="col-md-12">
                             <label for="allergies" class="form-label">Allergies</label>
                             <input type="text" id="allergies" name="allergies" class="form-control">
                         </div>
-                        
+
                         <!-- Emergency Contact -->
                         <div class="col-12 mt-3">
                             <h5>Emergency Contact</h5>
@@ -280,7 +280,7 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Advance Directives -->
                         <div class="col-12 mt-3">
                             <h5>Advance Directives</h5>
@@ -314,7 +314,7 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Notes -->
                         <div class="col-12">
                             <label for="notes" class="form-label">Notes</label>
@@ -359,12 +359,12 @@
             document.getElementById('today-calls-count').textContent = data.calls.today;
             document.getElementById('urgent-followups-count').textContent = data.assessments.urgent_followups;
             document.getElementById('weekly-assessments-count').textContent = data.assessments.this_week;
-            
+
             // Update protocol distribution chart
             updateProtocolChart(data.patients.by_protocol);
         })
         .catch(error => console.error('Error loading dashboard summary:', error));
-        
+
         // Fetch upcoming calls
         fetch('/api/v1/dashboard/upcoming-calls', {
             headers: {
@@ -375,12 +375,12 @@
         .then(data => {
             const tableBody = document.getElementById('upcoming-calls-table');
             tableBody.innerHTML = '';
-            
+
             if (data.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-3">No upcoming calls scheduled</td></tr>';
                 return;
             }
-            
+
             data.forEach(call => {
                 const time = new Date(call.scheduled_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const row = document.createElement('tr');
@@ -400,7 +400,7 @@
             });
         })
         .catch(error => console.error('Error loading upcoming calls:', error));
-        
+
         // Fetch urgent follow-ups
         fetch('/api/v1/dashboard/urgent-followups', {
             headers: {
@@ -411,12 +411,12 @@
         .then(data => {
             const followupsList = document.getElementById('urgent-followups-list');
             followupsList.innerHTML = '';
-            
+
             if (data.length === 0) {
                 followupsList.innerHTML = '<div class="list-group-item text-center py-3">No urgent follow-ups</div>';
                 return;
             }
-            
+
             data.forEach(followup => {
                 const date = new Date(followup.follow_up_date || followup.assessment_date).toLocaleDateString();
                 const listItem = document.createElement('a');
@@ -436,7 +436,7 @@
             });
         })
         .catch(error => console.error('Error loading urgent follow-ups:', error));
-        
+
         // Fetch recent activity
         fetch('/api/v1/dashboard/recent-activity', {
             headers: {
@@ -447,13 +447,13 @@
         .then(data => {
             const activityList = document.getElementById('recent-activity-list');
             activityList.innerHTML = '';
-            
+
             // Check if both arrays are empty
             if (data.calls.length === 0 && data.assessments.length === 0) {
                 activityList.innerHTML = '<div class="list-group-item text-center py-3">No recent activity</div>';
                 return;
             }
-            
+
             // Combine and sort by timestamp
             const allActivities = [
                 ...data.calls.map(call => ({
@@ -467,13 +467,13 @@
                     timestamp: new Date(assessment.timestamp)
                 }))
             ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
-            
+
             allActivities.forEach(activity => {
                 const date = activity.timestamp.toLocaleDateString();
                 const time = activity.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const listItem = document.createElement('div');
                 listItem.className = 'list-group-item';
-                
+
                 if (activity.type === 'call') {
                     listItem.innerHTML = `
                         <div class="d-flex align-items-center">
@@ -510,23 +510,23 @@
                         </div>
                     `;
                 }
-                
+
                 activityList.appendChild(listItem);
             });
         })
         .catch(error => console.error('Error loading recent activity:', error));
     }
-    
+
     // Protocol distribution chart
     let protocolChart = null;
-    
+
     function updateProtocolChart(protocolData) {
         const ctx = document.getElementById('protocol-distribution-chart').getContext('2d');
-        
+
         // Get protocol types and counts
         const labels = Object.keys(protocolData).map(key => formatProtocolType(key));
         const data = Object.values(protocolData);
-        
+
         // Colors for different protocols
         const backgroundColors = [
             'rgba(255, 99, 132, 0.7)',  // Cancer - red
@@ -534,19 +534,19 @@
             'rgba(255, 206, 86, 0.7)',  // COPD - yellow
             'rgba(75, 192, 192, 0.7)'   // General - teal
         ];
-        
+
         const borderColors = [
             'rgb(255, 99, 132)',
             'rgb(54, 162, 235)',
             'rgb(255, 206, 86)',
             'rgb(75, 192, 192)'
         ];
-        
+
         // Destroy previous chart if it exists
         if (protocolChart) {
             protocolChart.destroy();
         }
-        
+
         // Create new chart
         protocolChart = new Chart(ctx, {
             type: 'doughnut',
@@ -581,7 +581,7 @@
             }
         });
     }
-    
+
     // Helper functions for formatting
     function formatProtocolType(type) {
         switch(type) {
@@ -592,7 +592,7 @@
             default: return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
         }
     }
-    
+
     function getProtocolBadgeColor(type) {
         switch(type) {
             case 'cancer': return 'danger';
@@ -602,7 +602,7 @@
             default: return 'secondary';
         }
     }
-    
+
     function formatCallType(type) {
         switch(type) {
             case 'assessment': return 'Assessment';
@@ -611,7 +611,7 @@
             default: return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
         }
     }
-    
+
     // Fetch and populate nurses dropdown
     function loadNurses() {
         authFetch('/api/v1/users/?role=nurse')
@@ -619,7 +619,7 @@
         .then(nurses => {
             const nurseSelect = document.getElementById('primaryNurseId');
             nurseSelect.innerHTML = '<option value="">Select a nurse</option>';
-            
+
             nurses.forEach(nurse => {
                 const option = document.createElement('option');
                 option.value = nurse.id;
@@ -632,22 +632,22 @@
             alert('Failed to load nurse list');
         });
     }
-    
+
     // Save patient (create only, no update on dashboard)
     function savePatient() {
         // Collect form data
         const formData = new FormData(document.getElementById('patientForm'));
         const patientData = {};
-        
+
         formData.forEach((value, key) => {
             patientData[key] = value;
         });
-        
+
         // Handle checkboxes separately (they won't be in FormData if unchecked)
         patientData['advance_directive'] = document.getElementById('advanceDirective').checked;
         patientData['dnr_status'] = document.getElementById('dnrStatus').checked;
         patientData['emergency_contact_can_share_medical_info'] = document.getElementById('emergencyContactCanShareMedicalInfo').checked;
-        
+
         // Make API request (POST for new patient)
         authFetch('/api/v1/patients/', {
             method: 'POST',
@@ -664,18 +664,18 @@
             bootstrap.Modal.getInstance(document.getElementById('addPatientModal')).hide();
             loadDashboardData(); // Refresh dashboard data
             alert('Patient added successfully!');
-            
+
             // Reset form for next use
             document.getElementById('patientForm').reset();
         })
         .catch(error => {
             console.error('Error saving patient:', error);
             let errorMessage = 'Failed to save patient data.';
-            
+
             if (error.messages) {
                 errorMessage += ' ' + Object.values(error.messages).flat().join(', ');
             }
-            
+
             alert(errorMessage);
         });
     }
@@ -684,13 +684,13 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadDashboardData();
         loadNurses(); // Load nurses for the modal
-        
+
         // Refresh button handler
         document.getElementById('refresh-dashboard').addEventListener('click', loadDashboardData);
-        
+
         // Save patient button handler
         document.getElementById('savePatientBtn').addEventListener('click', savePatient);
-        
+
         // Reset form when modal is opened
         document.getElementById('addPatientModal').addEventListener('show.bs.modal', function() {
             document.getElementById('patientForm').reset();

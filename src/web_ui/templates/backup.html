@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Database Backup - SteadywellOS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3">Database Backup Management</h1>
+        <p class="text-muted">Export and import database backups for disaster recovery</p>
+    </div>
+</div>
+
+<!-- Admin Only Notice -->
+<div class="alert alert-warning" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Admin Only:</strong> This page is restricted to administrators only.
+</div>
+
+<!-- Backup Status Card -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-database me-2"></i>Database Status</h5>
+    </div>
+    <div class="card-body">
+        <div id="backup-status-loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Checking backup capabilities...</span>
+        </div>
+        <div id="backup-status-content" style="display: none;">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>Database Size</h6>
+                    <p class="mb-0"><span id="db-size">--</span> MB</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Table Count</h6>
+                    <p class="mb-0"><span id="table-count">--</span> tables</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Backup Tools</h6>
+                    <p class="mb-0">
+                        Export: <span id="export-available" class="badge bg-secondary">--</span>
+                        Import: <span id="import-available" class="badge bg-secondary">--</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div id="backup-status-error" class="alert alert-danger mt-2" style="display: none;">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span id="backup-status-error-message"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Export/Import Actions -->
+<div class="row">
+    <!-- Export Database -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-download me-2"></i>Export Database</h5>
+            </div>
+            <div class="card-body">
+                <p>Download a data backup of the database as a SQL dump file.</p>
+                <ul class="text-muted">
+                    <li>Includes all table data (data-only backup)</li>
+                    <li>Safe for importing into existing database</li>
+                    <li>Timestamped filename for easy tracking</li>
+                </ul>
+                <button id="export-btn" class="btn btn-success" disabled>
+                    <i class="fas fa-download me-2"></i>Export Database
+                </button>
+                <div id="export-progress" class="mt-3" style="display: none;">
+                    <div class="spinner-border spinner-border-sm text-success" role="status">
+                        <span class="visually-hidden">Exporting...</span>
+                    </div>
+                    <span class="ms-2">Exporting database...</span>
+                </div>
+                <div id="export-error" class="alert alert-danger mt-3" style="display: none;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="export-error-message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Database -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Import Database</h5>
+            </div>
+            <div class="card-body">
+                <p><strong class="text-warning">Note:</strong> Importing will add data to existing tables.</p>
+                <ul class="text-muted">
+                    <li>Upload a data-only SQL dump file</li>
+                    <li>Data will be inserted into existing tables</li>
+                    <li>May cause conflicts with existing records</li>
+                </ul>
+                <form id="import-form" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="import-file" accept=".sql" required disabled>
+                        <div class="form-text">Only .sql files are accepted</div>
+                    </div>
+                    <button type="submit" id="import-btn" class="btn btn-danger" disabled>
+                        <i class="fas fa-upload me-2"></i>Import Database
+                    </button>
+                </form>
+                <div id="import-progress" class="mt-3" style="display: none;">
+                    <div class="spinner-border spinner-border-sm text-danger" role="status">
+                        <span class="visually-hidden">Importing...</span>
+                    </div>
+                    <span class="ms-2">Importing database...</span>
+                </div>
+                <div id="import-success" class="alert alert-success mt-3" style="display: none;">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Database imported successfully!
+                </div>
+                <div id="import-error" class="alert alert-danger mt-3" style="display: none;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="import-error-message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        height: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Check if user is admin
+    const currentUser = window.currentUser;
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'UserRole.ADMIN')) {
+        window.location.href = '/dashboard';
+        return;
+    }
+
+    // Load backup status
+    loadBackupStatus();
+
+    // Export button handler
+    $('#export-btn').click(function() {
+        exportDatabase();
+    });
+
+    // Import form handler
+    $('#import-form').submit(function(e) {
+        e.preventDefault();
+        if (confirm('Are you sure you want to import this backup? This will replace ALL existing data!')) {
+            importDatabase();
+        }
+    });
+});
+
+function loadBackupStatus() {
+    $.ajax({
+        url: '/api/v1/backup/status',
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+        },
+        success: function(data) {
+            $('#backup-status-loading').hide();
+            $('#backup-status-content').show();
+
+            $('#db-size').text(data.database_info.size_mb);
+            $('#table-count').text(data.database_info.table_count);
+
+            if (data.capabilities.export) {
+                $('#export-available').removeClass('bg-secondary').addClass('bg-success').text('Available');
+                $('#export-btn').prop('disabled', false);
+            } else {
+                $('#export-available').removeClass('bg-secondary').addClass('bg-danger').text('Not Available');
+            }
+
+            if (data.capabilities.import) {
+                $('#import-available').removeClass('bg-secondary').addClass('bg-success').text('Available');
+                $('#import-file').prop('disabled', false);
+                $('#import-btn').prop('disabled', false);
+            } else {
+                $('#import-available').removeClass('bg-secondary').addClass('bg-danger').text('Not Available');
+            }
+        },
+        error: function(xhr) {
+            $('#backup-status-loading').hide();
+            $('#backup-status-error').show();
+            $('#backup-status-error-message').text(xhr.responseJSON?.error || 'Failed to load backup status');
+        }
+    });
+}
+
+function exportDatabase() {
+    $('#export-btn').prop('disabled', true);
+    $('#export-progress').show();
+    $('#export-error').hide();
+
+    // Create a hidden anchor element for download
+    const link = document.createElement('a');
+    link.style.display = 'none';
+    document.body.appendChild(link);
+
+    // Request the export with XMLHttpRequest to handle blob response
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/v1/backup/export', true);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('auth_token'));
+    xhr.responseType = 'blob';
+
+    xhr.onload = function() {
+        $('#export-progress').hide();
+        $('#export-btn').prop('disabled', false);
+
+        if (xhr.status === 200) {
+            // Get filename from Content-Disposition header
+            const contentDisposition = xhr.getResponseHeader('Content-Disposition');
+            let filename = 'backup.sql';
+            if (contentDisposition) {
+                // Try quoted filename first, then unquoted
+                let match = contentDisposition.match(/filename="(.+)"/);
+                if (!match) {
+                    match = contentDisposition.match(/filename=([^;]+)/);
+                }
+                if (match) filename = match[1].trim();
+            }
+
+            // Create blob URL and trigger download
+            const blob = new Blob([xhr.response], { type: 'application/sql' });
+            const url = window.URL.createObjectURL(blob);
+            link.href = url;
+            link.download = filename;
+            link.click();
+
+            // Cleanup
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+        } else {
+            // Try to parse error from blob
+            const reader = new FileReader();
+            reader.onload = function() {
+                try {
+                    const error = JSON.parse(reader.result);
+                    $('#export-error').show();
+                    $('#export-error-message').text(error.error || 'Export failed');
+                } catch (e) {
+                    $('#export-error').show();
+                    $('#export-error-message').text('Export failed');
+                }
+            };
+            reader.readAsText(xhr.response);
+        }
+    };
+
+    xhr.onerror = function() {
+        $('#export-progress').hide();
+        $('#export-btn').prop('disabled', false);
+        $('#export-error').show();
+        $('#export-error-message').text('Network error during export');
+    };
+
+    xhr.send();
+}
+
+function importDatabase() {
+    const fileInput = $('#import-file')[0];
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert('Please select a file to import');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    $('#import-btn').prop('disabled', true);
+    $('#import-progress').show();
+    $('#import-success').hide();
+    $('#import-error').hide();
+
+    $.ajax({
+        url: '/api/v1/backup/import',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+        },
+        success: function(data) {
+            $('#import-progress').hide();
+            $('#import-btn').prop('disabled', false);
+            $('#import-success').show();
+            $('#import-form')[0].reset();
+
+            // Reload backup status
+            setTimeout(loadBackupStatus, 2000);
+        },
+        error: function(xhr) {
+            $('#import-progress').hide();
+            $('#import-btn').prop('disabled', false);
+            $('#import-error').show();
+            $('#import-error-message').text(xhr.responseJSON?.error || 'Import failed');
+        }
+    });
+}
+</script>
+{% endblock %}

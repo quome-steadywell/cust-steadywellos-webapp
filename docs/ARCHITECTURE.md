@@ -126,5 +126,5 @@ The application is containerized using Docker with:
 ## Future Enhancements
 
 - Advanced caching for improved performance
-- Distributed rate limiting 
+- Distributed rate limiting
 - Message queue for background task processing

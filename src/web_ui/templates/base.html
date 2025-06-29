@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SteadywellOS - Palliative Care Coordination{% endblock %}</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    
+
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -64,6 +64,7 @@
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="/profile"><i class="fas fa-id-card me-1"></i> Profile</a></li>
                                 <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-1"></i> Settings</a></li>
+                                <li id="admin-backup-link" style="display: none;"><a class="dropdown-item" href="/backup"><i class="fas fa-database me-1"></i> Database Backup</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" id="logout-btn"><i class="fas fa-sign-out-alt me-1"></i> Logout</a></li>
                             </ul>
@@ -87,41 +88,41 @@
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
+
     <script>
         // Auth token handling
         const token = localStorage.getItem('auth_token');
         // Use window.currentUser instead of declaring it again
         window.currentUser = window.currentUser || JSON.parse(localStorage.getItem('current_user') || '{}');
-        
+
         // Set current user name in navbar
         if (window.currentUser && window.currentUser.full_name) {
             document.getElementById('current-user-name').textContent = window.currentUser.full_name;
         }
-        
+
         // Redirect to login if no token
         if (!window.userToken && window.location.pathname !== '/login') {
             window.location.href = '/login';
         }
-        
+
         // Auto-logout functionality - default values that will be overridden by API settings
-        let AUTO_LOGOUT_TIME = 30 * 60 * 1000; // 30 minutes in milliseconds 
+        let AUTO_LOGOUT_TIME = 30 * 60 * 1000; // 30 minutes in milliseconds
         let WARNING_TIME = 5 * 60 * 1000; // 5 minutes before logout
         let TIME_UNIT = 'MINUTES'; // Default time unit
         let DEBUG_MODE = false; // Debug mode flag
-        
+
         // Absolute timestamp tracking
         let absoluteLogoutTime = null; // Timestamp when logout will occur
         let lastActivityTime = new Date(); // Track last activity time
         let warningShown = false; // Track if warning is currently shown
         let mainTimerInterval = null; // Main timer interval reference
-        
+
         // Fetch session settings from the server
         function fetchSessionSettings() {
             // Prepare headers - add auth token if available
@@ -129,7 +130,7 @@
             if (window.userToken) {
                 headers['Authorization'] = `Bearer ${window.userToken}`;
             }
-            
+
             // Fetch settings (works with or without authentication)
             fetch('/api/v1/auth/session-settings', {
                 headers: headers
@@ -148,16 +149,16 @@
                     WARNING_TIME = data.warning_time;
                     TIME_UNIT = data.time_unit || 'MINUTES';
                     DEBUG_MODE = data.debug_mode || false;
-                    
+
                     // Log the actual durations for debugging
                     console.log(`Auto logout will occur after ${AUTO_LOGOUT_TIME/1000} seconds of inactivity`);
                     console.log(`Warning will show ${WARNING_TIME/1000} seconds before auto logout`);
-                    
+
                     // Create debug display if debug mode is enabled
                     if (DEBUG_MODE) {
                         createDebugDisplay();
                     }
-                    
+
                     // Start the auto-logout management system
                     startAutoLogoutSystem();
                 }
@@ -166,11 +167,11 @@
                 console.error('Error fetching session settings:', error);
             });
         }
-        
+
         // Load session settings when page loads
         fetchSessionSettings();
         let warningModal;
-        
+
         // Create session timeout warning modal
         function createWarningModal() {
             const modalHtml = `
@@ -199,43 +200,43 @@
                     </div>
                 </div>
             `;
-            
+
             // Check if modal already exists
             if (!document.getElementById('sessionTimeoutModal')) {
                 const modalContainer = document.createElement('div');
                 modalContainer.innerHTML = modalHtml;
                 document.body.appendChild(modalContainer);
-                
+
                 // Initialize Bootstrap modal
                 warningModal = new bootstrap.Modal(document.getElementById('sessionTimeoutModal'), {
                     backdrop: 'static',
                     keyboard: false
                 });
-                
+
                 // Setup event handlers
                 document.getElementById('continueSessionBtn').addEventListener('click', () => {
                     continueSession();
                 });
-                
+
                 document.getElementById('logoutNowBtn').addEventListener('click', () => {
                     performAutoLogout();
                 });
             } else {
                 // Modal already exists, just get the reference
-                warningModal = bootstrap.Modal.getInstance(document.getElementById('sessionTimeoutModal')) || 
+                warningModal = bootstrap.Modal.getInstance(document.getElementById('sessionTimeoutModal')) ||
                                new bootstrap.Modal(document.getElementById('sessionTimeoutModal'));
             }
-            
+
             return warningModal;
         }
-        
+
         // Main auto-logout system
         function startAutoLogoutSystem() {
             // Clear any existing intervals
             if (mainTimerInterval) {
                 clearInterval(mainTimerInterval);
             }
-            
+
             // Function to update absolute logout time
             function updateLogoutTime() {
                 // Only set time if logged in and not on login page
@@ -247,58 +248,58 @@
                     absoluteLogoutTime = null;
                 }
             }
-            
+
             // Initialize logout time
             updateLogoutTime();
-            
+
             // Create the warning modal (but don't show it yet)
             if (!warningModal) {
                 warningModal = createWarningModal();
             }
-            
+
             // Start the main timer that checks for inactivity
             mainTimerInterval = setInterval(() => {
                 // Skip if not logged in or on login page
                 if (!window.userToken || window.location.pathname === '/login' || !absoluteLogoutTime) {
                     return;
                 }
-                
+
                 const now = new Date();
                 const timeUntilLogout = absoluteLogoutTime.getTime() - now.getTime();
-                
+
                 // If it's time to show a warning
                 if (timeUntilLogout <= WARNING_TIME && !warningShown) {
                     showWarning();
                 }
-                
+
                 // If it's time to log out
                 if (timeUntilLogout <= 0) {
                     performAutoLogout();
                     return;
                 }
-                
+
                 // Update the debug display if enabled
                 if (DEBUG_MODE) {
                     updateDebugDisplay(timeUntilLogout);
                 }
-                
+
                 // Update the warning countdown if shown
                 if (warningShown) {
                     updateWarningCountdown(timeUntilLogout);
                 }
             }, 200); // Check every 200ms for smoother updates
-            
+
             // Setup activity event listeners
             setupActivityListeners();
         }
-        
+
         // Set up event listeners for user activity
         function setupActivityListeners() {
             ['mousemove', 'mousedown', 'keypress', 'touchmove', 'click', 'scroll'].forEach(event => {
                 document.addEventListener(event, handleUserActivity, true);
             });
         }
-        
+
         // Handle user activity events
         function handleUserActivity() {
             // Only reset if the warning is not shown
@@ -307,77 +308,77 @@
                 const now = new Date();
                 absoluteLogoutTime = new Date(now.getTime() + AUTO_LOGOUT_TIME);
                 lastActivityTime = now;
-                
+
                 // Update debug display if enabled
                 if (DEBUG_MODE) {
                     updateDebugDisplay(AUTO_LOGOUT_TIME);
                 }
             }
         }
-        
+
         // Function to show the warning modal
         function showWarning() {
             // Create modal if it doesn't exist
             if (!warningModal) {
                 warningModal = createWarningModal();
             }
-            
+
             // Mark warning as shown
             warningShown = true;
-            
+
             // Show the warning modal
             warningModal.show();
-            
+
             // Initial update of the countdown
             const timeUntilLogout = absoluteLogoutTime.getTime() - new Date().getTime();
             updateWarningCountdown(timeUntilLogout);
         }
-        
+
         // Update the warning countdown display
         function updateWarningCountdown(timeLeftMs) {
             const seconds = Math.max(0, Math.ceil(timeLeftMs / 1000));
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
-            
+
             let formattedTime;
             if (TIME_UNIT === 'SECONDS' && seconds < 60) {
                 formattedTime = `${seconds} seconds`;
             } else {
                 formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
             }
-            
+
             const countdownElement = document.getElementById('sessionCountdown');
             if (countdownElement) {
                 countdownElement.textContent = formattedTime;
             }
         }
-        
+
         // Continue session function (called when user clicks "Continue Session")
         function continueSession() {
             // Hide the warning modal
             if (warningModal) {
                 warningModal.hide();
             }
-            
+
             // Reset the warning shown flag
             warningShown = false;
-            
+
             // Reset the logout time
             const now = new Date();
             absoluteLogoutTime = new Date(now.getTime() + AUTO_LOGOUT_TIME);
             lastActivityTime = now;
-            
+
             // Update debug display if enabled
             if (DEBUG_MODE) {
                 updateDebugDisplay(AUTO_LOGOUT_TIME);
             }
         }
-        
+
         // Create and manage debug display
         function createDebugDisplay() {
             // Check if debug display already exists
             let debugDisplay = document.getElementById('auto-logout-debug');
-            
+
             if (!debugDisplay) {
                 // Create debug display element
                 debugDisplay = document.createElement('div');
@@ -393,34 +394,34 @@
                 debugDisplay.style.fontSize = '12px';
                 debugDisplay.style.zIndex = '9999';
                 debugDisplay.style.minWidth = '300px';
-                
+
                 // Add to document
                 document.body.appendChild(debugDisplay);
             }
         }
-        
+
         // Update the debug display with current info
         function updateDebugDisplay(timeUntilLogoutMs) {
             const debugDisplay = document.getElementById('auto-logout-debug');
             if (!debugDisplay) return;
-            
+
             // Calculate seconds remaining
             const secondsRemaining = Math.max(0, Math.ceil(timeUntilLogoutMs / 1000));
-            
+
             // Format display values
             const displayUnit = TIME_UNIT === 'SECONDS' ? 's' : 'min';
-            const autoLogoutValue = TIME_UNIT === 'SECONDS' 
-                ? AUTO_LOGOUT_TIME / 1000 
+            const autoLogoutValue = TIME_UNIT === 'SECONDS'
+                ? AUTO_LOGOUT_TIME / 1000
                 : AUTO_LOGOUT_TIME / (60 * 1000);
             const warningValue = TIME_UNIT === 'SECONDS'
                 ? WARNING_TIME / 1000
                 : WARNING_TIME / (60 * 1000);
-            
+
             // Get absolute logout time formatted
-            const logoutTimeStr = absoluteLogoutTime ? 
-                absoluteLogoutTime.toLocaleTimeString() : 
+            const logoutTimeStr = absoluteLogoutTime ?
+                absoluteLogoutTime.toLocaleTimeString() :
                 'Not set';
-            
+
             debugDisplay.innerHTML = `
                 <strong>Session Timeout Debug</strong><br>
                 Session timeout: ${autoLogoutValue}${displayUnit} (${AUTO_LOGOUT_TIME}ms)<br>
@@ -435,22 +436,22 @@
 
         function performAutoLogout() {
             console.log('Auto-logout triggered due to inactivity');
-            
+
             // Clear main timer interval
             if (mainTimerInterval) {
                 clearInterval(mainTimerInterval);
                 mainTimerInterval = null;
             }
-            
+
             // Reset state
             absoluteLogoutTime = null;
             warningShown = false;
-            
+
             // Hide warning modal if it's showing
             if (warningModal) {
                 warningModal.hide();
             }
-            
+
             // Call logout endpoint to properly log the auto-logout
             if (window.userToken) {
                 fetch('/api/v1/auth/logout', {
@@ -468,7 +469,7 @@
                 completeLogout();
             }
         }
-        
+
         function completeLogout() {
             // Show alert that session expired
             const logoutAlert = document.createElement('div');
@@ -478,14 +479,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             `;
             document.body.appendChild(logoutAlert);
-            
+
             // Perform logout immediately
             // Clear local storage
             localStorage.removeItem('auth_token');
             localStorage.removeItem('current_user');
             window.userToken = null;
             window.currentUser = {};
-            
+
             // Redirect to login page after a brief delay to let the user see the alert
             setTimeout(() => {
                 window.location.href = '/login';
@@ -500,18 +501,18 @@
                 const now = new Date();
                 absoluteLogoutTime = new Date(now.getTime() + AUTO_LOGOUT_TIME);
                 lastActivityTime = now;
-                
+
                 // Update debug display if enabled
                 if (DEBUG_MODE) {
                     updateDebugDisplay(AUTO_LOGOUT_TIME);
                 }
             }
         }
-        
+
         // Logout functionality for manual logout
         document.getElementById('logout-btn').addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             // Call logout endpoint
             fetch('/api/v1/auth/logout', {
                 method: 'POST',
@@ -528,7 +529,7 @@
                 window.location.href = '/login';
             });
         });
-        
+
         // Setup AJAX auth header
         $.ajaxSetup({
             beforeSend: function(xhr) {
@@ -538,7 +539,7 @@
             }
         });
     </script>
-    
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

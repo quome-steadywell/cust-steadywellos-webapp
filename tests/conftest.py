@@ -1,6 +1,7 @@
 """
 Test configuration for SteadwellOS palliative care platform
 """
+
 import pytest
 import time
 import os
@@ -13,7 +14,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from src import create_app, db
 
 # Ensure logs directory exists for tests
-os.makedirs('logs', exist_ok=True)
+os.makedirs("logs", exist_ok=True)
+
 
 @pytest.fixture(scope="session")
 def driver():
@@ -27,10 +29,7 @@ def driver():
     chrome_options.add_argument("--disable-dev-shm-usage")
 
     # Create a new instance of the Chrome driver
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=chrome_options
-    )
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     # Set an implicit wait of 10 seconds
     driver.implicitly_wait(10)
@@ -41,12 +40,14 @@ def driver():
     # Quit the driver when tests are done
     driver.quit()
 
+
 @pytest.fixture(scope="session")
 def base_url():
     """
     Return the base URL for the application.
     """
     return "http://0.0.0.0:8080"
+
 
 @pytest.fixture(scope="session")
 def app():
@@ -68,6 +69,7 @@ def app():
         db.session.remove()
         db.drop_all()
 
+
 @pytest.fixture(scope="function")
 def app_context(app):
     """
@@ -75,6 +77,7 @@ def app_context(app):
     """
     with app.app_context():
         yield
+
 
 @pytest.fixture(scope="function")
 def authenticated_driver(driver, base_url):

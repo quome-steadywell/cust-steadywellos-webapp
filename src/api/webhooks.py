@@ -69,7 +69,7 @@ def handle_webhook():
         if webhook_data:
             logger.info("WEBHOOK PAYLOAD (Full JSON):")
             logger.info(json.dumps(webhook_data, indent=2))
-            
+
             # Log key fields for quick debugging
             logger.info("KEY WEBHOOK FIELDS:")
             logger.info(f"  - call_id: {webhook_data.get('call_id', 'NOT FOUND')}")
@@ -79,7 +79,7 @@ def handle_webhook():
             logger.info(f"  - metadata: {webhook_data.get('metadata', {})}")
             logger.info(f"  - recording_url: {webhook_data.get('recording_url', 'NOT FOUND')}")
             logger.info(f"  - public_log_url: {webhook_data.get('public_log_url', 'NOT FOUND')}")
-            
+
             # Log call analysis if present
             if "call_analysis" in webhook_data:
                 call_analysis = webhook_data.get("call_analysis", {})
@@ -90,9 +90,7 @@ def handle_webhook():
                 logger.info(f"  - custom_analysis_data: {call_analysis.get('custom_analysis_data', {})}")
 
             # Enhanced webhook logging
-            log_webhook_payload(
-                webhook_logger, "Received Retell.ai webhook payload", webhook_data
-            )
+            log_webhook_payload(webhook_logger, "Received Retell.ai webhook payload", webhook_data)
 
             # For backward compatibility, also log as plain text at lower level
             webhook_logger.debug(json.dumps(webhook_data))
@@ -125,9 +123,7 @@ def handle_webhook():
         logger.error(f"Error processing webhook: {str(e)}", exc_info=True)
         logger.error("=" * 60)
         return (
-            jsonify(
-                {"status": "error", "message": f"Failed to process webhook: {str(e)}"}
-            ),
+            jsonify({"status": "error", "message": f"Failed to process webhook: {str(e)}"}),
             500,
         )
 

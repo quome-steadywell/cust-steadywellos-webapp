@@ -5,13 +5,19 @@ from flask import Flask, url_for
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 
-from src.core.twilio_service import get_twilio_client, initiate_call, generate_call_twiml, process_call_recording
+from src.core.twilio_service import (
+    get_twilio_client,
+    initiate_call,
+    generate_call_twiml,
+    process_call_recording,
+)
 from src.models.call import Call, CallStatus
 from src.models.patient import Patient, ProtocolType, Gender
 from src.models.protocol import Protocol
 
 # Mark all tests as nondestructive
 pytestmark = pytest.mark.nondestructive
+
 
 # Fixtures for common test scenarios
 @pytest.fixture
@@ -42,6 +48,7 @@ def mock_twilio_client():
 
     return client
 
+
 @pytest.fixture
 def mock_call():
     """Create a mock Call object for testing"""
@@ -52,6 +59,7 @@ def mock_call():
     call.status = CallStatus.SCHEDULED
     call.twilio_sid = None
     return call
+
 
 @pytest.fixture
 def mock_patient():
@@ -67,6 +75,7 @@ def mock_patient():
     patient.protocol_type = ProtocolType.HEART_FAILURE
     return patient
 
+
 @pytest.fixture
 def mock_protocol():
     """Create a mock Protocol object for testing"""
@@ -81,17 +90,19 @@ def mock_protocol():
 
     return protocol
 
+
 @pytest.fixture
 def app():
     """Create a Flask app context for testing"""
     app = Flask(__name__)
-    app.config['TWILIO_ACCOUNT_SID'] = 'test_account_sid'
-    app.config['TWILIO_AUTH_TOKEN'] = 'test_auth_token'
-    app.config['SERVER_NAME'] = 'localhost'
+    app.config["TWILIO_ACCOUNT_SID"] = "test_account_sid"
+    app.config["TWILIO_AUTH_TOKEN"] = "test_auth_token"
+    app.config["SERVER_NAME"] = "localhost"
 
     # Set up application context
     with app.app_context():
         yield app
+
 
 class TestTwilioService(unittest.TestCase):
     """Test cases for Twilio service functions"""
@@ -100,9 +111,9 @@ class TestTwilioService(unittest.TestCase):
     def setup_app_context(self, app):
         """Set up app context for each test"""
         self.app = app
-        self.app.config['TWILIO_ACCOUNT_SID'] = 'test_account_sid'
-        self.app.config['TWILIO_AUTH_TOKEN'] = 'test_auth_token'
-        self.app.config['SERVER_NAME'] = 'localhost'
+        self.app.config["TWILIO_ACCOUNT_SID"] = "test_account_sid"
+        self.app.config["TWILIO_AUTH_TOKEN"] = "test_auth_token"
+        self.app.config["SERVER_NAME"] = "localhost"
         with self.app.app_context():
             with self.app.test_request_context():
                 yield
@@ -132,7 +143,7 @@ class TestTwilioService(unittest.TestCase):
         """Clean up after tests"""
         # No need to pop contexts as they are handled by the context manager
 
-    @patch('src.core.twilio_service.Client')
+    @patch("src.core.twilio_service.Client")
     def test_get_twilio_client(self, mock_client_class):
         """Test get_twilio_client function"""
         # Setup
@@ -142,13 +153,13 @@ class TestTwilioService(unittest.TestCase):
         client = get_twilio_client()
 
         # Verify
-        mock_client_class.assert_called_once_with('test_account_sid', 'test_auth_token')
+        mock_client_class.assert_called_once_with("test_account_sid", "test_auth_token")
         self.assertEqual(client, "mock_client")
 
     def test_get_twilio_client_missing_credentials(self):
         """Test get_twilio_client with missing credentials"""
         # Setup
-        self.app.config['TWILIO_ACCOUNT_SID'] = None
+        self.app.config["TWILIO_ACCOUNT_SID"] = None
 
         # Execute and verify
         with self.assertRaises(ValueError) as context:
@@ -156,8 +167,8 @@ class TestTwilioService(unittest.TestCase):
 
         self.assertIn("Twilio credentials not configured", str(context.exception))
 
-    @patch('src.core.twilio_service.get_twilio_client')
-    @patch('src.core.twilio_service.url_for')
+    @patch("src.core.twilio_service.get_twilio_client")
+    @patch("src.core.twilio_service.url_for")
     def test_initiate_call(self, mock_url_for, mock_get_client):
         """Test initiate_call function"""
         # Setup
@@ -175,7 +186,7 @@ class TestTwilioService(unittest.TestCase):
             to_number="+15551234567",
             from_number="+15557654321",
             call_id=1,
-            call_type="assessment"
+            call_type="assessment",
         )
 
         # Verify
@@ -184,7 +195,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertEqual(result["call_sid"], "CA123456789")
         self.assertEqual(result["status"], "queued")
 
-    @patch('src.core.twilio_service.Patient')
+    @patch("src.core.twilio_service.Patient")
     def test_generate_call_twiml_assessment(self, mock_patient_class):
         """Test generate_call_twiml for assessment call type"""
         # Setup
@@ -200,7 +211,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertIn("Hello, this is the palliative care coordination service", result)
         self.assertIn("John Doe", result)
 
-    @patch('src.core.twilio_service.Patient')
+    @patch("src.core.twilio_service.Patient")
     def test_generate_call_twiml_follow_up(self, mock_patient_class):
         """Test generate_call_twiml for follow_up call type"""
         # Setup
@@ -216,7 +227,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertIn("follow up with", result)
         self.assertIn("John Doe", result)
 
-    @patch('src.core.twilio_service.Patient')
+    @patch("src.core.twilio_service.Patient")
     def test_generate_call_twiml_generic(self, mock_patient_class):
         """Test generate_call_twiml for generic call type"""
         # Setup
@@ -231,7 +242,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertIsInstance(result, str)
         self.assertIn("A care coordinator will be with you shortly", result)
 
-    @patch('src.core.twilio_service.Patient')
+    @patch("src.core.twilio_service.Patient")
     def test_generate_call_twiml_patient_not_found(self, mock_patient_class):
         """Test generate_call_twiml when patient not found"""
         # Setup
@@ -245,10 +256,10 @@ class TestTwilioService(unittest.TestCase):
         self.assertIsInstance(result, str)
         self.assertIn("Error: Patient information not found", result)
 
-    @patch('src.core.twilio_service.get_twilio_client')
-    @patch('src.core.twilio_service.Patient')
-    @patch('src.core.twilio_service.Protocol')
-    @patch('src.core.twilio_service.analyze_call_transcript')
+    @patch("src.core.twilio_service.get_twilio_client")
+    @patch("src.core.twilio_service.Patient")
+    @patch("src.core.twilio_service.Protocol")
+    @patch("src.core.twilio_service.analyze_call_transcript")
     def test_process_call_recording(self, mock_analyze, mock_protocol_class, mock_patient_class, mock_get_client):
         """Test process_call_recording function"""
         # Setup
@@ -276,7 +287,7 @@ class TestTwilioService(unittest.TestCase):
         result = process_call_recording(
             recording_sid="RE123456789",
             recording_url="https://example.com/recording.mp3",
-            call=self.call
+            call=self.call,
         )
 
         # Verify
@@ -290,7 +301,7 @@ class TestTwilioService(unittest.TestCase):
         self.assertEqual(result["duration"], 120)
         self.assertEqual(result["analysis"], {"symptoms": {"pain": 5}})
 
-    @patch('src.core.twilio_service.get_twilio_client')
+    @patch("src.core.twilio_service.get_twilio_client")
     def test_process_call_recording_no_transcription(self, mock_get_client):
         """Test process_call_recording with no transcription"""
         # Setup
@@ -308,14 +319,14 @@ class TestTwilioService(unittest.TestCase):
         result = process_call_recording(
             recording_sid="RE123456789",
             recording_url="https://example.com/recording.mp3",
-            call=self.call
+            call=self.call,
         )
 
         # Verify
         self.assertEqual(result["transcript"], "[Transcription not available]")
         self.assertIsNone(result["analysis"])
 
-    @patch('src.core.twilio_service.get_twilio_client')
+    @patch("src.core.twilio_service.get_twilio_client")
     def test_process_call_recording_exception(self, mock_get_client):
         """Test process_call_recording with exception"""
         # Setup
@@ -325,7 +336,7 @@ class TestTwilioService(unittest.TestCase):
         result = process_call_recording(
             recording_sid="RE123456789",
             recording_url="https://example.com/recording.mp3",
-            call=self.call
+            call=self.call,
         )
 
         # Verify
@@ -333,18 +344,22 @@ class TestTwilioService(unittest.TestCase):
         self.assertEqual(result["transcript"], "[Error processing recording]")
         self.assertEqual(result["error"], "Test exception")
 
+
 # Parameterized tests for edge cases
-@pytest.mark.parametrize("to_number,from_number,expected_exception", [
-    ("+15551234567", "+15557654321", None),  # Normal case
-    ("", "+15557654321", "Exception"),  # Empty to_number
-    ("+15551234567", "", "Exception"),  # Empty from_number
-    ("invalid", "+15557654321", "Exception"),  # Invalid to_number
-])
+@pytest.mark.parametrize(
+    "to_number,from_number,expected_exception",
+    [
+        ("+15551234567", "+15557654321", None),  # Normal case
+        ("", "+15557654321", "Exception"),  # Empty to_number
+        ("+15551234567", "", "Exception"),  # Empty from_number
+        ("invalid", "+15557654321", "Exception"),  # Invalid to_number
+    ],
+)
 def test_initiate_call_edge_cases(to_number, from_number, expected_exception, app):
     """Test initiate_call with edge cases"""
     with app.app_context():
-        with patch('src.core.twilio_service.get_twilio_client') as mock_get_client:
-            with patch('src.core.twilio_service.url_for') as mock_url_for:
+        with patch("src.core.twilio_service.get_twilio_client") as mock_get_client:
+            with patch("src.core.twilio_service.url_for") as mock_url_for:
                 # Setup
                 mock_client = MagicMock()
                 if expected_exception:
@@ -361,11 +376,22 @@ def test_initiate_call_edge_cases(to_number, from_number, expected_exception, ap
                 # Execute and verify
                 if expected_exception:
                     with pytest.raises(Exception):
-                        initiate_call(to_number=to_number, from_number=from_number, call_id=1, call_type="assessment")
+                        initiate_call(
+                            to_number=to_number,
+                            from_number=from_number,
+                            call_id=1,
+                            call_type="assessment",
+                        )
                 else:
-                    result = initiate_call(to_number=to_number, from_number=from_number, call_id=1, call_type="assessment")
+                    result = initiate_call(
+                        to_number=to_number,
+                        from_number=from_number,
+                        call_id=1,
+                        call_type="assessment",
+                    )
                     assert result["call_sid"] == "CA123456789"
                     assert result["status"] == "queued"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
