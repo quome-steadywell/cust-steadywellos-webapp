@@ -72,6 +72,12 @@ def schedule_call():
     return render_template("call_schedule.html")
 
 
+@web_bp.route("/backup")
+def backup():
+    """Render database backup page (admin only)"""
+    return render_template("backup.html")
+
+
 @web_bp.route("/calls/<int:call_id>")
 def call_details(call_id):
     """Render call details page"""

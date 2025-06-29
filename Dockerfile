@@ -22,13 +22,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including PostgreSQL 17 client
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    postgresql-client \
+    wget \
+    gnupg \
+    lsb-release \
     libpq-dev \
     python3-dev \
     libc6-dev \
+    ca-certificates \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-17 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
