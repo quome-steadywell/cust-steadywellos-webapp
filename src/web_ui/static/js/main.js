@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Show admin-only menu items
+    if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'UserRole.ADMIN')) {
+        const adminBackupLink = document.getElementById('admin-backup-link');
+        if (adminBackupLink) {
+            adminBackupLink.style.display = 'block';
+        }
+    }
+
     // Setup AJAX auth header globally
     setupAjaxHeaders();
 });
