@@ -1,4 +1,4 @@
-"""RAG (Retrieval-Augmented Generation) service for protocol guidance"""
+"""RAG (Retrieval-Augmented Generation) service for protocol guidance with knowledge base integration"""
 
 import os
 import json
@@ -9,6 +9,7 @@ from flask import current_app
 from src.models.patient import Patient
 from src.models.protocol import Protocol
 from src.core.anthropic_client import get_anthropic_client
+from src.core.knowledge_service import get_knowledge_service
 
 
 def process_assessment(
@@ -17,28 +18,48 @@ def process_assessment(
     symptoms: Dict[str, float],
     responses: Dict[str, Any],
 ) -> str:
-    """Generate AI guidance for a patient assessment using RAG"""
+    """Generate AI guidance for a patient assessment using RAG with knowledge base integration"""
     try:
-        # Build prompt context
-        context = {
-            "patient": {
-                "id": patient.id,
-                "name": patient.full_name,
-                "age": patient.age,
-                "gender": patient.gender.value,
-                "primary_diagnosis": patient.primary_diagnosis,
-                "secondary_diagnoses": patient.secondary_diagnoses,
-                "protocol_type": patient.protocol_type.value,
-            },
-            "protocol": {
-                "name": protocol.name,
-                "type": protocol.protocol_type.value,
-                "version": protocol.version,
-            },
-            "symptoms": symptoms,
-            "responses": responses,
+        # Build patient context for knowledge search
+        patient_context = {
+            "primary_diagnosis": patient.primary_diagnosis,
+            "protocol_type": patient.protocol_type.value,
+            "age": patient.age,
+            "symptoms": symptoms
         }
+        
+        # Generate search query from symptoms and diagnosis
+        symptom_list = [f"{symptom}: {score}" for symptom, score in symptoms.items() if score > 5]
+        search_query = f"{patient.primary_diagnosis} {patient.protocol_type.value} " + " ".join(symptom_list)
+        
+        # Get enhanced guidance using knowledge base
+        knowledge_service = get_knowledge_service()
+        if knowledge_service and knowledge_service.embeddings:
+            current_app.logger.info(f"Using knowledge-enhanced guidance for query: {search_query}")
+            guidance = knowledge_service.get_enhanced_guidance(search_query, patient_context)
+            
+            # If knowledge-enhanced guidance is successful, return it
+            if guidance and not guidance.startswith("Error"):
+                return guidance
+            else:
+                current_app.logger.warning("Knowledge-enhanced guidance failed, falling back to standard approach")
+        
+        # Fallback to original approach if knowledge service unavailable
+        return _process_assessment_standard(patient, protocol, symptoms, responses)
 
+    except Exception as e:
+        current_app.logger.error(f"Error in RAG service: {str(e)}")
+        return f"Error generating guidance: {str(e)}"
+
+
+def _process_assessment_standard(
+    patient: Patient,
+    protocol: Protocol,
+    symptoms: Dict[str, float],
+    responses: Dict[str, Any],
+) -> str:
+    """Standard assessment processing without knowledge base (fallback)"""
+    try:
         # Get protocol details as reference
         protocol_json = {
             "questions": protocol.questions,
@@ -86,31 +107,94 @@ def process_assessment(
         )
 
     except Exception as e:
-        current_app.logger.error(f"Error in RAG service: {str(e)}")
+        current_app.logger.error(f"Error in standard RAG processing: {str(e)}")
         return f"Error generating guidance: {str(e)}"
 
 
 def generate_call_script(patient: Patient, protocol: Protocol, call_type: str) -> str:
-    """Generate a call script for a scheduled call based on patient and protocol"""
+    """Generate a call script for a scheduled call based on patient and protocol with knowledge enhancement"""
     try:
-        # Build prompt context
-        context = {
-            "patient": {
-                "name": patient.full_name,
-                "age": patient.age,
-                "gender": patient.gender.value,
-                "primary_diagnosis": patient.primary_diagnosis,
-                "protocol_type": patient.protocol_type.value,
-            },
-            "protocol": {
-                "name": protocol.name,
-                "type": protocol.protocol_type.value,
-                "questions": protocol.questions,
-            },
-            "call_type": call_type,
+        # Build patient context for knowledge search
+        patient_context = {
+            "primary_diagnosis": patient.primary_diagnosis,
+            "protocol_type": patient.protocol_type.value,
+            "age": patient.age,
         }
+        
+        # Generate search query for call script guidance
+        search_query = f"{patient.primary_diagnosis} {call_type} telephone assessment communication techniques"
+        
+        # Try knowledge-enhanced approach first
+        knowledge_service = get_knowledge_service()
+        if knowledge_service and knowledge_service.embeddings:
+            current_app.logger.info(f"Using knowledge-enhanced call script generation")
+            
+            # Get relevant knowledge for communication techniques
+            relevant_docs = knowledge_service.search(search_query, k=2)
+            
+            if relevant_docs:
+                # Build enhanced prompt with knowledge
+                knowledge_context = ""
+                for doc in relevant_docs:
+                    knowledge_context += f"\nReference: {doc['content']}\n"
+                
+                # Enhanced call script generation
+                return _generate_enhanced_call_script(patient, protocol, call_type, knowledge_context)
+        
+        # Fallback to standard approach
+        return _generate_call_script_standard(patient, protocol, call_type)
 
-        # Build the prompt
+    except Exception as e:
+        current_app.logger.error(f"Error generating call script: {str(e)}")
+        return f"Error generating call script: {str(e)}"
+
+
+def _generate_enhanced_call_script(patient: Patient, protocol: Protocol, call_type: str, knowledge_context: str) -> str:
+    """Generate enhanced call script with knowledge base context"""
+    try:
+        prompt = f"""
+        You are a palliative care nurse specialist creating a telephone assessment script. Use the provided reference materials to enhance your approach.
+
+        PATIENT INFORMATION:
+        - Name: {patient.full_name}
+        - Age: {patient.age}
+        - Primary Diagnosis: {patient.primary_diagnosis}
+        - Protocol Type: {patient.protocol_type.value}
+
+        CALL TYPE: {call_type}
+
+        RELEVANT KNOWLEDGE REFERENCES:
+        {knowledge_context}
+
+        PROTOCOL QUESTIONS:
+        {json.dumps(protocol.questions, indent=2)}
+
+        Create a conversational script incorporating evidence-based communication techniques from the references. Include:
+
+        1. Empathetic introduction and consent
+        2. Assessment questions using patient-friendly language
+        3. Clear symptom rating instructions
+        4. Smooth transitions between topics
+        5. Supportive closing with clear next steps
+
+        Base your communication approach on the reference materials provided.
+        """
+
+        client = get_anthropic_client(current_app.config.get("ANTHROPIC_API_KEY"))
+        return client.call_model(
+            model="claude-3-sonnet-20240229",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+    except Exception as e:
+        current_app.logger.error(f"Error generating enhanced call script: {str(e)}")
+        return _generate_call_script_standard(patient, protocol, call_type)
+
+
+def _generate_call_script_standard(patient: Patient, protocol: Protocol, call_type: str) -> str:
+    """Generate standard call script without knowledge enhancement"""
+    try:
         prompt = f"""
         You are a palliative care nurse specialist. You're preparing a script for a telephone assessment call with a patient.
 
@@ -137,16 +221,15 @@ def generate_call_script(patient: Patient, protocol: Protocol, call_type: str) -
         The script should be empathetic, clear, and follow best practices for palliative care telephone assessment.
         """
 
-        # Call Anthropic API using our custom wrapper
         client = get_anthropic_client(current_app.config.get("ANTHROPIC_API_KEY"))
         return client.call_model(
-            model="claude-3-sonnet-20240229",  # More widely available model
+            model="claude-3-sonnet-20240229",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}],
         )
 
     except Exception as e:
-        current_app.logger.error(f"Error generating call script: {str(e)}")
+        current_app.logger.error(f"Error generating standard call script: {str(e)}")
         return f"Error generating call script: {str(e)}"
 
 
