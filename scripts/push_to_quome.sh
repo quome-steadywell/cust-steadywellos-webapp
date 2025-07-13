@@ -154,7 +154,7 @@ else
 fi
 
 # Quome deployment related env vars - DEFAULT_PORT must come from .env
-declare -a quome_deploy_vars=("CLOUD_ORG_ID" "DOCKER_USERNAME" "DOCKER_TOKEN" "DEFAULT_PORT" "DOCKER_REPOSITORY=$APPLICATION_NAME" "DOCKER_DESCRIPTION=$DEFAULT_DOCKER_DESCRIPTION" "DEFAULT_TAG=intel-0.0.1")
+declare -a quome_deploy_vars=("CLOUD_ORG_ID" "DOCKER_USERNAME" "DOCKER_TOKEN" "DEFAULT_PORT" "DOCKER_REPOSITORY=$APPLICATION_NAME" "DOCKER_DESCRIPTION=$DEFAULT_DOCKER_DESCRIPTION" "DEFAULT_TAG=latest")
 
 # Check for all the required environment variables for quome deployment
 processEnvVars quome_deploy_vars
@@ -340,28 +340,9 @@ else
     echo -e "${GREEN}📋 Using repository from .env: $REPOSITORY${NC}"
 fi
 
-checkForEnvVar "INTEL_CURRENT_TAG" "" >/dev/null
-if [ $? -eq 1 ]; then
-	echo -e "${YELLOW}ℹ️ No Intel tag found in .env file. Using default: $DEFAULT_TAG${NC}"
-else
-	echo -e "${GREEN}📋 Found Intel tag in .env file: $INTEL_CURRENT_TAG${NC}"
-	DEFAULT_TAG=$INTEL_CURRENT_TAG
-fi
-
-if [ "$INTERACTIVE" = true ]; then
-    read -rp "Tag to deploy [$DEFAULT_TAG]: " CUSTOM_TAG
-    TAG=${CUSTOM_TAG:-$DEFAULT_TAG}
-else
-    # Non-interactive mode: use default tag
-    TAG=$DEFAULT_TAG
-    echo -e "${GREEN}📋 Using tag from .env: $TAG${NC}"
-fi
-
-# Make sure tag is prefixed with 'intel-' if it's not 'latest'
-if [[ "$TAG" != "latest" && ! "$TAG" == intel-* ]]; then
-	TAG="intel-$TAG"
-	echo -e "${YELLOW}Adding 'intel-' prefix to tag: $TAG${NC}"
-fi
+# Use latest tag for deployment
+TAG="latest"
+echo -e "${GREEN}📋 Using 'latest' tag for deployment${NC}"
 
 # Image to deploy
 IMAGE_NAME="$DOCKER_USERNAME/$REPOSITORY:$TAG"

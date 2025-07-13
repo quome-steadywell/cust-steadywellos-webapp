@@ -223,42 +223,10 @@ fi
 docker buildx inspect multiarch-builder >/dev/null 2>&1 || docker buildx create --name multiarch-builder --use
 docker buildx use multiarch-builder
 
-# Get the latest tags for each architecture
-ARM_TAG=""
-INTEL_TAG=""
-
-if [ -f "$ENV_FILE" ]; then
-	CURRENT_ARM_TAG=$(grep '^ARM_CURRENT_TAG=' "$ENV_FILE" | cut -d '=' -f2)
-	CURRENT_INTEL_TAG=$(grep '^INTEL_CURRENT_TAG=' "$ENV_FILE" | cut -d '=' -f2)
-
-	if [ -n "$CURRENT_ARM_TAG" ]; then
-		ARM_TAG=$(increment_tag "$CURRENT_ARM_TAG" "arm")
-	else
-		ARM_TAG="arm-0.0.1"
-	fi
-
-	if [ -n "$CURRENT_INTEL_TAG" ]; then
-		INTEL_TAG=$(increment_tag "$CURRENT_INTEL_TAG" "intel")
-	else
-		INTEL_TAG="intel-0.0.1"
-	fi
-else
-	ARM_TAG="arm-0.0.1"
-	INTEL_TAG="intel-0.0.1"
-fi
-
-# Option to specify the version
-if [ "$INTERACTIVE" = true ]; then
-    read -p "Version number (e.g., 0.0.1) [leave empty for auto-increment]: " VERSION_NUMBER
-    if [ -n "$VERSION_NUMBER" ]; then
-        ARM_TAG="arm-$VERSION_NUMBER"
-        INTEL_TAG="intel-$VERSION_NUMBER"
-        echo "🏷️  Using version $VERSION_NUMBER for all architectures"
-    fi
-else
-    # Non-interactive mode: use auto-increment (no manual version override)
-    echo "🏷️  Using auto-increment version (non-interactive mode)"
-fi
+# Use latest tag for all architectures
+ARM_TAG="latest"
+INTEL_TAG="latest"
+echo "🏷️  Using 'latest' tag for all architectures"
 
 # Build the docker image locally first using production configuration
 echo "🔨 Building local Docker image with production configuration"
@@ -304,62 +272,10 @@ for ARCH in "${ARCHITECTURES[@]}"; do
 		echo "⏩ Skipping Docker Scout for cross-compiled image (not compatible with different architectures)"
 	fi
 
-	# Update the tag in .env file
-	if [ -f "$ENV_FILE" ]; then
-		# Convert architecture to uppercase for env var
-		if [[ "$ARCH" == "arm" ]]; then
-			TAG_ENV_VAR="ARM_CURRENT_TAG"
-		else
-			TAG_ENV_VAR="INTEL_CURRENT_TAG"
-		fi
-
-		# Check if tag variable already exists in the file
-		if grep -q "^$TAG_ENV_VAR=" "$ENV_FILE"; then
-			# Create a temporary file for the replacement
-			TMP_ENV_FILE=$(mktemp)
-
-			# Use awk for more reliable replacement across platforms
-			awk -v var="$TAG_ENV_VAR" -v val="$TAG" '{
-                if ($0 ~ "^"var"=") {
-                    print var"="val
-                } else {
-                    print $0
-                }
-            }' "$ENV_FILE" >"$TMP_ENV_FILE"
-
-			# Replace the original file
-			mv "$TMP_ENV_FILE" "$ENV_FILE"
-		else
-			# Add tag to the file
-			echo "$TAG_ENV_VAR=$TAG" >>"$ENV_FILE"
-		fi
-		echo "📝 Updated $TAG_ENV_VAR in .env file to: $TAG"
-	fi
+	echo "📝 Using fixed 'latest' tag - no .env file updates needed"
 done
 
-# Create a latest tag that is multi-architecture (if both were built)
-if [ ${#ARCHITECTURES[@]} -gt 1 ]; then
-	echo "🔄 Creating multi-architecture 'latest' tag"
-
-	# Build arguments for the manifest create command
-	MANIFEST_ARGS=("$USERNAME/$REPOSITORY:latest")
-	for ARCH in "${ARCHITECTURES[@]}"; do
-		if [[ "$ARCH" == "arm" ]]; then
-			MANIFEST_ARGS+=("$USERNAME/$REPOSITORY:$ARM_TAG")
-		else
-			MANIFEST_ARGS+=("$USERNAME/$REPOSITORY:$INTEL_TAG")
-		fi
-	done
-
-	# Create and push the manifest
-	docker manifest create --amend "${MANIFEST_ARGS[@]}"
-	docker manifest push "$USERNAME/$REPOSITORY:latest"
-
-	echo "✅ Multi-architecture 'latest' tag created"
-
-	# Note for Quome Cloud deployment
-	echo "📝 Note: For Quome Cloud deployment, use the Intel-specific tag (required for Quome Cloud)"
-fi
+echo "✅ All architectures pushed with 'latest' tag"
 
 # Set repository to private and update description
 echo "🔒 Setting repository visibility to private"
