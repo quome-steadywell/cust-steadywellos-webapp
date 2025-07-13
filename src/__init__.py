@@ -62,6 +62,7 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     from src.api.dashboard import dashboard_bp
     from src.api.webhooks import webhook_bp
     from src.api.backup import backup_bp
+    from src.api.knowledge import knowledge_bp
 
     # Register API blueprints
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
@@ -72,6 +73,7 @@ def create_app(config_object="config.config.DevelopmentConfig"):
     app.register_blueprint(calls_bp, url_prefix="/api/v1/calls")
     app.register_blueprint(dashboard_bp, url_prefix="/api/v1/dashboard")
     app.register_blueprint(backup_bp, url_prefix="/api/v1/backup")
+    app.register_blueprint(knowledge_bp, url_prefix="/api/v1/knowledge")
     app.register_blueprint(webhook_bp)  # Register webhook blueprint
 
     # Web routes
@@ -111,6 +113,15 @@ def create_app(config_object="config.config.DevelopmentConfig"):
         app.logger.error(f"❌ Error initializing database: {e}")
         # Don't raise the exception to allow the app to start even if DB is unavailable
         app.logger.warning("⚠️ Application starting without database initialization")
+
+    # Initialize knowledge base service
+    try:
+        from src.core.knowledge_service import init_knowledge_service
+        init_knowledge_service(app)
+        app.logger.info("✅ Knowledge base service initialized")
+    except Exception as e:
+        app.logger.error(f"❌ Error initializing knowledge base: {e}")
+        app.logger.warning("⚠️ Application starting without knowledge base")
 
     # Shell context
     @app.shell_context_processor
