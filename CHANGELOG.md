@@ -5,6 +5,96 @@ All notable changes to the SteadyWell Palliative Care Platform will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-07-13
+
+### Added
+- **Database Backup and Import Functionality**
+  - New admin-only feature for database backup and restoration
+  - Backup patient data, protocols, and call templates to JSON format
+  - Import functionality with validation and duplicate handling
+  - Accessible via "/api/admin/backup" and "/api/admin/import" endpoints
+  - Comprehensive error handling and logging for audit purposes
+
+- **Code Quality Improvements**
+  - Integrated pre-commit hooks for automatic Black formatting
+  - Ensures consistent code style across the entire codebase
+  - Automatic formatting on commit for improved developer experience
+  - Updated development dependencies including pre-commit
+
+### Changed
+- **Development Workflow**
+  - Enhanced pre-commit configuration with Black formatter
+  - Updated uv.lock with latest pre-commit dependencies
+  - Standardized all Python files with Black formatting (120 character line length)
+
+### Technical Improvements
+- Added comprehensive backup/restore functionality for disaster recovery
+- Improved code maintainability with enforced formatting standards
+- Enhanced development experience with automated code formatting
+
+## [1.4.0] - 2025-06-29
+
+### Added
+- **Database Backup and Import System**
+  - Complete admin-only database backup functionality with export/import capabilities
+  - Timestamped SQL backup files with PC/Mac compatible naming format (`steadywellos_YYYY-MM-DD_HH-MM-SS.sql`)
+  - Secure data-only backups using PostgreSQL's `pg_dump` with `--data-only` and `--column-inserts` flags
+  - Web-based backup management interface with role-based access control
+  - Database import functionality with 2-minute timeout protection to prevent hanging operations
+  - Backup status endpoint providing database size, table count, and tool availability information
+  - Admin-only menu integration with automatic visibility control based on user roles
+  - Comprehensive error handling and user feedback for backup operations
+
+- **PostgreSQL Client Upgrade**
+  - Upgraded Docker image to include PostgreSQL 17 client tools for compatibility with Quome Cloud
+  - Added official PostgreSQL repository configuration for latest client versions
+  - Enhanced Dockerfile with proper package management and security practices
+
+- **Enhanced Security and Audit Logging**
+  - All backup operations are logged through the audit system with user attribution
+  - Role-based access control ensures only administrators can access backup functionality
+  - Secure file handling with temporary file management and automatic cleanup
+
+### Changed
+- **Application Architecture**
+  - Added new backup blueprint (`/api/v1/backup`) with three endpoints: export, import, and status
+  - Enhanced main application factory to register backup routes and functionality
+  - Updated navigation template to include conditional admin-only backup menu item
+  - Improved JavaScript for dynamic UI elements based on user permissions
+
+- **Database Operations**
+  - Enhanced database configuration handling for both local and production environments
+  - Improved error handling for database connectivity and backup tool availability
+  - Added database size and metadata collection for backup status reporting
+
+### Technical Improvements
+- **Pre-commit Integration**
+  - Added Black code formatter as pre-commit hook for consistent code style
+  - Updated dependencies to include pre-commit tools in project requirements
+  - All code automatically formatted to maintain consistent style standards
+
+- **Development Workflow**
+  - Enhanced GitFlow compliance with proper feature branch development
+  - Improved commit message standards without external tool references
+  - Better error handling and timeout management for long-running operations
+
+### Fixed
+- PostgreSQL version compatibility issues between client (v15) and server (v17) on Quome Cloud
+- Role format handling in JavaScript for both quoted and unquoted user role responses
+- Filename parsing in backup downloads for cross-browser compatibility
+- Database import hanging issues by switching to data-only backups and adding timeouts
+
+### Security
+- **Access Control**
+  - Strict admin-only access to all backup functionality through JWT and role decorators
+  - No exposure of sensitive database credentials or internal paths
+  - Secure temporary file handling with automatic cleanup
+
+- **Audit Trail**
+  - Complete audit logging for all backup export and import operations
+  - User attribution and timestamp tracking for security compliance
+  - Operation success/failure logging for administrative oversight
+
 ## [1.3.0] - 2025-06-23
 
 ### Added
@@ -173,6 +263,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Release Notes
+
+### Version 1.5.0 Highlights
+
+This release focuses on operational resilience and code quality improvements:
+
+**💾 Database Backup & Restore**: Added comprehensive backup and import functionality for admin users, enabling disaster recovery and data migration capabilities. The feature supports full patient data, protocols, and call templates backup/restore with proper validation.
+
+**✨ Code Quality Standards**: Implemented automatic code formatting with Black and pre-commit hooks, ensuring consistent code style across the entire codebase and improving the development experience.
+
+**🔧 Development Workflow**: Enhanced the development process with automated formatting on commit, reducing code review friction and maintaining high code quality standards.
 
 ### Version 1.2.0 Highlights
 
