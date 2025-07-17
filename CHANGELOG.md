@@ -5,6 +5,68 @@ All notable changes to the SteadyWell Palliative Care Platform will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2025-07-17
+
+### Added
+- **DOB Verification Security System**
+  - Mandatory date-of-birth verification before any health information is shared during calls
+  - Immediate call termination on incorrect DOB verification for privacy protection
+  - Dynamic variable injection for patient-specific data at call time
+  - Multiple date format support (MM/DD/YYYY, spelled out, abbreviated formats)
+  - No information leakage - agent never reveals correct DOB when verification fails
+  - Comprehensive security documentation with troubleshooting guides
+
+- **Retell AI Agent Management System**
+  - Complete agent management script suite for dynamic agent configuration
+  - Protocol injection service with dynamic variables instead of creating new agents
+  - Agent function copying and configuration utilities
+  - Post-call analysis data extraction and verification tools
+  - Phone number assignment management for agent switching
+
+- **Enhanced Documentation**
+  - Comprehensive DOB verification system documentation with architecture details
+  - Updated scripts documentation with agent management section
+  - Enhanced README with security features overview
+  - Technical implementation guides and troubleshooting documentation
+
+### Fixed
+- **Web Interface Date Display Bug**
+  - Fixed JavaScript timezone-related date parsing causing off-by-one day errors
+  - Added formatDateOfBirth() function for proper YYYY-MM-DD format handling
+  - Resolved DOB display showing 8/11/1975 instead of correct 8/12/1975
+  - Improved date handling for better user experience and data accuracy
+
+- **Published Agent Immutability Issues**
+  - Resolved "Cannot update published LLM" errors by implementing dynamic variables approach
+  - Aligned implementation with Retell AI best practices for published agent management
+  - Refactored from "agent per call" to "data per call" approach for better scalability
+  - Removed problematic transfer_call function that was causing failed transfer attempts
+
+### Changed
+- **Protocol Injection Architecture**
+  - Refactored protocol injection service to use Retell AI dynamic variables
+  - Updated call service to pass comprehensive patient data via dynamic variables
+  - Improved security by ensuring DOB verification before health discussions
+  - Enhanced system reliability by working with Retell AI's versioning system
+
+- **Script Organization**
+  - Moved all agent management scripts to ./scripts directory for better organization
+  - Organized scripts by functionality (agent management, protocol testing, data verification)
+  - Added comprehensive usage examples and documentation for all new scripts
+
+### Security Enhancements
+- **HIPAA Compliance Improvements**
+  - Enhanced patient identity verification with mandatory DOB confirmation
+  - Improved data protection by preventing unauthorized access to health information
+  - Added audit logging for DOB verification attempts and failures
+  - Strengthened call security protocols for patient privacy protection
+
+### Technical Improvements
+- Successfully resolved Retell AI published agent immutability constraints
+- Implemented dynamic variable system for real-time patient data injection
+- Enhanced error handling and logging for better system monitoring
+- Improved system architecture alignment with Retell AI best practices
+
 ## [1.5.0] - 2025-07-13
 
 ### Added
