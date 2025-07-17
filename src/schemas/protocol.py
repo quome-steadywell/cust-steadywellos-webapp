@@ -100,3 +100,5 @@ class ProtocolListSchema(Schema):
     version = fields.Str()
     is_active = fields.Bool()
     created_at = fields.DateTime()
+    questions = fields.List(fields.Dict())
+    interventions = fields.List(fields.Dict())

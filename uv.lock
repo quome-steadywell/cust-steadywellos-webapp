@@ -481,7 +481,7 @@ wheels = [
 
 [[package]]
 name = "cust-steadywellos-webapp"
-version = "1.2.0"
+version = "1.5.0"
 source = { virtual = "." }
 dependencies = [
     { name = "alembic" },
@@ -509,6 +509,7 @@ dependencies = [
     { name = "isort" },
     { name = "langchain" },
     { name = "langchain-community" },
+    { name = "langchain-openai" },
     { name = "marshmallow" },
     { name = "marshmallow-sqlalchemy" },
     { name = "openai" },
@@ -523,6 +524,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "python-json-logger" },
     { name = "requests" },
+    { name = "sentry-sdk" },
     { name = "sqlalchemy" },
     { name = "structlog" },
     { name = "supervisor" },
@@ -556,6 +558,7 @@ requires-dist = [
     { name = "isort", specifier = ">=5.12.0" },
     { name = "langchain", specifier = ">=0.0.329" },
     { name = "langchain-community", specifier = ">=0.0.4" },
+    { name = "langchain-openai", specifier = ">=0.3.27" },
     { name = "marshmallow", specifier = ">=3.20.1" },
     { name = "marshmallow-sqlalchemy", specifier = ">=0.29.0" },
     { name = "openai", specifier = ">=1.3.7" },
@@ -570,6 +573,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "python-json-logger", specifier = ">=2.0.7" },
     { name = "requests", specifier = ">=2.31.0" },
+    { name = "sentry-sdk", specifier = ">=2.32.0" },
     { name = "sqlalchemy", specifier = ">=2.0.23" },
     { name = "structlog", specifier = ">=23.2.0" },
     { name = "supervisor", specifier = ">=4.2.5" },
@@ -1205,7 +1209,7 @@ wheels = [
 
 [[package]]
 name = "langchain-core"
-version = "0.3.65"
+version = "0.3.68"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonpatch" },
@@ -1216,9 +1220,23 @@ dependencies = [
     { name = "tenacity" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/8a/d08c83195d1ef26c42728412ab92ab08211893906b283abce65775e21327/langchain_core-0.3.65.tar.gz", hash = "sha256:54b5e0c8d9bb405415c3211da508ef9cfe0acbe5b490d1b4a15664408ee82d9b", size = 558557, upload-time = "2025-06-10T20:08:28.94Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/20/f5b18a17bfbe3416177e702ab2fd230b7d168abb17be31fb48f43f0bb772/langchain_core-0.3.68.tar.gz", hash = "sha256:312e1932ac9aa2eaf111b70fdc171776fa571d1a86c1f873dcac88a094b19c6f", size = 563041, upload-time = "2025-07-03T17:02:28.704Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/f0/31db18b7b8213266aed926ce89b5bdd84ccde7ee2edf4cab14e3dd2bfcf1/langchain_core-0.3.65-py3-none-any.whl", hash = "sha256:80e8faf6e9f331f8ef728f3fe793549f1d3fb244fcf9e1bdcecab6a6f4669394", size = 438052, upload-time = "2025-06-10T20:08:27.393Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/da/c89be0a272993bfcb762b2a356b9f55de507784c2755ad63caec25d183bf/langchain_core-0.3.68-py3-none-any.whl", hash = "sha256:5e5c1fbef419590537c91b8c2d86af896fbcbaf0d5ed7fdcdd77f7d8f3467ba0", size = 441405, upload-time = "2025-07-03T17:02:27.115Z" },
+]
+
+[[package]]
+name = "langchain-openai"
+version = "0.3.27"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "openai" },
+    { name = "tiktoken" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6f/7b/e65261a08a03dd43f0ef8a539930b56548ac8136e71258c220d3589d1d07/langchain_openai-0.3.27.tar.gz", hash = "sha256:5d5a55adbff739274dfc3a4102925771736f893758f63679b64ae62fed79ca30", size = 753326, upload-time = "2025-06-27T17:56:29.904Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/31/1f0baf6490b082bf4d06f355c5e9c28728931dbf321f3ca03137617a692e/langchain_openai-0.3.27-py3-none-any.whl", hash = "sha256:efe636c3523978c44adc41cf55c8b3766c05c77547982465884d1258afe705df", size = 70368, upload-time = "2025-06-27T17:56:28.726Z" },
 ]
 
 [[package]]
@@ -2070,6 +2088,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/8e/038ccfe29d272b30086b25a4960f757f97122cb2ec42e62b460d02fe98e9/scipy-1.15.3-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:40e54d5c7e7ebf1aa596c374c49fa3135f04648a0caabcb66c52884b943f02b4", size = 36393132, upload-time = "2025-05-08T16:08:15.34Z" },
     { url = "https://files.pythonhosted.org/packages/10/7e/5c12285452970be5bdbe8352c619250b97ebf7917d7a9a9e96b8a8140f17/scipy-1.15.3-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:5e721fed53187e71d0ccf382b6bf977644c533e506c4d33c3fb24de89f5c3ed5", size = 38979503, upload-time = "2025-05-08T16:08:21.513Z" },
     { url = "https://files.pythonhosted.org/packages/81/06/0a5e5349474e1cbc5757975b21bd4fad0e72ebf138c5592f191646154e06/scipy-1.15.3-cp313-cp313t-win_amd64.whl", hash = "sha256:76ad1fb5f8752eabf0fa02e4cc0336b4e8f021e2d5f061ed37d6d264db35e3ca", size = 40308097, upload-time = "2025-05-08T16:08:27.627Z" },
+]
+
+[[package]]
+name = "sentry-sdk"
+version = "2.32.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/10/59/eb90c45cb836cf8bec973bba10230ddad1c55e2b2e9ffa9d7d7368948358/sentry_sdk-2.32.0.tar.gz", hash = "sha256:9016c75d9316b0f6921ac14c8cd4fb938f26002430ac5be9945ab280f78bec6b", size = 334932, upload-time = "2025-06-27T08:10:02.89Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/01/a1/fc4856bd02d2097324fb7ce05b3021fb850f864b83ca765f6e37e92ff8ca/sentry_sdk-2.32.0-py2.py3-none-any.whl", hash = "sha256:6cf51521b099562d7ce3606da928c473643abe99b00ce4cb5626ea735f4ec345", size = 356122, upload-time = "2025-06-27T08:10:01.424Z" },
 ]
 
 [[package]]
