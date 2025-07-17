@@ -115,6 +115,31 @@ def get_webhook_url() -> Optional[str]:
     return webhook_url
 
 
+def check_agent_published(agent_id: str, api_key: str) -> bool:
+    """Check if agent is published.
+    
+    Args:
+        agent_id: The Retell AI agent ID
+        api_key: The Retell AI API key
+        
+    Returns:
+        True if agent is published, False otherwise
+    """
+    try:
+        url = f"https://api.retellai.com/get-agent/{agent_id}"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        agent_data = response.json()
+        return agent_data.get("is_published", False)
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to check agent status: {e}")
+        return False
+
+
 def update_retell_agent_webhook(agent_id: str, webhook_url: str, api_key: str) -> bool:
     """Update the webhook URL for a Retell AI agent.
 
@@ -126,6 +151,14 @@ def update_retell_agent_webhook(agent_id: str, webhook_url: str, api_key: str) -
     Returns:
         True if successful, False otherwise
     """
+    # Check if agent is published
+    if check_agent_published(agent_id, api_key):
+        logger.warning(f"Agent {agent_id} is published and cannot be modified")
+        logger.warning("Published agents are immutable except for version title")
+        logger.warning("Webhook URL changes require creating a new agent version")
+        logger.info("⚠️ Skipping webhook update for published agent")
+        return True  # Return True to indicate this is expected behavior
+    
     # Skip connectivity test - go straight to API call with retries
     # This avoids DNS resolution issues in some environments
     max_retries = 3
@@ -171,6 +204,13 @@ def update_retell_agent_webhook(agent_id: str, webhook_url: str, api_key: str) -
                 try:
                     error_detail = e.response.json()
                     logger.error(f"Error details: {error_detail}")
+                    
+                    # Check for specific published agent error
+                    if "Cannot update published agent" in str(error_detail):
+                        logger.warning("⚠️ Agent is published and cannot be modified")
+                        logger.warning("Published agents are immutable - webhook changes require new version")
+                        return True  # Return True since this is expected for published agents
+                        
                 except:
                     logger.error(f"Response text: {e.response.text}")
             return False

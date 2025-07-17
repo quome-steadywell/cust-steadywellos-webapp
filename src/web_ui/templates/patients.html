@@ -266,6 +266,24 @@
 
 {% block extra_js %}
 <script>
+    // Format date of birth to avoid timezone issues
+    function formatDateOfBirth(dateString) {
+        if (!dateString) return 'Not provided';
+        
+        // If the date is in YYYY-MM-DD format, parse it carefully to avoid timezone issues
+        if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [year, month, day] = dateString.split('-');
+            return `${parseInt(month)}/${parseInt(day)}/${year}`;
+        }
+        
+        // Fallback for other formats
+        try {
+            return new Date(dateString).toLocaleDateString();
+        } catch (e) {
+            return dateString;
+        }
+    }
+
     // Fetch and populate patients
     function loadPatients() {
         const searchTerm = document.getElementById('searchInput').value;
@@ -381,7 +399,7 @@
                     <div class="col-md-6">
                         <h5 class="mb-3">${patient.full_name}</h5>
                         <p><strong>MRN:</strong> ${patient.mrn}</p>
-                        <p><strong>DOB:</strong> ${new Date(patient.date_of_birth).toLocaleDateString()} (${patient.age} years)</p>
+                        <p><strong>DOB:</strong> ${formatDateOfBirth(patient.date_of_birth)} (${patient.age} years)</p>
                         <p><strong>Gender:</strong> ${patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)}</p>
                         <p><strong>Contact:</strong> ${patient.phone_number}</p>
                         <p><strong>Email:</strong> ${patient.email || 'Not provided'}</p>

@@ -47,6 +47,23 @@ This document provides an overview of the scripts used in the SteadwellOS Pallia
 | `protocol_ingest.py` | Imports protocol definitions into the database |
 | `protocol_extractor.py` | Extracts protocol data from the database |
 | `show_protocols.sh` | Displays protocols stored in the database |
+| `test_protocol_injection.py` | Tests the protocol injection service functionality |
+| `update_protocol_names.py` | Updates protocol names in the database |
+| `update_protocols_from_knowledge.py` | Updates protocols from knowledge base |
+| `force_update_protocols.py` | Forces protocol updates in the database |
+
+## Retell AI Agent Management
+
+| Script | Description |
+|--------|-------------|
+| `check_agents.py` | Verifies agent configurations and status |
+| `check_post_call_analysis.py` | Checks post-call analysis configuration |
+| `copy_agent_functions.py` | Copies functions and settings between agents |
+| `create_dynamic_agents.py` | Creates new agents with dynamic variable support |
+| `test_dynamic_variables.py` | Tests dynamic variable injection for calls |
+| `update_agents.py` | Updates agent configurations via API |
+| `update_phone_assignment.py` | Updates phone number assignments to agents |
+| `update_retell_webhook.py` | Updates webhook URLs for Retell AI integration |
 
 ## Data Maintenance
 
@@ -109,4 +126,33 @@ python scripts/check_assessments_data.py
 
 # Check patient records
 python scripts/check_patients.py
+```
+
+### Agent Management
+
+```bash
+# Check agent configurations
+python scripts/check_agents.py
+
+# Create new agents with dynamic variables
+python scripts/create_dynamic_agents.py
+
+# Copy functions between agents
+python scripts/copy_agent_functions.py
+
+# Update phone number assignment
+python scripts/update_phone_assignment.py
+
+# Test dynamic variable injection
+python scripts/test_dynamic_variables.py
+```
+
+### Protocol Testing
+
+```bash
+# Test protocol injection service
+python scripts/test_protocol_injection.py
+
+# Update protocols from knowledge base
+python scripts/update_protocols_from_knowledge.py
 ```

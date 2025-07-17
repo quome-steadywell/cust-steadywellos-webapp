@@ -6,6 +6,7 @@ import requests
 import time
 from typing import Dict, Any, Optional
 from src.utils.logger import get_logger
+from src.services.protocol_injection import ProtocolInjectionService
 
 logger = get_logger()
 
@@ -196,15 +197,32 @@ def make_retell_call(patient: Dict[str, Any]) -> Optional[str]:
     if not phone_number:
         raise ValueError("Patient phone number is missing")
 
+    # Prepare dynamic variables for protocol injection
+    dynamic_variables = {}
+    if make_real_call:
+        logger.info(f"Preparing dynamic variables for patient {patient_id}")
+        try:
+            protocol_service = ProtocolInjectionService()
+            variables_prepared, dynamic_variables = protocol_service.prepare_agent_for_call(patient_id)
+            if not variables_prepared:
+                logger.warning(f"Failed to prepare dynamic variables for patient {patient_id}, proceeding with basic configuration")
+                dynamic_variables = {}
+            else:
+                logger.info(f"Successfully prepared dynamic variables with DOB verification and protocol for patient {patient_id}")
+        except Exception as e:
+            logger.error(f"Error preparing dynamic variables for patient {patient_id}: {e}")
+            logger.warning("Proceeding with basic dynamic variables")
+            dynamic_variables = {}
+
     if make_real_call:
         logger.info(f"REAL CALL MODE: Initiating actual call to {first_name} {last_name} at {phone_number}")
-        return _make_real_retell_call(patient)
+        return _make_real_retell_call(patient, dynamic_variables)
     else:
         logger.info(f"SIMULATION MODE: Would initiate call to {first_name} {last_name} at {phone_number}")
         return _make_simulated_call(patient)
 
 
-def _make_real_retell_call(patient: Dict[str, Any]) -> Optional[str]:
+def _make_real_retell_call(patient: Dict[str, Any], dynamic_variables: Dict[str, Any] = None) -> Optional[str]:
     """Make an actual call using Retell.ai API."""
 
     # Detect runtime environment
@@ -229,6 +247,12 @@ def _make_real_retell_call(patient: Dict[str, Any]) -> Optional[str]:
         else:
             webhook_url = None
         mode = "REMOTE"
+    
+    # Log which agent is being used
+    if dynamic_variables:
+        logger.info(f"Using agent {agent_id} with dynamic variables for DOB verification")
+    else:
+        logger.info(f"Using agent {agent_id} with basic configuration")
 
     # Common configuration
     api_key = os.environ.get("RETELLAI_API_KEY")
@@ -276,12 +300,20 @@ def _make_real_retell_call(patient: Dict[str, Any]) -> Optional[str]:
             "patient_phone": normalized_phone,
             "patient_id": str(patient_id),
         },
-        "retell_llm_dynamic_variables": {
-            "patient_name": first_name,
+    }
+    
+    # Use dynamic variables if available, otherwise fallback to basic variables
+    if dynamic_variables:
+        call_request["retell_llm_dynamic_variables"] = dynamic_variables
+        logger.info(f"Using protocol-specific dynamic variables for patient {patient_id}")
+    else:
+        # Fallback to basic variables for backward compatibility
+        call_request["retell_llm_dynamic_variables"] = {
+            "patient_name": f"{first_name} {last_name}".strip(),
             "phone_number": normalized_phone,
             "email_address": email,
-        },
-    }
+        }
+        logger.info(f"Using basic dynamic variables for patient {patient_id}")
 
     logger.info(f"Making Retell.ai API call with request: {json.dumps(call_request, indent=2)}")
 

@@ -350,6 +350,7 @@ Each protocol includes:
 ## ✨ Features
 
 - **Secure Authentication**: Role-based access control with secure login and auto-logout for healthcare providers
+- **DOB Verification System**: Mandatory date-of-birth verification before any health information is shared during calls
 - **Protocol-Based Care**: Specialized protocols for cancer, heart failure, and COPD patients
 - **Telephony Integration**: Automated calls, voice assessments, and transcription via Retell.ai
 - **AI-Powered Guidance**: Uses RAG models to analyze patient information and suggest interventions
@@ -357,6 +358,19 @@ Each protocol includes:
 - **Comprehensive Dashboard**: Real-time overview of patient status and upcoming tasks
 - **Error Tracking**: Production error monitoring with Sentry integration
 - **Auto-Webhook Configuration**: Automatic webhook URL updates for local/production environments
+
+### 🔒 DOB Verification Security
+
+The platform implements a robust DOB verification system to protect patient privacy:
+
+- **Mandatory Verification**: All calls require successful date-of-birth confirmation before health discussions
+- **Immediate Call Termination**: Incorrect DOB results in automatic call disconnection
+- **Dynamic Variable Injection**: Patient-specific data is injected at call time using Retell AI's dynamic variables
+- **Multiple Format Support**: Accepts various date formats (MM/DD/YYYY, spelled out, abbreviated)
+- **No Information Leakage**: Agent never reveals correct DOB when verification fails
+- **Protocol Integration**: Works seamlessly with all care protocols (cancer, heart failure, COPD)
+
+For detailed technical information, see [DOB Verification System Documentation](docs/dob-verification-system.md).
 
 ## 🔧 Technology Stack
 
