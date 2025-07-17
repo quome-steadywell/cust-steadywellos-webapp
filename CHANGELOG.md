@@ -5,6 +5,32 @@ All notable changes to the SteadyWell Palliative Care Platform will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-07-13
+
+### Added
+- **Database Backup and Import Functionality**
+  - New admin-only feature for database backup and restoration
+  - Backup patient data, protocols, and call templates to JSON format
+  - Import functionality with validation and duplicate handling
+  - Accessible via "/api/admin/backup" and "/api/admin/import" endpoints
+  - Comprehensive error handling and logging for audit purposes
+
+- **Code Quality Improvements**
+  - Integrated pre-commit hooks for automatic Black formatting
+  - Ensures consistent code style across the entire codebase
+  - Automatic formatting on commit for improved developer experience
+  - Updated development dependencies including pre-commit
+
+### Changed
+- **Development Workflow**
+  - Enhanced pre-commit configuration with Black formatter
+  - Updated uv.lock with latest pre-commit dependencies
+  - Standardized all Python files with Black formatting (120 character line length)
+
+### Technical Improvements
+- Added comprehensive backup/restore functionality for disaster recovery
+- Improved code maintainability with enforced formatting standards
+- Enhanced development experience with automated code formatting
 ## [1.4.0] - 2025-06-29
 
 ### Added
@@ -236,6 +262,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Release Notes
+
+### Version 1.5.0 Highlights
+
+This release focuses on operational resilience and code quality improvements:
+
+**💾 Database Backup & Restore**: Added comprehensive backup and import functionality for admin users, enabling disaster recovery and data migration capabilities. The feature supports full patient data, protocols, and call templates backup/restore with proper validation.
+
+**✨ Code Quality Standards**: Implemented automatic code formatting with Black and pre-commit hooks, ensuring consistent code style across the entire codebase and improving the development experience.
+
+**🔧 Development Workflow**: Enhanced the development process with automated formatting on commit, reducing code review friction and maintaining high code quality standards.
 
 ### Version 1.2.0 Highlights
 
